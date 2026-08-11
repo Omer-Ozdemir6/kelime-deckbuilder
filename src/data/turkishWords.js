@@ -31,12 +31,12 @@ const EXPLICIT_TURKISH_WORDS = [
   "OBA", "ODA", "OĞU", "OJE", "OKA", "OKU", "OLA", "OLE", "OMA", "ONA", "ONS", "ORA", "ORK", "ORT", "OSA", "OYA", "ÖÇS", "ÖDE", "ÖKE", "ÖLE", "ÖNE", "ÖRE", "ÖRF", "ÖRÜ", "ÖTE", "ÖZÜ",
   "PAK", "PAL", "PAS", "PAT", "PAY", "PEK", "PES", "PEY", "PİK", "PİL", "PİN", "PİR", "PİS", "PİT", "POZ", "PUL", "PUS", "PÜR",
   "RAD", "RAF", "RAK", "RAM", "RAP", "RAS", "RAY", "RED", "REK", "REM", "REŞ", "REY", "RIZ", "RİC", "RİK", "RİM", "RİS", "RİT", "ROL", "ROZ", "RUH", "RUM", "RUS", "RÜZ",
-  "SAC", "SAÇ", "SAF", "SAĞ", "SAK", "SAL", "SAM", "SAN", "SAP", "SAR", "SAS", "SAT", "SAV", "SAY", "SAZ", "SEK", "SEL", "SEM", "SEN", "SER", "SES", "SET", "SEV", "SEZ", "SIK", "SIR", "SİM", "SİN", "SİS", "SİT", "SİZ", "SOK", "SOL", "SOM", "SON", "SOR", "SOY", "SÖZ", "SUB", "SUK", "SUL", "SUM", "SUN", "SUR", "SUS", "SÜK", "SÜL", "SÜN", "SÜR", "SÜS", "SÜT",
+  "SAC", "SAÇ", "SAF", "SAĞ", "SAK", "SAL", "SAM", "SAN", "SAP", "SAR", "SAS", "SAT", "SAV", "SAY", "SAZ", "SEK", "SEL", "SEM", "SEN", "SER", "SES", "SET", "SEV", "SEZ", "SIK", "SIR", "SİM", "SİN", "SİS", "SİZ", "SOK", "SOL", "SOM", "SON", "SOR", "SOY", "SÖZ", "SUB", "SUK", "SUL", "SUM", "SUN", "SUR", "SUS", "SÜK", "SÜL", "SÜN", "SÜR", "SÜS", "SÜT",
   "ŞAH", "ŞAK", "ŞAN", "ŞAP", "ŞAR", "ŞAT", "ŞEK", "ŞEM", "ŞEN", "ŞER", "ŞEY", "ŞIK", "ŞİR", "ŞİŞ", "ŞOK", "ŞOM", "ŞOV", "ŞUR",
-  "TAÇ", "TAK", "TAL", "TAM", "TAN", "TAP", "TAR", "TAS", "TAŞ", "TAT", "TAV", "TAY", "TEK", "TEL", "TEM", "TEN", "TER", "TEZ", "TIK", "TİM", "TİP", "TİR", "TİZ", "TOK", "TOL", "TON", "TOP", "TOR", "TOZ", "TUL", "TUR", "TUŞ", "TUT", "TUZ", "TÜL", "TÜM", "TÜN", "TÜR", "TÜS", "TÜT", "TÜZ",
+  "TAÇ", "TAK", "TAL", "TAM", "TAN", "TAP", "TAR", "TAS", "TAŞ", "TAT", "TAV", "TAY", "TEK", "TEL", "TEM", "TEN", "TER", "TEZ", "TIK", "TİM", "TİP", "TİR", "TİZ", "TOK", "TOL", "TON", "TOP", "TOR", "TOZ", "TUL", "TUR", "TUŞ", "TUT", "TUZ", "TÜL", "TÜM", "TÜR", "TÜS", "TÜT", "TÜZ",
   "UCA", "UÇU", "UFA", "ULA", "ULU", "UMA", "UMU", "UNA", "URA", "USI", "UTA", "UYA", "UYU", "UZA", "ÜCE", "ÜÇÜ", "ÜLE", "ÜMİ", "ÜNÜ", "ÜRE", "ÜTE", "ÜTÜ", "ÜVE", "ÜYE",
-  "VAF", "VAH", "VAK", "VAN", "VAR", "VAZ", "VER", "VEY", "VIZ", "VİD", "VİR", "VİZ",
-  "YAĞ", "YAK", "YAL", "YAM", "YAN", "YAP", "YAR", "YAS", "YAŞ", "YAT", "YAV", "YAY", "YAZ", "YEK", "YEL", "YEM", "YEN", "YER", "YEŞ", "YET", "YIK", "YIL", "YİT", "YOK", "YOL", "YOM", "YOZ", "YUF", "YUM", "YUR", "YÜK", "YÜN", "YÜZ",
+  "VAH", "VAK", "VAN", "VAR", "VAZ", "VER", "VEY", "VIZ", "VİD", "VİR", "VİZ",
+  "YAĞ", "YAK", "YAL", "YAM", "YAN", "YAP", "YAR", "YAS", "YAŞ", "YAT", "YAV", "YAY", "YAZ", "YEK", "YEL", "YEM", "YEN", "YER", "YEŞ", "YET", "YIK", "YIL", "YİT", "YOK", "YOL", "YOZ", "YUF", "YUM", "YUR", "YÜK", "YÜN", "YÜZ",
   "ZAM", "ZAN", "ZAR", "ZAT", "ZEK", "ZEM", "ZEN", "ZIT", "ZİL", "ZİR", "ZOR", "ZUM",
 
   // 4 Letters
@@ -50,7 +50,9 @@ const EXPLICIT_TURKISH_WORDS = [
   "GAGA", "GAİP", "GALA", "GALE", "GALİ", "GAMA", "GAMZ", "GANİ", "GARP", "GARK", "GAYE", "GAYR", "GAZA", "GAZİ", "GECE", "GEÇE", "GEÇİ", "GEDİ", "GELE", "GELİ", "GEMİ", "GENE", "GENİ", "GERİ", "GETO", "GEZE", "GEZİ", "GIDA", "GİBİ", "GİDE", "GİDİ", "GİNE", "GİRE", "GİRİ", "GİŞE", "GİZİ", "GOLF", "GONC", "GONG", "GÖCE", "GÖÇÜ", "GÖKÜ", "GÖLE", "GÖLÜ", "GÖNÜ", "GÖRE", "GÖRÜ", "GÖZE", "GÖZÜ", "GRAM", "GREV", "GRİP", "GRUP", "GURU", "GÜCÜ", "GÜLE", "GÜLÜ", "GÜME", "GÜMÜ", "GÜNE", "GÜNÜ", "GÜRÜ", "GÜVE", "GÜZE", "GÜZÜ",
   "TEMA", "TEOR", "TEPE", "TERE", "TERİ", "TERS", "TERZ", "TEST", "TESİ", "TİKİ", "TİRE", "TİPİ", "TİTR", "TREK", "TREN", "TRİO", "TRÜF", "TUĞA", "TUNA", "TURA", "TURP", "TÜRÜ",
 
-  // 5 Letters
+  // 5 Letters & Key Words
+  "NAKİL", "NAKIL", "NAKLİ", "NAKLA", "NAKLEN", "NAKLET", "AKİL", "ALİK", "ANİK", "ARİK", "ATİK", "ETİK", "İKNA", "İKRA", "İKTA", "İKAZ", "İLİK", "İNAK", "İNAÇ", "İNAN", "İNAZ", "İRAN", "İRİS", "İSAL", "İSKA", "İTKİ", "NAİF", "NAİP", "NAKİ", "NALİ", "NASİ", "NAZİ",
+  "LAKİN", "İNKAR", "KİLİT", "LAKAP", "KAZAN", "SAKAL", "ASLAN", "KALE", "KLAN", "KLAS", "KASK", "LAKE", "LİRA", "LİSA", "RİCA", "SALA", "SARA", "SIRA", "TANE", "TARA",
   "TESİR", "TESİS", "TEMAŞ", "TEMEL", "TEMİZ", "TEMPO", "TEPİK", "TEPKİ", "TEPSİ", "TEREC", "TERFİ", "TERLİK", "TERÖR", "TESTİ", "TETİK", "TEZGA", "TEZÂT", "TILSIM", "TİLKİ", "TİPİK", "TİTİZ", "TOHUM", "TOKAT", "TORUN", "TORTU", "TOZLU", "TÖREN", "TÖRPÜ", "TÖVBE", "TRAFO", "TRAFİ", "TRAKİ", "TRANŞ", "TRİKO", "TROLİ", "TUĞLA", "TULUM", "TUNÇİ", "TURFA", "TURŞU", "TUTKU", "TUTUM", "TUTUŞ", "TUTAZ", "TUZAK", "TUZLU", "TUZSU", "TÜCCAR", "TÜFEK", "TÜNEL", "TÜRBE", "TÜRKÇ", "TÜTÜN", "TÜVEC",
   "RESİM", "RESMİ", "RESSA", "SEVGİ", "SEVİN", "SEVDA", "SEVGİ", "DENİZ", "DERYA", "DERGİ", "GÜNEŞ", "GÜNDÜ", "GÜZEL", "BİLGİ", "BİLİM", "BİLGE", "KİTAP", "KÂĞIT", "KALEM", "KELİM", "TÜRKÇ", "TOPLU", "TİYAT", "TÖREN", "İNSAN", "YAŞAM", "HAYAT", "ZAMAN", "ÇİÇEK", "AĞAÇL", "ORMAN", "TOPRA", "YILDI", "GEZEG", "ARKAD", "SEVGİ", "MELEK", "YAZAR", "OYUNC", "OYUNL", "KAREM", "KALEM", "MERAK", "KAMER", "SARKMA", "SARMA"
 ];
@@ -58,11 +60,12 @@ const EXPLICIT_TURKISH_WORDS = [
 // Dynamically generated word dictionary Set
 const WORD_SET = new Set(EXPLICIT_TURKISH_WORDS.map(w => w.toUpperCase().trim()));
 
-// Ensure TESİR and key words are explicitly present!
-["TESİR", "TESİS", "TEST", "TESTİ", "TERZİ", "TESBİH", "TESCİL", "TESLİM", "TEŞKİLAT", "TESELLİ", "TESPİT", "TESADÜF", "RESİM", "RESMİ", "SEVGİ", "SEVİNÇ", "SEVDALI", "DENİZ", "GÜNEŞ", "BİLGİ", "BİLİM", "BİLGE", "KİTAP", "KALEM", "KELİME", "TÜRKÇE", "İNSAN", "ZAMAN", "ÇİÇEK", "DOĞA", "YILDIZ", "OYUN", "OYUNCU"].forEach(w => WORD_SET.add(w));
+// Key explicit additions
+["NAKİL", "NAKIL", "NAKLİ", "LAKİN", "TESİR", "TESİS", "TEST", "TESTİ", "TERZİ", "TESBİH", "TESCİL", "TESLİM", "TEŞKİLAT", "TESELLİ", "TESPİT", "TESADÜF", "RESİM", "RESMİ", "SEVGİ", "SEVİNÇ", "SEVDALI", "DENİZ", "GÜNEŞ", "BİLGİ", "BİLİM", "BİLGE", "KİTAP", "KALEM", "KELİME", "TÜRKÇE", "İNSAN", "ZAMAN", "ÇİÇEK", "DOĞA", "YILDIZ", "OYUN", "OYUNCU"].forEach(w => WORD_SET.add(w));
 
 // Common roots for suffix expansion
 const COMMON_ROOTS = [
+  "NAKİL", "NAKIL", "NAK", "LAKİN", "AKIL", "FİKİR", "ŞEHİR", "RESİM", "METİN", "NEFİS", "ÖMÜR", "SABIR", "KAYIP", "KISIM", "KALE",
   "TESİR", "TESİS", "TEST", "TEMA", "TEPE", "TER", "TEK", "TEL", "TEN", "TERZİ", "TEMİZ", "TETİK", "TİLKİ", "TOZ", "TUZ", "TÜRK", "TÜFEK", "TÜR",
   "AK", "AL", "AN", "AR", "AS", "AT", "AV", "AY", "AZ",
   "BA", "BAL", "BAS", "BAŞ", "BAT", "BAY", "BEK", "BEL", "BEN", "BİR", "BİZ", "BOZ", "BOŞ", "BOY", "BUZ",
@@ -83,8 +86,7 @@ const COMMON_ROOTS = [
   "TAÇ", "TAK", "TAM", "TAN", "TAP", "TAR", "TAS", "TAŞ", "TAT", "TAV", "TAY", "TEK", "TEL", "TEN", "TER", "TEZ", "TIK", "TİM", "TİP", "TON", "TOP", "TOZ", "TUR", "TUŞ", "TUT", "TUZ", "TÜL", "TÜM", "TÜR",
   "UCA", "ULA", "ULU", "UMA", "UMU", "UNA", "URA", "UYA", "UYU", "UZA", "ÜÇ", "ÜN", "ÜRE", "ÜTÜ", "ÜYE",
   "VAH", "VAK", "VAN", "VAR", "VAZ", "VER", "VIZ",
-  "YAĞ", "YAK", "YAL", "YAM", "YAN", "YAP", "YAR", "YAS", "YAŞ", "YAT", "YAV", "YAY", "YAZ", "YEK", "YEL", "YEM", "YEN", "YER", "YEŞ", "YET", "YIK", "YIL", "YİT", "YOK", "YOL", "YOZ", "YUK", "YUM", "YUR", "YÜK", "YÜN", "YÜZ",
-  "ZAM", "ZAN", "ZAR", "ZAT", "ZEK", "ZEN", "ZİB", "ZİL", "ZİR", "ZOR"
+  "YAĞ", "YAK", "YAL", "YAM", "YAN", "YAP", "YAR", "YAS", "YAŞ", "YAT", "YAV", "YAY", "YAZ", "YEK", "YEL", "YEM", "YEN", "YER", "YEŞ", "YET", "YIK", "YIL", "YİT", "YOK", "YOL", "YOZ", "YUK", "YUM", "YUR", "YÜK", "YÜN", "YÜZ", "ZAM", "ZAN", "ZAR", "ZAT", "ZEK", "ZEN", "ZİB", "ZİL", "ZİR", "ZOR"
 ];
 
 // Turkish Vowels
@@ -126,6 +128,15 @@ function isMorphologicallyValidTurkishWord(word) {
   let testStr = word.toUpperCase().trim();
 
   if (WORD_SET.has(testStr)) return true;
+
+  // Vowel drop fallback (e.g. NAKLİ -> NAKİL, FİKRİ -> FİKİR, AKLI -> AKIL)
+  if (testStr.length >= 4) {
+    const narrowVowels = ['İ', 'I', 'U', 'Ü'];
+    for (const nv of narrowVowels) {
+      const inserted = testStr.substring(0, testStr.length - 2) + nv + testStr.substring(testStr.length - 2);
+      if (WORD_SET.has(inserted)) return true;
+    }
+  }
 
   const suffixes = [
     "LARINI", "LERİNİ", "LARIN", "LERİN", "LERDE", "LARDA", "LARDAN", "LERDEN", "LERİM", "LARIM", "LARIN", "LERİN",
