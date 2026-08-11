@@ -5,6 +5,7 @@ import { calculateWordScore } from '../game/wordEngine';
 import { getRarityDetails } from '../game/cardData';
 
 export function WordPlayArea({
+  stage = 1,
   selectedCards,
   lastPlayedWord,
   playedWordsThisStage = [],
@@ -17,6 +18,13 @@ export function WordPlayArea({
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   // Real-time projected score calculation
   const scoreBreakdown = calculateWordScore(selectedCards, lastPlayedWord, combo);
+
+  // Dynamic board themes by stage
+  const boardThemeClass = stage >= 7
+    ? 'bg-amber-950/80 border-amber-500/80 shadow-amber-500/20'
+    : stage >= 4
+    ? 'bg-slate-950/80 border-cyan-500/60 shadow-cyan-950/40'
+    : 'bg-slate-950/70 border-slate-700/80 shadow-inner';
 
   return (
     <div className="flex-1 flex flex-col items-center justify-between p-3 relative overflow-hidden bg-slate-900/40">
@@ -103,7 +111,7 @@ export function WordPlayArea({
       {/* Word Rack Area */}
       <div className="w-full flex-1 flex flex-col items-center justify-center my-2 min-h-[140px]">
         {/* Selected Tiles Rack */}
-        <div className="flex flex-wrap items-center justify-center gap-2 max-w-full min-h-[84px] p-2 bg-slate-950/70 border-2 border-dashed border-slate-700/80 rounded-2xl shadow-inner w-full">
+        <div className={`flex flex-wrap items-center justify-center gap-2 max-w-full min-h-[84px] p-2 border-2 border-dashed rounded-2xl transition-all w-full ${boardThemeClass}`}>
           <AnimatePresence mode="popLayout">
             {selectedCards.length === 0 ? (
               <motion.div

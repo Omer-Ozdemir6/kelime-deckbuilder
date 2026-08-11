@@ -77,8 +77,8 @@ export default function App() {
       {/* 2. RUN MAP */}
       {gameState === 'MAP' && (
         <MapScreen
-          mapNodes={mapNodes}
-          currentNodeIndex={currentNodeIndex}
+          mapFloors={gameStateObj.mapFloors}
+          currentFloorIndex={gameStateObj.currentFloorIndex}
           gold={gold}
           starPoints={starPoints}
           onSelectNode={enterMapNode}
@@ -105,6 +105,7 @@ export default function App() {
           />
 
           <WordPlayArea
+            stage={stage}
             selectedCards={selectedCards}
             lastPlayedWord={lastPlayedWord}
             playedWordsThisStage={playedWordsThisStage}

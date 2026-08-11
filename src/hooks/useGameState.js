@@ -38,8 +38,9 @@ export function useGameState() {
   const [selectedDeckId, setSelectedDeckId] = useState('starter_basit');
 
   // Active Run State
-  const [mapNodes, setMapNodes] = useState([]);
-  const [currentNodeIndex, setCurrentNodeIndex] = useState(0);
+  const [mapFloors, setMapFloors] = useState([]);
+  const [currentFloorIndex, setCurrentFloorIndex] = useState(0);
+  const [activeNodeId, setActiveNodeId] = useState(null);
   const [gold, setGold] = useState(20);
   const [lives, setLives] = useState(3); // ♥ ♥ ♥ Lives
   const [activeRelicKeys, setActiveRelicKeys] = useState([]);
@@ -53,6 +54,11 @@ export function useGameState() {
   const [lastPlayedWord, setLastPlayedWord] = useState('');
   const [playedWordsThisStage, setPlayedWordsThisStage] = useState([]);
   const [isFirstWordInStage, setIsFirstWordInStage] = useState(true);
+
+  // Active Boss Rule & Bonus Objective State
+  const [activeBossRule, setActiveBossRule] = useState(null);
+  const [activeBonusObjective, setActiveBonusObjective] = useState(null);
+  const [isBonusCompleted, setIsBonusCompleted] = useState(false);
 
   // Deck collections
   const [fullDeck, setFullDeck] = useState([]);
@@ -103,10 +109,11 @@ export function useGameState() {
   const startNewRun = (deckId = selectedDeckId) => {
     const starter = STARTER_DECKS.find(d => d.id === deckId) || STARTER_DECKS[0];
     const initialCards = createDeckFromLetterList(starter.letters);
-    const newNodes = generateRunMap();
+    const floors = generateRunMap();
 
-    setMapNodes(newNodes);
-    setCurrentNodeIndex(0);
+    setMapFloors(floors);
+    setCurrentFloorIndex(0);
+    setActiveNodeId(floors[0][0].id);
     setGold(20);
     setLives(3);
     setActiveRelicKeys([]);
@@ -116,10 +123,19 @@ export function useGameState() {
   };
 
   /**
-   * Enter a node from the map
+   * Enter a node from the branching map
    */
   const enterMapNode = (node) => {
     soundEngine.playTap();
+    setActiveNodeId(node.id);
+
+    if (node.type === 'TREASURE') {
+      soundEngine.playVictory();
+      setGold(prev => prev + 40);
+      setFeedbackMessage('💰 Hazine Odası! +40 Altın kazandın!');
+      setGameState('DRAFT_REWARD');
+      return;
+    }
     if (node.type === 'SHOP') {
       setGameState('SHOP');
       return;
@@ -129,15 +145,15 @@ export function useGameState() {
       return;
     }
 
-    // Battle / Stage node
+    // Stage Node (Normal / Special / Elite / Boss)
     const stg = node.stage;
-    const bossRule = getBossStageRule(stg);
-    const handSize = bossRule ? bossRule.handSize : 7;
-    const maxHands = bossRule ? bossRule.maxHands : 6;
+    const bossRule = node.bossRule || null;
+    const bonusObj = node.bonusObjective || null;
+    const maxHands = node.maxHandsOverride || (node.type === 'BOSS' ? 8 : 6);
 
     const shuffled = shuffleArray(fullDeck);
-    const drawn = shuffled.slice(0, handSize);
-    const remainingDraw = shuffled.slice(handSize);
+    const drawn = shuffled.slice(0, 7);
+    const remainingDraw = shuffled.slice(7);
 
     setStage(stg);
     setCurrentScore(0);
@@ -148,11 +164,15 @@ export function useGameState() {
     setLastPlayedWord('');
     setPlayedWordsThisStage([]);
     setIsFirstWordInStage(true);
+    setActiveBossRule(bossRule);
+    setActiveBonusObjective(bonusObj);
+    setIsBonusCompleted(false);
 
     setDrawPile(remainingDraw);
     setDiscardPile([]);
     setHand(drawn);
     setSelectedCards([]);
+
     setLastScoreBreakdown(null);
     setFeedbackMessage(`${node.title} Başladı!`);
     setGameState('PLAYING');
@@ -230,13 +250,39 @@ export function useGameState() {
       return;
     }
 
+    // Active Boss Rule Constraint Check
+    if (activeBossRule) {
+      if (activeBossRule.minWordLength && breakdown.word.length < activeBossRule.minWordLength) {
+        soundEngine.playInvalidWord();
+        setFeedbackMessage(`⚠️ ${activeBossRule.title}: En az ${activeBossRule.minWordLength} harfli kelime yazmalısın!`);
+        return;
+      }
+    }
+
+    // Check Bonus Objective Progress
+    let bonusBonusGold = 0;
+    if (activeBonusObjective && !isBonusCompleted) {
+      let isDone = false;
+      if (activeBonusObjective.targetLength && breakdown.word.length >= activeBonusObjective.targetLength) isDone = true;
+      if (activeBonusObjective.targetCombo && breakdown.newCombo >= activeBonusObjective.targetCombo) isDone = true;
+      if (activeBonusObjective.requireRare) {
+        const rareLetters = ['Ş', 'Ğ', 'Ç', 'Ö', 'Ü', 'Z'];
+        if (rareLetters.some(l => breakdown.word.includes(l))) isDone = true;
+      }
+      if (isDone) {
+        setIsBonusCompleted(true);
+        bonusBonusGold = activeBonusObjective.rewardGold || 15;
+      }
+    }
+
     // Valid word played!
     soundEngine.playWordSuccess(combo);
     setIsFirstWordInStage(false);
     setPlayedWordsThisStage(prev => [...prev, breakdown.word.toUpperCase()]);
 
     const newScore = currentScore + breakdown.score;
-    const newGold = gold + (breakdown.goldEarned || 3);
+    const earnedGold = (breakdown.goldEarned || 3) + bonusBonusGold;
+    const newGold = gold + earnedGold;
     const nextHands = handsLeft - 1;
     const nextCombo = breakdown.newCombo;
 
@@ -245,7 +291,10 @@ export function useGameState() {
     setHandsLeft(nextHands);
     setCombo(nextCombo);
     setLastPlayedWord(breakdown.word);
-    setFeedbackMessage(`${breakdown.message} (+${breakdown.goldEarned} 💰 Altın)`);
+
+    let msg = `${breakdown.message} (+${earnedGold} 💰 Altın)`;
+    if (bonusBonusGold > 0) msg += ` 🎉 BONUS HEDEF TAMAMLANDI! (+${bonusBonusGold} 💰)`;
+    setFeedbackMessage(msg);
 
     const newDiscard = [...discardPile, ...selectedCards];
     setSelectedCards([]);
@@ -273,16 +322,23 @@ export function useGameState() {
     }
 
     if (nextHands <= 0) {
-      setFeedbackMessage('Tur kalmadı! Oyun bitti.');
-      setTimeout(() => {
-        setGameState('GAME_OVER');
-      }, 1000);
+      const nextLives = lives - 1;
+      setLives(nextLives);
+      if (nextLives <= 0) {
+        setFeedbackMessage('Can kalmadı! Run bitti.');
+        setTimeout(() => {
+          setGameState('GAME_OVER');
+        }, 1000);
+      } else {
+        setFeedbackMessage(`Tur bitti! -1 Can (Kalan Can: ${nextLives})`);
+        setTimeout(() => {
+          setGameState('MAP');
+        }, 1200);
+      }
       return;
     }
 
-    const bossRule = getBossStageRule(stage);
-    const handSize = bossRule ? bossRule.handSize : 7;
-    const refilled = fillHandFromDrawPile(hand, drawPile, newDiscard, handSize);
+    const refilled = fillHandFromDrawPile(hand, drawPile, newDiscard, 7);
     setHand(refilled.newHand);
     setDrawPile(refilled.newDraw);
     setDiscardPile(refilled.newDiscard);
@@ -383,7 +439,7 @@ export function useGameState() {
   };
 
   const handleLeaveShop = () => {
-    setCurrentNodeIndex(prev => prev + 1);
+    setCurrentFloorIndex(prev => prev + 1);
     setGameState('MAP');
   };
 
@@ -402,7 +458,7 @@ export function useGameState() {
       const randomCard = fullDeck[Math.floor(Math.random() * fullDeck.length)];
       setFullDeck(prev => prev.map(c => c.id === randomCard.id ? createCard(c.letter, (c.upgradeLevel || 0) + 1) : c));
     }
-    setCurrentNodeIndex(prev => prev + 1);
+    setCurrentFloorIndex(prev => prev + 1);
     setGameState('MAP');
   };
 
@@ -419,8 +475,9 @@ export function useGameState() {
   };
 
   return {
-    mapNodes,
-    currentNodeIndex,
+    mapFloors,
+    currentFloorIndex,
+    activeNodeId,
     gold,
     lives,
     activeRelicKeys,
@@ -432,6 +489,9 @@ export function useGameState() {
     combo,
     lastPlayedWord,
     playedWordsThisStage,
+    activeBossRule,
+    activeBonusObjective,
+    isBonusCompleted,
     fullDeck,
     drawPile,
     discardPile,
