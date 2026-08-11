@@ -7,7 +7,7 @@ export function HandCardRack({ handCards, onSelectCard }) {
     <div className="w-full bg-slate-950/95 border-t border-slate-800/90 p-2.5 pt-2 flex flex-col gap-1.5 shadow-2xl backdrop-blur-md">
       {/* Hand header label */}
       <div className="flex items-center justify-between text-[11px] font-semibold text-slate-400 px-1">
-        <span>Eldeki Harfler ({handCards.length})</span>
+        <span>Eldeki Harfler ({handCards.length}/9)</span>
         <span className="text-slate-500">Seçmek için dokun</span>
       </div>
 

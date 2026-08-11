@@ -88,10 +88,10 @@ export const STARTER_DECKS = [
   {
     id: 'starter_basit',
     name: 'Başlangıç Destesi',
-    desc: 'Temel Türkçe harflerden oluşan hızlı ve dengeli deste.',
+    desc: 'Temel Türkçe harflerden oluşan 10 kartlık dengeli deste.',
     icon: '🃏',
     unlocked: true,
-    letters: ['A', 'A', 'E', 'İ', 'K', 'L', 'R', 'S', 'T']
+    letters: ['A', 'A', 'E', 'İ', 'K', 'L', 'R', 'S', 'T', 'N']
   },
   {
     id: 'starter_uzun',

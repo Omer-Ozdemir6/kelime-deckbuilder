@@ -165,8 +165,16 @@ export function calculateWordScore(
 
   // Relic Multipliers
   let relicScoreMultiplier = 1.0;
-  if (activeRelicKeys.includes('ESKI_SOZLUK') && upperWord.length >= 5) {
-    relicScoreMultiplier += 0.3; // +30%
+  if (activeRelicKeys.includes('UZUN_SOZ') && upperWord.length >= 5) {
+    relicScoreMultiplier += 0.25; // +25%
+  }
+  if (activeRelicKeys.includes('KISA_SOZ') && (upperWord.length === 3 || upperWord.length === 4)) {
+    relicScoreMultiplier += 0.20; // +20%
+  }
+  const rareLetters = ['Ş', 'Ğ', 'Ç', 'Ö', 'Ü', 'Z'];
+  const containsRare = rareLetters.some(char => upperWord.includes(char));
+  if (activeRelicKeys.includes('NADIR_MUHUR') && containsRare) {
+    relicScoreMultiplier += 0.30; // +30%
   }
   if (activeRelicKeys.includes('MUREKKEP') && isFirstWordInStage) {
     relicScoreMultiplier *= 2.0; // 2x on first word
@@ -182,7 +190,10 @@ export function calculateWordScore(
   const totalScore = Math.floor(subtotal * currentCombo * relicScoreMultiplier);
 
   // Gold Earned
-  const totalGoldEarned = archetype.gold + (extension ? 4 : 0);
+  let totalGoldEarned = archetype.gold + (extension ? 4 : 0);
+  if (activeRelicKeys.includes('ALTIN_SOZLUK') && upperWord.length >= 5) {
+    totalGoldEarned += 3;
+  }
 
   return {
     isValid: true,

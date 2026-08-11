@@ -94,6 +94,9 @@ export default function App() {
             handsLeft={handsLeft}
             discardsLeft={discardsLeft}
             combo={combo}
+            gold={gold}
+            lives={gameStateObj.lives}
+            activeRelicKeys={activeRelicKeys}
             starPoints={starPoints}
             fullDeckCount={fullDeck.length}
             onOpenDeckInspector={() => setIsDeckInspectorOpen(true)}

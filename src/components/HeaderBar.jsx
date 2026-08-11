@@ -1,6 +1,7 @@
 import React from 'react';
-import { Layers, Flame, RotateCcw, Star, HelpCircle } from 'lucide-react';
+import { Layers, Flame, RotateCcw, Star, Heart, Coins } from 'lucide-react';
 import { getBossStageRule } from '../hooks/useGameState';
+import { RELICS } from '../game/relicData';
 
 export function HeaderBar({
   stage,
@@ -9,6 +10,9 @@ export function HeaderBar({
   handsLeft,
   discardsLeft,
   combo,
+  gold = 20,
+  lives = 3,
+  activeRelicKeys = [],
   starPoints,
   fullDeckCount,
   onOpenDeckInspector,
@@ -19,11 +23,29 @@ export function HeaderBar({
 
   return (
     <header className="w-full bg-slate-950/90 border-b border-slate-800/80 p-3 flex flex-col gap-2 z-10 shadow-lg backdrop-blur-md">
-      {/* Top row: Stage, Boss Tag, Deck Inspector & Stars */}
-      <div className="flex items-center justify-between">
+      {/* Top row: Stage, Hearts, Gold, Combo, Deck & Stars */}
+      <div className="flex items-center justify-between gap-1 flex-wrap">
         <div className="flex items-center gap-2">
+          {/* Stage badge */}
           <div className="px-2.5 py-1 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-400 text-xs font-bold tracking-wider flex items-center gap-1 shadow-sm">
             <span>KADEME {stage}</span>
+          </div>
+
+          {/* Hearts / Lives */}
+          <div className="flex items-center gap-0.5 px-2 py-1 rounded-lg bg-rose-950/50 border border-rose-800/60 text-rose-400 text-xs font-bold">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Heart
+                key={i}
+                size={13}
+                className={i < lives ? 'fill-rose-500 text-rose-500' : 'text-slate-700'}
+              />
+            ))}
+          </div>
+
+          {/* Gold */}
+          <div className="flex items-center gap-1 text-xs font-bold text-yellow-400 bg-yellow-950/50 border border-yellow-800/50 px-2 py-1 rounded-lg">
+            <Coins size={13} className="text-yellow-400 fill-yellow-400" />
+            <span>{gold}</span>
           </div>
 
           {bossRule && (
@@ -59,6 +81,27 @@ export function HeaderBar({
           </button>
         </div>
       </div>
+
+      {/* Active Relics Badges (if any) */}
+      {activeRelicKeys.length > 0 && (
+        <div className="flex items-center gap-1.5 overflow-x-auto py-0.5">
+          <span className="text-[10px] uppercase font-bold text-purple-400 tracking-wider">Emanetler:</span>
+          {activeRelicKeys.map(key => {
+            const rel = RELICS[key];
+            if (!rel) return null;
+            return (
+              <span
+                key={key}
+                title={rel.desc}
+                className="px-2 py-0.5 rounded-md bg-purple-950/70 border border-purple-800 text-purple-200 text-[11px] font-semibold flex items-center gap-1 shrink-0"
+              >
+                <span>{rel.icon}</span>
+                <span>{rel.name}</span>
+              </span>
+            );
+          })}
+        </div>
+      )}
 
       {/* Target Progress Bar */}
       <div className="flex flex-col gap-1">
@@ -98,7 +141,7 @@ export function HeaderBar({
           }`}
         >
           <RotateCcw size={12} />
-          <span>Yenile ({discardsLeft})</span>
+          <span>Kart Değiştir ({discardsLeft})</span>
         </button>
       </div>
     </header>

@@ -41,6 +41,7 @@ export function useGameState() {
   const [mapNodes, setMapNodes] = useState([]);
   const [currentNodeIndex, setCurrentNodeIndex] = useState(0);
   const [gold, setGold] = useState(20);
+  const [lives, setLives] = useState(3); // ♥ ♥ ♥ Lives
   const [activeRelicKeys, setActiveRelicKeys] = useState([]);
 
   const [stage, setStage] = useState(1);
@@ -75,7 +76,10 @@ export function useGameState() {
   };
 
   const fillHandFromDrawPile = useCallback((currentHand, currentDraw, currentDiscard, targetHandSize = 7) => {
-    let needed = targetHandSize - currentHand.length;
+    // Hand limit cap max 9
+    const maxHandCapacity = 9;
+    const effectiveTarget = Math.min(targetHandSize, maxHandCapacity);
+    let needed = effectiveTarget - currentHand.length;
     if (needed <= 0) return { newHand: currentHand, newDraw: currentDraw, newDiscard: currentDiscard };
 
     let pool = [...currentDraw];
@@ -104,6 +108,7 @@ export function useGameState() {
     setMapNodes(newNodes);
     setCurrentNodeIndex(0);
     setGold(20);
+    setLives(3);
     setActiveRelicKeys([]);
     setFullDeck(initialCards);
     setGameState('MAP');
@@ -417,6 +422,7 @@ export function useGameState() {
     mapNodes,
     currentNodeIndex,
     gold,
+    lives,
     activeRelicKeys,
     stage,
     currentScore,
