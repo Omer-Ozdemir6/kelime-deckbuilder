@@ -6,7 +6,8 @@ export function MapScreen({
   currentFloorIndex = 0,
   gold,
   starPoints,
-  onSelectNode
+  onSelectNode,
+  onOpenMainMenu
 }) {
   const currentFloor = mapFloors[currentFloorIndex] || mapFloors[0] || [];
   const [selectedBranchIndex, setSelectedBranchIndex] = useState(0);
@@ -35,6 +36,16 @@ export function MapScreen({
             <Star size={12} className="fill-amber-400 text-amber-400" />
             <span>{starPoints}</span>
           </div>
+
+          {onOpenMainMenu && (
+            <button
+              onClick={onOpenMainMenu}
+              className="p-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition active:scale-95 ml-1"
+              title="Ana Menüye Dön"
+            >
+              🏠
+            </button>
+          )}
         </div>
       </div>
 

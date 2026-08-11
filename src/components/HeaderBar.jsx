@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layers, Flame, RotateCcw, Star, Heart, Coins } from 'lucide-react';
+import { Layers, Flame, RotateCcw, Star, Heart, Coins, Home } from 'lucide-react';
 import { getBossStageRule } from '../hooks/useGameState';
 import { RELICS } from '../game/relicData';
 
@@ -16,7 +16,8 @@ export function HeaderBar({
   starPoints,
   fullDeckCount,
   onOpenDeckInspector,
-  onDiscardHand
+  onDiscardHand,
+  onOpenMainMenu
 }) {
   const progressPercent = Math.min(100, Math.floor((currentScore / targetScore) * 100));
   const bossRule = getBossStageRule(stage);
@@ -69,6 +70,17 @@ export function HeaderBar({
             <Star size={12} className="fill-amber-400 text-amber-400" />
             <span>{starPoints}</span>
           </div>
+
+          {/* Home / Main menu toggle */}
+          {onOpenMainMenu && (
+            <button
+              onClick={onOpenMainMenu}
+              className="p-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition active:scale-95"
+              title="Ana Menüye Dön"
+            >
+              <Home size={14} />
+            </button>
+          )}
 
           {/* Deck inspector toggle */}
           <button

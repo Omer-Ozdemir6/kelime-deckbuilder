@@ -56,21 +56,24 @@ export default function App() {
     handleShopBuyRelic,
     handleLeaveShop,
     handleResolveEvent,
-    unlockDeck
+    unlockDeck,
+    setGameState
   } = gameStateObj;
 
   return (
     <VerticalMobileContainer>
-      {/* 1. START MENU */}
+      {/* 1. MAIN MENU SCREEN */}
       {gameState === 'START_MENU' && (
         <StartMenuModal
           starPoints={starPoints}
           highScore={highScore}
           unlockedDecks={unlockedDecks}
           selectedDeckId={selectedDeckId}
+          hasActiveRun={gameStateObj.mapFloors && gameStateObj.mapFloors.length > 0}
           onSelectDeck={setSelectedDeckId}
           onUnlockDeck={unlockDeck}
           onStartRun={() => startNewRun(selectedDeckId)}
+          onResumeRun={() => setGameState('MAP')}
         />
       )}
 
@@ -82,6 +85,7 @@ export default function App() {
           gold={gold}
           starPoints={starPoints}
           onSelectNode={enterMapNode}
+          onOpenMainMenu={() => setGameState('START_MENU')}
         />
       )}
 
@@ -102,6 +106,7 @@ export default function App() {
             fullDeckCount={fullDeck.length}
             onOpenDeckInspector={() => setIsDeckInspectorOpen(true)}
             onDiscardHand={discardAndRedraw}
+            onOpenMainMenu={() => setGameState('START_MENU')}
           />
 
           <WordPlayArea
