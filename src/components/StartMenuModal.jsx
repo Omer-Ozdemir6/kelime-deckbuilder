@@ -21,176 +21,195 @@ export function StartMenuModal({
   const selectedDeck = STARTER_DECKS.find(d => d.id === selectedDeckId) || STARTER_DECKS[0];
 
   return (
-    <div className="absolute inset-0 bg-slate-950/95 z-50 flex flex-col justify-between p-5 backdrop-blur-md overflow-y-auto">
+    <div className="absolute inset-0 bg-[#050714]/95 z-50 flex flex-col justify-between p-5 backdrop-blur-xl overflow-y-auto relative">
+      {/* Background Ambient Glow Orbs */}
+      <div className="absolute top-10 left-1/2 -translate-x-1/2 w-72 h-72 rounded-full bg-amber-500/10 blur-[100px] pointer-events-none" />
+
       {/* Top Logo & Title */}
-      <div className="flex flex-col items-center text-center mt-3">
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500 via-yellow-400 to-amber-600 flex items-center justify-center text-3xl font-black text-slate-950 shadow-2xl shadow-amber-500/30 mb-3 border-2 border-yellow-200 animate-pulse-glow">
+      <div className="flex flex-col items-center text-center mt-3 relative z-10">
+        <div className="w-18 h-18 rounded-3xl bg-gradient-to-tr from-amber-500 via-yellow-400 to-amber-600 flex items-center justify-center text-3xl font-black text-slate-950 shadow-2xl shadow-amber-500/40 mb-3 border-2 border-yellow-200 animate-pulse-glow">
           🃏
         </div>
 
-        <h1 className="text-3xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400">
+        <h1 className="text-4xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 font-cinzel">
           KELİME DESTESİ
         </h1>
-        <p className="text-xs text-slate-400 font-medium mt-1">
+        <p className="text-xs text-amber-200/80 font-bold mt-1 tracking-widest uppercase">
           Türkçe Harf Roguelite Deckbuilder
         </p>
 
+        {/* Dictionary Badge */}
+        <div className="mt-2 px-3 py-1 bg-amber-500/10 border border-amber-500/30 rounded-full text-[10px] font-black text-amber-300 flex items-center gap-1.5 shadow-sm">
+          <span>📖</span>
+          <span>{getDictionarySize().toLocaleString('tr-TR')} RESMİ TDK KELİME DAHİL</span>
+        </div>
+
         {/* Stats Row */}
         <div className="flex items-center gap-3 mt-4">
-          <div className="flex items-center gap-1.5 bg-amber-950/50 border border-amber-800/60 px-3.5 py-1.5 rounded-full text-xs font-bold text-amber-300 shadow">
+          <div className="flex items-center gap-1.5 bg-amber-950/80 border border-amber-500/40 px-3.5 py-1.5 rounded-2xl text-xs font-black text-amber-300 shadow-md">
             <Star size={14} className="fill-amber-400 text-amber-400" />
             <span>{starPoints} Yıldız</span>
           </div>
 
-          <div className="flex items-center gap-1.5 bg-slate-900 border border-slate-800 px-3.5 py-1.5 rounded-full text-xs font-bold text-emerald-400 shadow">
-            <Trophy size={14} />
+          <div className="flex items-center gap-1.5 bg-slate-900/90 border border-emerald-500/40 px-3.5 py-1.5 rounded-2xl text-xs font-black text-emerald-400 shadow-md">
+            <Trophy size={14} className="text-emerald-400" />
             <span>En Yüksek: {highScore}</span>
           </div>
         </div>
       </div>
 
-      {/* Main Menu Action Buttons (GDD 32 Structure) */}
-      <div className="w-full max-w-sm mx-auto flex flex-col gap-2.5 my-4">
+      {/* Main Menu Action Buttons */}
+      <div className="w-full max-w-sm mx-auto flex flex-col gap-3 my-4 relative z-10">
         {/* 1. DEVAM ET (If run in progress) */}
         {hasActiveRun && (
           <button
             onClick={onResumeRun}
-            className="w-full py-3.5 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-black text-sm transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/40 active:scale-95"
+            className="w-full py-4 px-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-slate-950 font-black text-sm transition flex items-center justify-center gap-2 shadow-xl shadow-emerald-950/50 active:scale-95 border border-emerald-400/50"
           >
             <RotateCcw size={18} />
-            <span>DEVAM ET (RUN İLERLEMESİ)</span>
+            <span>DEVAM ET (KALDIIĞIN YERDEN)</span>
           </button>
         )}
 
         {/* 2. YENİ RUN BAŞLAT */}
         <button
           onClick={() => onStartRun(selectedDeckId)}
-          className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-base transition flex items-center justify-center gap-2 shadow-xl shadow-amber-500/20 active:scale-95 tracking-wide"
+          className="w-full py-4.5 px-6 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-base transition flex items-center justify-center gap-2 shadow-2xl shadow-amber-500/30 active:scale-95 tracking-wider border border-amber-300 animate-pulse-glow"
         >
-          <Play size={20} className="fill-slate-950" />
+          <Play size={22} className="fill-slate-950" />
           <span>YENİ RUN BAŞLAT</span>
         </button>
 
         {/* Selected Deck Summary Info */}
-        <div className="text-[11px] text-amber-300/80 bg-amber-950/40 border border-amber-800/40 px-3 py-1.5 rounded-xl flex items-center justify-between">
-          <span className="flex items-center gap-1 font-bold">
-            <span>{selectedDeck.icon}</span>
+        <div className="text-xs text-amber-300 bg-slate-900/90 border border-amber-500/40 px-3.5 py-2 rounded-2xl flex items-center justify-between shadow-md">
+          <span className="flex items-center gap-2 font-black">
+            <span className="text-base">{selectedDeck.icon}</span>
             <span>Deste: {selectedDeck.name}</span>
           </span>
           <button
             onClick={() => setActiveModal('DECKS')}
-            className="text-[10px] font-extrabold text-amber-400 underline uppercase"
+            className="text-[10px] font-black text-amber-400 hover:underline uppercase bg-amber-500/20 px-2 py-0.5 rounded border border-amber-500/40"
           >
             Değiştir
           </button>
         </div>
 
-        {/* 3. DESTELER */}
+        {/* 3. DESTELER VE KİLİTLER */}
         <button
           onClick={() => setActiveModal('DECKS')}
-          className="w-full py-3 px-4 rounded-2xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-200 font-bold text-xs transition flex items-center justify-between shadow active:scale-95"
+          className="w-full py-3.5 px-4 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-slate-200 font-bold text-xs transition flex items-center justify-between shadow-md active:scale-95"
         >
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 font-extrabold">
             <Layers size={16} className="text-amber-400" />
             <span>DESTELER VE KİLİTLER</span>
           </div>
-          <span className="text-[10px] text-slate-400 bg-slate-950 px-2 py-0.5 rounded border border-slate-800">
+          <span className="text-[10px] font-black text-amber-300 bg-slate-950 px-2.5 py-0.5 rounded-lg border border-slate-800">
             {unlockedDecks.length} / {STARTER_DECKS.length} Açık
           </span>
         </button>
 
-        {/* 4. KOLEKSİYON */}
+        {/* 4. ANANSİ / ANLAM KOLEKSİYONU & EMANETLER */}
         <button
           onClick={() => setActiveModal('COLLECTION')}
-          className="w-full py-3 px-4 rounded-2xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-200 font-bold text-xs transition flex items-center justify-between shadow active:scale-95"
+          className="w-full py-3.5 px-4 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-slate-200 font-bold text-xs transition flex items-center justify-between shadow-md active:scale-95"
         >
-          <div className="flex items-center gap-2">
-            <BookOpen size={16} className="text-purple-400" />
-            <span>KOLEKSİYON (ANSİKLOPEDİ)</span>
+          <div className="flex items-center gap-2 font-extrabold">
+            <BookOpen size={16} className="text-cyan-400" />
+            <span>EMANETLER & ANLAM KOLEKSİYONU</span>
           </div>
-          <span className="text-[10px] text-purple-300 bg-purple-950/50 px-2 py-0.5 rounded border border-purple-800/60">
-            Emanetler & Harfler
+          <span className="text-[10px] font-black text-cyan-300 bg-slate-950 px-2.5 py-0.5 rounded-lg border border-slate-800">
+            {Object.keys(RELICS).length} Emanet
           </span>
-        </button>
-
-        {/* 5. AYARLAR */}
-        <button
-          onClick={() => setActiveModal('SETTINGS')}
-          className="w-full py-3 px-4 rounded-2xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 font-bold text-xs transition flex items-center justify-between shadow active:scale-95"
-        >
-          <div className="flex items-center gap-2">
-            <Settings size={16} className="text-slate-400" />
-            <span>AYARLAR</span>
-          </div>
-          <span className="text-[10px] text-slate-500">Ses & Tercihler</span>
         </button>
       </div>
 
       {/* Footer Info */}
-      <div className="text-center text-[10px] text-slate-500 font-medium">
-        Sözlük: {getDictionarySize()}+ Geçerli Kelime • v1.0.0
+      <div className="text-center text-[10px] text-slate-500 font-semibold relative z-10 pt-2 border-t border-slate-800/60">
+        Kelime Destesi v2.0 • TDK Entegreli Türkçe Harf Roguelite
       </div>
 
-      {/* OVERLAY MODAL 1: DESTELER */}
+      {/* MODAL: DECKS SELECTION */}
       {activeModal === 'DECKS' && (
-        <div className="absolute inset-0 bg-slate-950/95 backdrop-blur-md z-50 p-4 flex flex-col justify-between">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-            <div className="flex items-center gap-2 text-amber-400 font-extrabold text-sm">
-              <Layers size={18} />
+        <div className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-xl p-4 flex flex-col justify-between">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div className="flex items-center gap-2 text-amber-400 font-black text-base font-cinzel">
+              <Layers size={20} />
               <span>BAŞLANGIÇ DESTELERİ</span>
             </div>
-            <button onClick={() => setActiveModal(null)} className="p-1 rounded-full bg-slate-800 text-slate-300">
+            <button
+              onClick={() => setActiveModal(null)}
+              className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center"
+            >
               <X size={16} />
             </button>
           </div>
 
-          <div className="flex-1 my-3 overflow-y-auto flex flex-col gap-2 pr-1">
-            {STARTER_DECKS.map((deck) => {
+          <div className="flex-1 my-3 overflow-y-auto space-y-3 pr-1">
+            {STARTER_DECKS.map(deck => {
               const isUnlocked = unlockedDecks.includes(deck.id);
               const isSelected = selectedDeckId === deck.id;
 
               return (
                 <div
                   key={deck.id}
-                  onClick={() => {
-                    if (isUnlocked) onSelectDeck(deck.id);
-                  }}
-                  className={`p-3 rounded-2xl border-2 transition flex items-center justify-between cursor-pointer ${
-                    isSelected && isUnlocked
-                      ? 'border-amber-400 bg-amber-950/40 shadow-lg'
+                  className={`p-4 rounded-2xl border-2 transition flex flex-col gap-2 relative ${
+                    isSelected
+                      ? 'bg-amber-950/70 border-amber-400 shadow-lg shadow-amber-950/60'
                       : isUnlocked
-                      ? 'border-slate-800 bg-slate-900/90'
-                      : 'border-slate-800 bg-slate-950/60 opacity-75'
+                      ? 'bg-slate-900 border-slate-800 hover:border-slate-700'
+                      : 'bg-slate-950/50 border-slate-900 opacity-60'
                   }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">{deck.icon}</span>
-                    <div className="flex flex-col text-left">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-sm font-extrabold text-slate-100">{deck.name}</span>
-                        {!isUnlocked && (
-                          <span className="px-1.5 py-0.5 rounded bg-rose-950 border border-rose-800 text-rose-300 text-[10px] font-bold">
-                            KİLİTLİ
-                          </span>
-                        )}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">{deck.icon}</span>
+                      <div>
+                        <h3 className="font-extrabold text-sm text-slate-100">{deck.name}</h3>
+                        <p className="text-[11px] text-slate-400 font-medium">{deck.description}</p>
                       </div>
-                      <p className="text-[11px] text-slate-400 line-clamp-1">{deck.desc}</p>
                     </div>
+
+                    {isUnlocked ? (
+                      <button
+                        onClick={() => {
+                          onSelectDeck(deck.id);
+                          setActiveModal(null);
+                        }}
+                        className={`px-3 py-1.5 rounded-xl font-black text-xs transition ${
+                          isSelected
+                            ? 'bg-amber-400 text-slate-950'
+                            : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700'
+                        }`}
+                      >
+                        {isSelected ? 'SEÇİLİ' : 'SEÇ'}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => onUnlockDeck(deck.id, deck.unlockCost)}
+                        disabled={starPoints < deck.unlockCost}
+                        className={`px-3 py-1.5 rounded-xl font-black text-xs transition flex items-center gap-1 ${
+                          starPoints >= deck.unlockCost
+                            ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-md'
+                            : 'bg-slate-900 border border-slate-800 text-slate-600 cursor-not-allowed'
+                        }`}
+                      >
+                        <Lock size={12} />
+                        <span>AÇ ({deck.unlockCost} ⭐)</span>
+                      </button>
+                    )}
                   </div>
 
-                  {!isUnlocked && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onUnlockDeck(deck.id, deck.unlockCost);
-                      }}
-                      disabled={starPoints < deck.unlockCost}
-                      className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-slate-950 font-black text-xs transition shadow shrink-0"
-                    >
-                      <Lock size={12} />
-                      <span>{deck.unlockCost} Yıldız</span>
-                    </button>
-                  )}
+                  {/* Letter list preview */}
+                  <div className="flex items-center gap-1 flex-wrap pt-1">
+                    {deck.letters.map((letObj, idx) => (
+                      <span
+                        key={idx}
+                        className="px-1.5 py-0.5 bg-slate-950 border border-slate-800 rounded font-bold text-[10px] text-amber-300"
+                      >
+                        {letObj.letter || letObj}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               );
             })}
@@ -198,114 +217,51 @@ export function StartMenuModal({
 
           <button
             onClick={() => setActiveModal(null)}
-            className="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition"
+            className="w-full py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-2xl"
           >
             Tamam
           </button>
         </div>
       )}
 
-      {/* OVERLAY MODAL 2: KOLEKSİYON */}
+      {/* MODAL: RELICS & COLLECTION */}
       {activeModal === 'COLLECTION' && (
-        <div className="absolute inset-0 bg-slate-950/95 backdrop-blur-md z-50 p-4 flex flex-col justify-between">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-            <div className="flex items-center gap-2 text-purple-400 font-extrabold text-sm">
-              <BookOpen size={18} />
-              <span>KOLEKSİYON (ANSİKLOPEDİ)</span>
+        <div className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-xl p-4 flex flex-col justify-between">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div className="flex items-center gap-2 text-cyan-400 font-black text-base font-cinzel">
+              <BookOpen size={20} />
+              <span>KUTSAL EMANETLER KÜTÜPHANESİ</span>
             </div>
-            <button onClick={() => setActiveModal(null)} className="p-1 rounded-full bg-slate-800 text-slate-300">
+            <button
+              onClick={() => setActiveModal(null)}
+              className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center"
+            >
               <X size={16} />
             </button>
           </div>
 
-          <div className="flex-1 my-3 overflow-y-auto flex flex-col gap-3 pr-1">
-            <div>
-              <h3 className="text-xs font-black text-purple-300 uppercase tracking-wider mb-1.5">🔮 EMANETLER (RELICS)</h3>
-              <div className="grid grid-cols-2 gap-2">
-                {Object.values(RELICS).map((rel) => (
-                  <div key={rel.id} className="p-2.5 rounded-xl bg-slate-900 border border-purple-900/60 flex flex-col gap-1">
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-purple-200">
-                      <span>{rel.icon}</span>
-                      <span>{rel.name}</span>
-                    </div>
-                    <p className="text-[10px] text-slate-400 leading-tight">{rel.desc}</p>
-                  </div>
-                ))}
+          <div className="flex-1 my-3 overflow-y-auto space-y-3 pr-1">
+            {Object.values(RELICS).map(relic => (
+              <div key={relic.id} className="p-3.5 bg-slate-900 border border-slate-800 rounded-2xl flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-purple-950/80 border border-purple-500/40 text-2xl flex items-center justify-center shrink-0">
+                  {relic.icon}
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-sm text-purple-200">{relic.name}</h4>
+                  <p className="text-xs text-slate-400">{relic.description}</p>
+                </div>
               </div>
-            </div>
-
-            <div>
-              <h3 className="text-xs font-black text-amber-300 uppercase tracking-wider mb-1.5">💎 TÜRKÇE HARFLER VE PUANLARI</h3>
-              <div className="grid grid-cols-4 gap-1.5">
-                {Object.entries(LETTER_DEFINITIONS).map(([letter, def]) => (
-                  <div key={letter} className="p-2 rounded-xl bg-slate-900 border border-slate-800 flex flex-col items-center justify-center">
-                    <span className="text-base font-black text-amber-300">{letter}</span>
-                    <span className="text-[10px] text-slate-400 font-bold">{def.points} Puan</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+            ))}
           </div>
 
           <button
             onClick={() => setActiveModal(null)}
-            className="w-full py-3 rounded-xl bg-purple-500 hover:bg-purple-400 text-slate-950 font-black text-xs transition"
+            className="w-full py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs rounded-2xl"
           >
             Kapat
-          </button>
-        </div>
-      )}
-
-      {/* OVERLAY MODAL 3: AYARLAR */}
-      {activeModal === 'SETTINGS' && (
-        <div className="absolute inset-0 bg-slate-950/95 backdrop-blur-md z-50 p-4 flex flex-col justify-between">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-            <div className="flex items-center gap-2 text-slate-200 font-extrabold text-sm">
-              <Settings size={18} className="text-amber-400" />
-              <span>AYARLAR</span>
-            </div>
-            <button onClick={() => setActiveModal(null)} className="p-1 rounded-full bg-slate-800 text-slate-300">
-              <X size={16} />
-            </button>
-          </div>
-
-          <div className="flex-1 my-3 overflow-y-auto flex flex-col gap-3">
-            <div className="p-3 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                {soundEnabled ? <Volume2 size={18} className="text-emerald-400" /> : <VolumeX size={18} className="text-rose-400" />}
-                <span className="text-xs font-bold text-slate-200">Ses Efektleri (SFX)</span>
-              </div>
-              <button
-                onClick={() => setSoundEnabled(prev => !prev)}
-                className={`px-3 py-1 rounded-xl text-xs font-extrabold border transition ${
-                  soundEnabled ? 'bg-emerald-950 border-emerald-600 text-emerald-300' : 'bg-rose-950 border-rose-600 text-rose-300'
-                }`}
-              >
-                {soundEnabled ? 'AÇIK' : 'KAPALI'}
-              </button>
-            </div>
-
-            <div className="p-3 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <ShieldCheck size={18} className="text-blue-400" />
-                <span className="text-xs font-bold text-slate-200">Dil (Language)</span>
-              </div>
-              <span className="text-xs font-extrabold text-amber-400 bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800">
-                🇹🇷 Türkçe
-              </span>
-            </div>
-          </div>
-
-          <button
-            onClick={() => setActiveModal(null)}
-            className="w-full py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-black text-xs transition"
-          >
-            Kaydet ve Kapat
           </button>
         </div>
       )}
     </div>
   );
 }
-
-

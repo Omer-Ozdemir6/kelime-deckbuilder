@@ -2,22 +2,77 @@
 
 @layer base {
   body {
-    background-color: #0b0f19;
-    color: #f3f4f6;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    background-color: #050711;
+    color: #f8fafc;
+    font-family: 'Outfit', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     user-select: none;
     -webkit-user-select: none;
     overflow-x: hidden;
   }
+
+  h1, h2, h3, .font-cinzel {
+    font-family: 'Cinzel', serif;
+  }
 }
 
-/* Custom animations and card glowing effects */
+/* 3D Tactile Tile Bevel Effects with Foil Shine */
+.tile-bevel-slate {
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.3), inset 0 -3px 5px rgba(0, 0, 0, 0.7), 0 6px 14px rgba(0, 0, 0, 0.6);
+  border: 1.5px solid rgba(71, 85, 105, 0.8);
+}
+
+.tile-bevel-amber {
+  background: linear-gradient(180deg, #92400e 0%, #451a03 100%);
+  box-shadow: inset 0 1px 2px rgba(254, 240, 138, 0.6), inset 0 -3px 5px rgba(0, 0, 0, 0.8), 0 6px 16px rgba(245, 158, 11, 0.35);
+  border: 1.5px solid rgba(251, 191, 36, 0.9);
+}
+
+.tile-bevel-cyan {
+  background: linear-gradient(180deg, #0e7490 0%, #164e63 100%);
+  box-shadow: inset 0 1px 2px rgba(207, 250, 254, 0.6), inset 0 -3px 5px rgba(0, 0, 0, 0.8), 0 6px 16px rgba(6, 182, 212, 0.35);
+  border: 1.5px solid rgba(34, 211, 238, 0.9);
+}
+
+.tile-bevel-purple {
+  background: linear-gradient(180deg, #7e22ce 0%, #3b0764 100%);
+  box-shadow: inset 0 1px 2px rgba(243, 232, 255, 0.6), inset 0 -3px 5px rgba(0, 0, 0, 0.8), 0 6px 16px rgba(168, 85, 247, 0.4);
+  border: 1.5px solid rgba(192, 132, 252, 0.9);
+}
+
+/* Glassmorphism Panel */
+.glass-panel {
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Shimmer & Glow Animations */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.animate-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.animate-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 100%);
+  animation: shimmer 2.2s infinite;
+}
+
 @keyframes pulse-glow {
   0%, 100% {
-    box-shadow: 0 0 15px rgba(234, 179, 8, 0.4);
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.5), 0 0 30px rgba(245, 158, 11, 0.25);
   }
   50% {
-    box-shadow: 0 0 25px rgba(234, 179, 8, 0.8);
+    box-shadow: 0 0 25px rgba(245, 158, 11, 0.9), 0 0 50px rgba(245, 158, 11, 0.5);
   }
 }
 
@@ -27,14 +82,14 @@
 
 @keyframes float-gentle {
   0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-4px); }
+  50% { transform: translateY(-5px); }
 }
 
 .animate-float {
-  animation: float-gentle 3s ease-in-out infinite;
+  animation: float-gentle 3.5s ease-in-out infinite;
 }
 
-/* Custom scrollbars for deck viewer */
+/* Custom scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;

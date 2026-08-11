@@ -10,11 +10,15 @@ import { GameOverModal } from './components/GameOverModal';
 import { MapScreen } from './components/MapScreen';
 import { ShopScreen } from './components/ShopScreen';
 import { EventScreen } from './components/EventScreen';
+import WordMeaningModal from './components/WordMeaningModal';
+import { ObjectiveCompletedToast } from './components/ObjectiveCompletedToast';
+import { RelicTooltipModal } from './components/RelicTooltipModal';
 import { useGameState } from './hooks/useGameState';
 
 export default function App() {
   const gameStateObj = useGameState();
   const [isDeckInspectorOpen, setIsDeckInspectorOpen] = useState(false);
+  const [selectedRelicKey, setSelectedRelicKey] = useState(null);
 
   const {
     mapNodes,
@@ -38,6 +42,11 @@ export default function App() {
     highScore,
     unlockedDecks,
     selectedDeckId,
+    currentWordMeaning,
+    isMeaningModalOpen,
+    goalNotice,
+    activeBiome,
+    activeFloorModifier,
 
     setSelectedDeckId,
     startNewRun,
@@ -57,11 +66,20 @@ export default function App() {
     handleLeaveShop,
     handleResolveEvent,
     unlockDeck,
+    openWordMeaningModal,
+    closeWordMeaningModal,
+    clearGoalNotice,
     setGameState
   } = gameStateObj;
 
   return (
-    <VerticalMobileContainer>
+    <VerticalMobileContainer activeBiome={activeBiome}>
+      {/* TOP OBJECTIVE COMPLETED TOAST */}
+      <ObjectiveCompletedToast
+        goalNotice={goalNotice}
+        onClose={clearGoalNotice}
+      />
+
       {/* 1. MAIN MENU SCREEN */}
       {gameState === 'START_MENU' && (
         <StartMenuModal
@@ -107,6 +125,9 @@ export default function App() {
             onOpenDeckInspector={() => setIsDeckInspectorOpen(true)}
             onDiscardHand={discardAndRedraw}
             onOpenMainMenu={() => setGameState('START_MENU')}
+            onOpenRelicTooltip={(key) => setSelectedRelicKey(key)}
+            activeBiome={activeBiome}
+            activeFloorModifier={activeFloorModifier}
           />
 
           <WordPlayArea
@@ -119,6 +140,8 @@ export default function App() {
             onClearCards={clearSelectedCards}
             onPlayWord={playWord}
             feedbackMessage={feedbackMessage}
+            currentWordMeaning={currentWordMeaning}
+            onOpenMeaningModal={openWordMeaningModal}
           />
 
           <HandCardRack
@@ -126,6 +149,22 @@ export default function App() {
             onSelectCard={selectCardFromHand}
           />
         </>
+      )}
+
+      {/* TDK WORD MEANING MODAL */}
+      {isMeaningModalOpen && (
+        <WordMeaningModal
+          meaningData={currentWordMeaning}
+          onClose={closeWordMeaningModal}
+        />
+      )}
+
+      {/* RELIC TOOLTIP MODAL */}
+      {selectedRelicKey && (
+        <RelicTooltipModal
+          relicKey={selectedRelicKey}
+          onClose={() => setSelectedRelicKey(null)}
+        />
       )}
 
       {/* 4. SHOP SCREEN */}

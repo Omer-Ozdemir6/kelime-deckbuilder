@@ -28,24 +28,27 @@ export function ShopScreen({
   return (
     <div className="flex-1 flex flex-col justify-between p-4 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-100 overflow-y-auto">
       {/* Shop Header */}
-      <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+      <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
         <div className="flex items-center gap-2">
-          <ShoppingBag size={22} className="text-amber-400" />
+          <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400/50 flex items-center justify-center text-amber-300 shadow-md">
+            <ShoppingBag size={20} />
+          </div>
           <div>
-            <h2 className="text-base font-extrabold text-amber-300">DÜKKÂN & ÇARŞI</h2>
-            <p className="text-[10px] text-slate-400">Harf al, perk geliştir, deste incelt.</p>
+            <h2 className="text-lg font-black text-amber-300 font-cinzel tracking-wide">DÜKKÂN & ÇARŞI</h2>
+            <p className="text-[11px] text-slate-400 font-medium">Harf satın al, perk geliştir veya emanet edin.</p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 bg-amber-950/60 border border-amber-800/60 px-3 py-1 rounded-xl text-xs font-bold text-amber-300">
-            <Coins size={14} className="text-amber-400" />
-            <span>{gold} 💰</span>
+          <div className="flex items-center gap-1.5 bg-amber-950/80 border border-amber-500/40 px-3 py-1.5 rounded-2xl text-xs font-black text-amber-300 shadow-md">
+            <Coins size={14} className="text-amber-400 fill-amber-400" />
+            <span>{gold}</span>
           </div>
 
           <button
             onClick={onLeaveShop}
-            className="p-1.5 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 transition"
+            className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 transition active:scale-95"
+            title="Dükkandan Çık"
           >
             <X size={18} />
           </button>

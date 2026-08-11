@@ -5,6 +5,7 @@ import { calculateWordScore } from '../game/wordEngine';
 import { soundEngine } from '../game/audioEngine';
 import { generateRunMap } from '../game/mapGenerator';
 import { RELICS } from '../game/relicData';
+import { getWordMeaning } from '../services/dictionaryService';
 
 export function getStageTargetScore(stage) {
   if (stage === 1) return 50;
@@ -71,6 +72,13 @@ export function useGameState() {
   const [gameState, setGameState] = useState('START_MENU'); // START_MENU | MAP | PLAYING | SHOP | EVENT | DRAFT_REWARD | GAME_OVER
   const [lastScoreBreakdown, setLastScoreBreakdown] = useState(null);
   const [feedbackMessage, setFeedbackMessage] = useState(null);
+  const [currentWordMeaning, setCurrentWordMeaning] = useState(null);
+  const [isMeaningModalOpen, setIsMeaningModalOpen] = useState(false);
+  const [goalNotice, setGoalNotice] = useState(null);
+
+  // Dynamic Biome & Floor Modifier State
+  const [activeBiome, setActiveBiome] = useState(null);
+  const [activeFloorModifier, setActiveFloorModifier] = useState(null);
 
   const shuffleArray = (array) => {
     const arr = [...array];
@@ -150,6 +158,10 @@ export function useGameState() {
     const bossRule = node.bossRule || null;
     const bonusObj = node.bonusObjective || null;
     const maxHands = node.maxHandsOverride || (node.type === 'BOSS' ? 8 : 6);
+
+    // Biome & Modifier
+    if (node.biome) setActiveBiome(node.biome);
+    if (node.modifier) setActiveFloorModifier(node.modifier);
 
     const shuffled = shuffleArray(fullDeck);
     const drawn = shuffled.slice(0, 7);
@@ -272,6 +284,11 @@ export function useGameState() {
       if (isDone) {
         setIsBonusCompleted(true);
         bonusBonusGold = activeBonusObjective.rewardGold || 15;
+        setGoalNotice({
+          title: activeBonusObjective.title || 'BONUS HEDEF TAMAMLANDI!',
+          description: activeBonusObjective.desc || `${breakdown.word} kelimesi ile hedef başarıldı!`,
+          rewardGold: bonusBonusGold
+        });
       }
     }
 
@@ -291,6 +308,13 @@ export function useGameState() {
     setHandsLeft(nextHands);
     setCombo(nextCombo);
     setLastPlayedWord(breakdown.word);
+
+    // Fetch TDK Word Meaning asynchronously
+    getWordMeaning(breakdown.word).then(meaning => {
+      if (meaning) {
+        setCurrentWordMeaning(meaning);
+      }
+    });
 
     let msg = `${breakdown.message} (+${earnedGold} 💰 Altın)`;
     if (bonusBonusGold > 0) msg += ` 🎉 BONUS HEDEF TAMAMLANDI! (+${bonusBonusGold} 💰)`;
@@ -313,6 +337,12 @@ export function useGameState() {
         setHighScore(newScore);
         localStorage.setItem('kd_high_score', newScore.toString());
       }
+
+      setGoalNotice({
+        title: `KADEME ${stage} HEDEFİ TAMAMLANDI!`,
+        description: `${targetScore} Puan Barajı Başarıyla Geçildi!`,
+        rewardStars: earnedStars
+      });
 
       setFeedbackMessage(`🎉 KADEME TAMAMLAMDI! +${earnedStars} Yıldız Puanı`);
       setTimeout(() => {
@@ -371,7 +401,7 @@ export function useGameState() {
   // Stage Draft Reward
   const advanceAfterDraft = (updatedDeck) => {
     setFullDeck(updatedDeck);
-    setCurrentNodeIndex(prev => prev + 1);
+    setCurrentFloorIndex(prev => prev + 1);
     setGameState('MAP');
   };
 
@@ -474,6 +504,26 @@ export function useGameState() {
     }
   };
 
+  const openWordMeaningModal = async (wordToLookup) => {
+    const target = wordToLookup || lastPlayedWord;
+    if (!target) return;
+    soundEngine.playTap();
+    const meaning = await getWordMeaning(target);
+    if (meaning) {
+      setCurrentWordMeaning(meaning);
+      setIsMeaningModalOpen(true);
+    }
+  };
+
+  const closeWordMeaningModal = () => {
+    soundEngine.playTap();
+    setIsMeaningModalOpen(false);
+  };
+
+  const clearGoalNotice = () => {
+    setGoalNotice(null);
+  };
+
   return {
     mapFloors,
     currentFloorIndex,
@@ -504,6 +554,11 @@ export function useGameState() {
     highScore,
     unlockedDecks,
     selectedDeckId,
+    currentWordMeaning,
+    isMeaningModalOpen,
+    goalNotice,
+    activeBiome,
+    activeFloorModifier,
 
     setSelectedDeckId,
     startNewRun,
@@ -523,6 +578,9 @@ export function useGameState() {
     handleLeaveShop,
     handleResolveEvent,
     unlockDeck,
+    openWordMeaningModal,
+    closeWordMeaningModal,
+    clearGoalNotice,
     setGameState
   };
 }
