@@ -431,6 +431,7 @@ export function useGameState() {
     discardsLeft,
     combo,
     lastPlayedWord,
+    playedWordsThisStage,
     fullDeck,
     drawPile,
     discardPile,

@@ -1,30 +1,104 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, RefreshCw, Sparkles, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Play, RefreshCw, Sparkles, CheckCircle2, AlertCircle, BookOpen, X, History } from 'lucide-react';
 import { calculateWordScore } from '../game/wordEngine';
 import { getRarityDetails } from '../game/cardData';
 
 export function WordPlayArea({
   selectedCards,
   lastPlayedWord,
+  playedWordsThisStage = [],
   combo,
   onUnselectCard,
   onClearCards,
   onPlayWord,
   feedbackMessage
 }) {
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
   // Real-time projected score calculation
   const scoreBreakdown = calculateWordScore(selectedCards, lastPlayedWord, combo);
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-between p-4 relative overflow-hidden bg-slate-900/40">
-      {/* Played Word History / Chain notification */}
-      {lastPlayedWord && (
-        <div className="text-[11px] font-medium text-slate-400 flex items-center gap-1.5 bg-slate-950/60 px-3 py-1 rounded-full border border-slate-800/80 mb-1">
-          <span className="text-slate-500">Son Kelime:</span>
-          <span className="font-bold text-amber-400 tracking-wider">{lastPlayedWord}</span>
-        </div>
-      )}
+    <div className="flex-1 flex flex-col items-center justify-between p-3 relative overflow-hidden bg-slate-900/40">
+      {/* Played Words History Bar & Modal Toggle */}
+      <div className="w-full flex items-center justify-between gap-2 px-1 mb-1">
+        {playedWordsThisStage.length > 0 ? (
+          <div className="flex-1 flex items-center gap-1.5 overflow-x-auto py-1 scrollbar-none">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider shrink-0 flex items-center gap-1">
+              <History size={11} className="text-amber-400" />
+              Kelimeler ({playedWordsThisStage.length}):
+            </span>
+            {playedWordsThisStage.map((w, idx) => (
+              <span
+                key={`${w}_${idx}`}
+                className="px-2 py-0.5 rounded-full bg-slate-950/80 border border-slate-800 text-amber-300 font-extrabold text-[11px] tracking-wide shrink-0 shadow-sm"
+              >
+                {w}
+              </span>
+            ))}
+          </div>
+        ) : (
+          <div className="text-[11px] text-slate-500 italic">Henüz kelime yazılmadı</div>
+        )}
+
+        {playedWordsThisStage.length > 0 && (
+          <button
+            onClick={() => setShowHistoryModal(true)}
+            className="px-2 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-slate-300 text-[10px] font-bold flex items-center gap-1 shrink-0 transition"
+            title="Tüm Yazılan Kelimeleri Göster"
+          >
+            <BookOpen size={12} className="text-amber-400" />
+            <span>Tümü</span>
+          </button>
+        )}
+      </div>
+
+      {/* History Modal Overlay */}
+      <AnimatePresence>
+        {showHistoryModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-slate-950/95 backdrop-blur-md z-30 p-4 flex flex-col justify-between"
+          >
+            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+              <div className="flex items-center gap-2 text-amber-400 font-extrabold text-sm">
+                <BookOpen size={18} />
+                <span>BU BÖLÜMDE YAZILAN KELİMELER ({playedWordsThisStage.length})</span>
+              </div>
+              <button
+                onClick={() => setShowHistoryModal(false)}
+                className="p-1 rounded-full bg-slate-800 text-slate-300 hover:bg-slate-700"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="flex-1 my-3 overflow-y-auto grid grid-cols-2 gap-2 pr-1">
+              {playedWordsThisStage.map((word, index) => (
+                <div
+                  key={`${word}_modal_${index}`}
+                  className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between gap-2 shadow-sm"
+                >
+                  <span className="text-xs font-bold text-slate-500">#{index + 1}</span>
+                  <span className="text-sm font-extrabold text-amber-300 tracking-wider">{word}</span>
+                  <span className="text-[10px] text-slate-400 bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800">
+                    {word.length} Harf
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setShowHistoryModal(false)}
+              className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition"
+            >
+              Kapat
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Word Rack Area */}
       <div className="w-full flex-1 flex flex-col items-center justify-center my-2 min-h-[140px]">

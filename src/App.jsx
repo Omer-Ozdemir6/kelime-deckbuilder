@@ -28,6 +28,7 @@ export default function App() {
     discardsLeft,
     combo,
     lastPlayedWord,
+    playedWordsThisStage,
     fullDeck,
     hand,
     selectedCards,
@@ -106,6 +107,7 @@ export default function App() {
           <WordPlayArea
             selectedCards={selectedCards}
             lastPlayedWord={lastPlayedWord}
+            playedWordsThisStage={playedWordsThisStage}
             combo={combo}
             onUnselectCard={unselectCard}
             onClearCards={clearSelectedCards}
