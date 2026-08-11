@@ -10,9 +10,20 @@ function getAudioContext() {
     }
   }
   if (audioCtx && audioCtx.state === 'suspended') {
-    audioCtx.resume();
+    audioCtx.resume().catch(() => {});
   }
   return audioCtx;
+}
+
+if (typeof window !== 'undefined') {
+  const unlockAudio = () => {
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume().catch(() => {});
+    }
+  };
+  window.addEventListener('click', unlockAudio, { passive: true });
+  window.addEventListener('touchstart', unlockAudio, { passive: true });
+  window.addEventListener('keydown', unlockAudio, { passive: true });
 }
 
 export const soundEngine = {
@@ -180,5 +191,9 @@ export const soundEngine = {
         osc.stop(ctx.currentTime + idx * 0.08 + 0.25);
       });
     } catch (e) {}
+  },
+
+  playSuccess() {
+    this.playVictory();
   }
 };

@@ -13,7 +13,8 @@ export function StartMenuModal({
   onSelectDeck,
   onUnlockDeck,
   onStartRun,
-  onResumeRun
+  onResumeRun,
+  onOpenCodex
 }) {
   const [activeModal, setActiveModal] = useState(null); // null | 'DECKS' | 'COLLECTION' | 'SETTINGS'
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -64,61 +65,33 @@ export function StartMenuModal({
         {hasActiveRun && (
           <button
             onClick={onResumeRun}
-            className="w-full py-4 px-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-slate-950 font-black text-sm transition flex items-center justify-center gap-2 shadow-xl shadow-emerald-950/50 active:scale-95 border border-emerald-400/50"
+            className="w-full py-4 px-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-slate-950 font-black text-sm transition flex items-center justify-center gap-2 shadow-xl shadow-emerald-950/50 active:scale-95 border border-emerald-400/50 cursor-pointer"
           >
             <RotateCcw size={18} />
-            <span>DEVAM ET (KALDIIĞIN YERDEN)</span>
+            <span>DEVAM ET (KALDIĞIN YERDEN)</span>
           </button>
         )}
 
         {/* 2. YENİ RUN BAŞLAT */}
         <button
           onClick={() => onStartRun(selectedDeckId)}
-          className="w-full py-4.5 px-6 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-base transition flex items-center justify-center gap-2 shadow-2xl shadow-amber-500/30 active:scale-95 tracking-wider border border-amber-300 animate-pulse-glow"
+          className="w-full py-4.5 px-6 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-base transition flex items-center justify-center gap-2 shadow-2xl shadow-amber-500/30 active:scale-95 tracking-wider border border-amber-300 animate-pulse-glow cursor-pointer"
         >
           <Play size={22} className="fill-slate-950" />
           <span>YENİ RUN BAŞLAT</span>
         </button>
 
-        {/* Selected Deck Summary Info */}
-        <div className="text-xs text-amber-300 bg-slate-900/90 border border-amber-500/40 px-3.5 py-2 rounded-2xl flex items-center justify-between shadow-md">
-          <span className="flex items-center gap-2 font-black">
-            <span className="text-base">{selectedDeck.icon}</span>
-            <span>Deste: {selectedDeck.name}</span>
-          </span>
-          <button
-            onClick={() => setActiveModal('DECKS')}
-            className="text-[10px] font-black text-amber-400 hover:underline uppercase bg-amber-500/20 px-2 py-0.5 rounded border border-amber-500/40"
-          >
-            Değiştir
-          </button>
-        </div>
-
-        {/* 3. DESTELER VE KİLİTLER */}
+        {/* 3. ANSİKLOPEDİ & KOLEKSİYON MÜZESİ */}
         <button
-          onClick={() => setActiveModal('DECKS')}
-          className="w-full py-3.5 px-4 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-slate-200 font-bold text-xs transition flex items-center justify-between shadow-md active:scale-95"
-        >
-          <div className="flex items-center gap-2 font-extrabold">
-            <Layers size={16} className="text-amber-400" />
-            <span>DESTELER VE KİLİTLER</span>
-          </div>
-          <span className="text-[10px] font-black text-amber-300 bg-slate-950 px-2.5 py-0.5 rounded-lg border border-slate-800">
-            {unlockedDecks.length} / {STARTER_DECKS.length} Açık
-          </span>
-        </button>
-
-        {/* 4. ANANSİ / ANLAM KOLEKSİYONU & EMANETLER */}
-        <button
-          onClick={() => setActiveModal('COLLECTION')}
-          className="w-full py-3.5 px-4 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-slate-200 font-bold text-xs transition flex items-center justify-between shadow-md active:scale-95"
+          onClick={() => { if (onOpenCodex) onOpenCodex(); else setActiveModal('COLLECTION'); }}
+          className="w-full py-3.5 px-4 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-slate-200 font-bold text-xs transition flex items-center justify-between shadow-md active:scale-95 cursor-pointer"
         >
           <div className="flex items-center gap-2 font-extrabold">
             <BookOpen size={16} className="text-cyan-400" />
-            <span>EMANETLER & ANLAM KOLEKSİYONU</span>
+            <span>SÖZLÜK ANSİKLOPEDİSİ & KOLEKSİYON</span>
           </div>
           <span className="text-[10px] font-black text-cyan-300 bg-slate-950 px-2.5 py-0.5 rounded-lg border border-slate-800">
-            {Object.keys(RELICS).length} Emanet
+            ANSİKLOPEDİ 📖
           </span>
         </button>
       </div>

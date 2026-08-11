@@ -46,9 +46,9 @@ export function DraftRewardModal({
   };
 
   return (
-    <div className="absolute inset-0 bg-slate-950/95 z-50 flex flex-col p-4 backdrop-blur-md animate-fade-in overflow-y-auto">
+    <div className="absolute inset-0 bg-slate-950/95 z-50 flex flex-col p-4 backdrop-blur-md animate-fade-in overflow-hidden">
       {/* Stage Cleared Header */}
-      <div className="text-center my-3">
+      <div className="text-center my-3 shrink-0">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950 border border-emerald-500/50 text-emerald-400 text-xs font-bold mb-1">
           <Sparkles size={14} />
           <span>KADEME {stage - 1} TAMAMLAMDI</span>
@@ -58,7 +58,7 @@ export function DraftRewardModal({
       </div>
 
       {/* 3 Main Deckbuilder Action Tabs */}
-      <div className="grid grid-cols-3 gap-2 my-3">
+      <div className="grid grid-cols-3 gap-2 my-2 shrink-0">
         <button
           onClick={() => setActiveTab('ADD')}
           className={`flex flex-col items-center gap-1 p-2.5 rounded-xl border text-xs font-bold transition ${
@@ -97,12 +97,12 @@ export function DraftRewardModal({
       </div>
 
       {/* Tab Contents */}
-      <div className="flex-1 flex flex-col justify-between my-2 overflow-y-auto">
+      <div className="flex-1 flex flex-col justify-between my-2 overflow-y-auto overflow-x-hidden p-1 scrollbar-thin">
         {/* ADD TAB */}
         {activeTab === 'ADD' && (
           <div className="flex flex-col gap-3">
             <p className="text-xs text-slate-400 text-center">Destene yeni bir harf veya özel kart ekle:</p>
-            <div className="grid grid-cols-3 gap-2.5">
+            <div className="grid grid-cols-3 gap-2">
               {addOptions.map((optKey) => {
                 const isSpec = !!SPECIAL_CARDS[optKey];
                 const spec = SPECIAL_CARDS[optKey];
@@ -114,9 +114,9 @@ export function DraftRewardModal({
                   <button
                     key={optKey}
                     onClick={() => setSelectedAddOption(optKey)}
-                    className={`flex flex-col items-center justify-between p-3 rounded-2xl border-2 transition-all cursor-pointer relative min-h-[130px] ${
+                    className={`flex flex-col items-center justify-between p-2.5 rounded-2xl border-2 transition-all cursor-pointer relative min-h-[130px] ${
                       isSelected
-                        ? 'border-amber-400 bg-amber-950/40 shadow-lg scale-105'
+                        ? 'border-amber-400 ring-2 ring-amber-400 bg-amber-950/50 shadow-lg'
                         : 'border-slate-800 bg-slate-900/80 hover:border-slate-700'
                     }`}
                   >
@@ -155,7 +155,7 @@ export function DraftRewardModal({
                     onClick={() => setSelectedUpgradeCardId(card.id)}
                     className={`p-2 rounded-xl border-2 flex flex-col items-center justify-center gap-1 transition ${
                       isSelected
-                        ? 'border-emerald-400 bg-emerald-950/60 shadow-lg scale-105'
+                        ? 'border-emerald-400 ring-2 ring-emerald-400 bg-emerald-950/60 shadow-lg'
                         : 'border-slate-800 bg-slate-900 hover:border-slate-700'
                     }`}
                   >
@@ -183,7 +183,7 @@ export function DraftRewardModal({
                     onClick={() => setSelectedRemoveCardId(card.id)}
                     className={`p-2 rounded-xl border-2 flex flex-col items-center justify-center gap-1 transition ${
                       isSelected
-                        ? 'border-rose-500 bg-rose-950/60 shadow-lg scale-105'
+                        ? 'border-rose-500 ring-2 ring-rose-500 bg-rose-950/60 shadow-lg'
                         : 'border-slate-800 bg-slate-900 hover:border-slate-700'
                     }`}
                   >

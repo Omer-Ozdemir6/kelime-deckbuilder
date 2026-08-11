@@ -5,7 +5,7 @@ export const RELICS = {
     id: 'UZUN_SOZ',
     name: 'Uzun Söz Mührü',
     icon: '📜',
-    cost: 55,
+    cost: 75,
     desc: '5 harf ve üzerindeki kelimeler +25% ekstra puan kazandırır.',
     bgGradient: 'from-amber-700 to-yellow-900'
   },
@@ -13,7 +13,7 @@ export const RELICS = {
     id: 'KISA_SOZ',
     name: 'Kısa Söz Tılsımı',
     icon: '⚡',
-    cost: 45,
+    cost: 65,
     desc: '3-4 harfli hızlı kelimeler +20% ekstra puan kazandırır.',
     bgGradient: 'from-sky-700 to-cyan-900'
   },
@@ -21,7 +21,7 @@ export const RELICS = {
     id: 'MUREKKEP',
     name: 'Sihirli Mürekkep',
     icon: '✒️',
-    cost: 65,
+    cost: 95,
     desc: 'Her kademedeki ilk kelime 2x puan kazandırır.',
     bgGradient: 'from-blue-700 to-indigo-900'
   },
@@ -29,7 +29,7 @@ export const RELICS = {
     id: 'NADIR_MUHUR',
     name: 'Nadir Mühür',
     icon: '💎',
-    cost: 75,
+    cost: 110,
     desc: 'Ş, Ğ, Ç, Ö, Ü, Z harflerini içeren kelimeler +30% bonus puan verir.',
     bgGradient: 'from-purple-700 to-pink-900'
   },
@@ -37,7 +37,7 @@ export const RELICS = {
     id: 'KESKIN_KALEM',
     name: 'Keskin Kalem',
     icon: '✏️',
-    cost: 50,
+    cost: 75,
     desc: 'Nadir ve Çok Nadir harfler +3 ekstra taban puan verir.',
     bgGradient: 'from-emerald-700 to-teal-900'
   },
@@ -45,7 +45,7 @@ export const RELICS = {
     id: 'SERI_KATIP',
     name: 'Seri Kâtip',
     icon: '🔥',
-    cost: 60,
+    cost: 85,
     desc: 'Kombo çarpanı her başarılı kelimede +2 artar.',
     bgGradient: 'from-red-700 to-rose-900'
   },
@@ -53,9 +53,33 @@ export const RELICS = {
     id: 'ALTIN_SOZLUK',
     name: 'Altın Sözlük',
     icon: '💰',
-    cost: 70,
+    cost: 90,
     desc: '5+ harfli her başarılı kelime +3 ekstra altın kazandırır.',
     bgGradient: 'from-yellow-600 to-amber-800'
+  },
+  ZINCIR_USTASI: {
+    id: 'ZINCIR_USTASI',
+    name: 'Zincir Ustası',
+    icon: '🔗',
+    cost: 95,
+    desc: 'Kelime zincirlerinde (Uzatma veya Dönüştürme) +30% ekstra puan verir.',
+    bgGradient: 'from-orange-600 to-amber-900'
+  },
+  BANKACI: {
+    id: 'BANKACI',
+    name: 'Usta Bankacı',
+    icon: '🏦',
+    cost: 85,
+    desc: 'Harf Bankasından kullanılan harf içeren kelimeler +40% bonus puan kazandırır.',
+    bgGradient: 'from-emerald-600 to-teal-900'
+  },
+  CIFT_HARF: {
+    id: 'CIFT_HARF',
+    name: 'Çift Harf Mührü',
+    icon: '👯',
+    cost: 70,
+    desc: 'Aynı harfi 2 veya daha fazla kez içeren kelimeler +25% bonus puan kazandırır.',
+    bgGradient: 'from-purple-600 to-indigo-900'
   }
 };
 

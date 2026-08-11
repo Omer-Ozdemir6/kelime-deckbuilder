@@ -7,13 +7,13 @@ export function ObjectiveCompletedToast({ goalNotice, onClose }) {
     if (!goalNotice) return;
     const timer = setTimeout(() => {
       onClose();
-    }, 4000); // Auto dismiss after 4s
+    }, 4500); // Auto dismiss after 4.5s
     return () => clearTimeout(timer);
   }, [goalNotice, onClose]);
 
   if (!goalNotice) return null;
 
-  const { title, description, rewardGold, rewardStars } = goalNotice;
+  const { title, description, category = 'BAŞARIM TAMAMLANDI', rewardGold, rewardStars, rewardSecret } = goalNotice;
 
   return (
     <AnimatePresence>
@@ -23,29 +23,36 @@ export function ObjectiveCompletedToast({ goalNotice, onClose }) {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -80, scale: 0.9 }}
           transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-          className="relative bg-gradient-to-r from-amber-950 via-slate-900 to-amber-950 border-2 border-amber-400 rounded-2xl p-3.5 shadow-[0_10px_30px_rgba(245,158,11,0.4)] backdrop-blur-xl flex items-center justify-between gap-3 text-slate-100 overflow-hidden"
+          className="relative bg-gradient-to-r from-amber-950 via-slate-900 to-amber-950 border-2 border-amber-400 rounded-2xl p-3.5 shadow-[0_10px_35px_rgba(245,158,11,0.5)] backdrop-blur-xl flex items-center justify-between gap-3 text-slate-100 overflow-hidden"
         >
           {/* Shimmer overlay */}
-          <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.15)_50%,transparent_100%)] animate-shimmer pointer-events-none" />
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.18)_50%,transparent_100%)] animate-shimmer pointer-events-none" />
 
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400/60 text-amber-300 flex items-center justify-center shrink-0 shadow-inner">
-              <Trophy size={20} className="text-amber-400 animate-bounce" />
+            <div className="w-11 h-11 rounded-xl bg-amber-500/25 border border-amber-400/80 text-amber-300 flex items-center justify-center shrink-0 shadow-inner">
+              <Trophy size={22} className="text-amber-400 animate-bounce" />
             </div>
 
             <div className="space-y-0.5">
               <div className="flex items-center gap-1.5">
-                <span className="text-xs font-black text-amber-400 tracking-wider uppercase flex items-center gap-1">
-                  <Sparkles size={12} /> HEDEF TAMAMLANDI!
+                <span className="text-[10px] font-black text-amber-400 tracking-widest uppercase flex items-center gap-1 bg-amber-950/80 px-2 py-0.5 rounded-md border border-amber-600/40">
+                  <Sparkles size={11} className="text-amber-300 animate-spin" /> {category}
                 </span>
               </div>
-              <p className="text-xs font-bold text-slate-200 leading-tight">
-                {title || description}
+              <p className="text-xs font-black text-amber-200 tracking-wide">
+                {title}
               </p>
-              {(rewardGold || rewardStars) && (
-                <div className="flex items-center gap-2 text-[10px] font-extrabold text-amber-300 pt-0.5">
-                  {rewardGold && <span className="bg-amber-950/80 px-1.5 py-0.5 rounded border border-amber-700/60">+ {rewardGold} 💰 Altın</span>}
-                  {rewardStars && <span className="bg-amber-950/80 px-1.5 py-0.5 rounded border border-amber-700/60">+ {rewardStars} ⭐ Yıldız</span>}
+              {description && (
+                <p className="text-[11px] font-semibold text-slate-300 leading-tight">
+                  {description}
+                </p>
+              )}
+
+              {(rewardGold || rewardStars || rewardSecret) && (
+                <div className="flex items-center gap-1.5 text-[10px] font-extrabold text-amber-300 pt-1 flex-wrap">
+                  {rewardGold && <span className="bg-amber-900/80 px-2 py-0.5 rounded-lg border border-amber-500/60 shadow-sm">+ {rewardGold} 💰 Altın</span>}
+                  {rewardStars && <span className="bg-amber-900/80 px-2 py-0.5 rounded-lg border border-amber-500/60 shadow-sm">+ {rewardStars} ⭐ Yıldız</span>}
+                  {rewardSecret && <span className="bg-purple-900/80 text-purple-200 px-2 py-0.5 rounded-lg border border-purple-500/60 shadow-sm">🌌 {rewardSecret}</span>}
                 </div>
               )}
             </div>

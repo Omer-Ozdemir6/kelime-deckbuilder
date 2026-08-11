@@ -66,18 +66,29 @@ async function fetchFromTDK(queryWord) {
   const cleanWord = queryWord.toLowerCase('tr-TR').trim();
   const urls = [
     `/api/tdk/gts?ara=${encodeURIComponent(cleanWord)}`,
-    `https://api.allorigins.win/raw?url=${encodeURIComponent('https://sozluk.gov.tr/gts?ara=' + cleanWord)}`
+    `https://api.allorigins.win/get?url=${encodeURIComponent('https://sozluk.gov.tr/gts?ara=' + cleanWord)}`
   ];
 
   for (const url of urls) {
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, { signal: AbortSignal.timeout(3000) });
       if (!response.ok) continue;
       const json = await response.json();
 
-      if (Array.isArray(json) && json[0] && json[0].anlamlarListe) {
-        const entry = json[0];
-        const meanings = entry.anlamlarListe.map(a => ({
+      let data = null;
+      if (json && json.contents) {
+        try {
+          const parsed = JSON.parse(json.contents);
+          data = Array.isArray(parsed) ? parsed[0] : parsed;
+        } catch (err) {}
+      } else if (Array.isArray(json)) {
+        data = json[0];
+      } else if (typeof json === 'object') {
+        data = json;
+      }
+
+      if (data && data.anlamlarListe) {
+        const meanings = data.anlamlarListe.map(a => ({
           anlam: a.anlam,
           type: a.ozelHaklar ? a.ozelHaklar[0]?.kisa_adı : (a.fiil === '1' ? 'fiil' : 'isim'),
           example: a.orneklerListe ? a.orneklerListe[0]?.ornek : null,
@@ -85,15 +96,15 @@ async function fetchFromTDK(queryWord) {
         }));
 
         return {
-          word: entry.madde.toUpperCase('tr-TR'),
+          word: (data.madde || cleanWord).toUpperCase('tr-TR'),
           matchedQuery: queryWord,
           found: true,
           meanings: meanings.slice(0, 4), // Top 4 meanings
-          proverbCount: entry.atasozu ? entry.atasozu.length : 0
+          proverbCount: data.atasozu ? data.atasozu.length : 0
         };
       }
     } catch (e) {
-      // Try next proxy fallback silently
+      // Try next fallback silently
     }
   }
   return null;

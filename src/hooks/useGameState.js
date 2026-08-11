@@ -6,6 +6,7 @@ import { soundEngine } from '../game/audioEngine';
 import { generateRunMap } from '../game/mapGenerator';
 import { RELICS } from '../game/relicData';
 import { getWordMeaning } from '../services/dictionaryService';
+import { discoverCodexItem } from '../game/codexManager';
 
 export function getStageTargetScore(stage) {
   if (stage === 1) return 50;
@@ -60,25 +61,111 @@ export function useGameState() {
   const [activeBossRule, setActiveBossRule] = useState(null);
   const [activeBonusObjective, setActiveBonusObjective] = useState(null);
   const [isBonusCompleted, setIsBonusCompleted] = useState(false);
+  const [campBonusPoints, setCampBonusPoints] = useState(0);
 
   // Deck collections
   const [fullDeck, setFullDeck] = useState([]);
   const [drawPile, setDrawPile] = useState([]);
   const [discardPile, setDiscardPile] = useState([]);
   const [hand, setHand] = useState([]);
+  const [bankCards, setBankCards] = useState([]); // Harf Bankasi (Maks 2 Slot)
+
+  // Balatro-style Efsun Kitapları (Word Type Level Up State)
+  const [wordTypeLevels, setWordTypeLevels] = useState({
+    SHORT_3: { id: 'SHORT_3', name: '📘 3 Harfli Kelimeler', level: 1, cost: 25, bonusChips: 15, bonusMult: 3 },
+    MEDIUM_4: { id: 'MEDIUM_4', name: '📗 4 Harfli Kelimeler', level: 1, cost: 30, bonusChips: 15, bonusMult: 3 },
+    LONG_5: { id: 'LONG_5', name: '📙 5+ Harfli Kelimeler', level: 1, cost: 40, bonusChips: 20, bonusMult: 4 }
+  });
+
+  const upgradeWordTypeLevel = (typeId) => {
+    const target = wordTypeLevels[typeId];
+    if (!target) return false;
+    if (gold >= target.cost) {
+      setGold(prev => prev - target.cost);
+      setWordTypeLevels(prev => ({
+        ...prev,
+        [typeId]: {
+          ...prev[typeId],
+          level: prev[typeId].level + 1,
+          cost: Math.round(prev[typeId].cost * 1.4)
+        }
+      }));
+      soundEngine.playSuccess();
+      return true;
+    }
+    return false;
+  };
   const [selectedCards, setSelectedCards] = useState([]);
 
   // UI State
-  const [gameState, setGameState] = useState('START_MENU'); // START_MENU | MAP | PLAYING | SHOP | EVENT | DRAFT_REWARD | GAME_OVER
+  const [gameState, setGameState] = useState('START_MENU'); // START_MENU | MAP | PLAYING | SHOP | EVENT | STAGE_VICTORY_SUMMARY | DRAFT_REWARD | GAME_OVER
   const [lastScoreBreakdown, setLastScoreBreakdown] = useState(null);
+  const [lastStageVictoryStats, setLastStageVictoryStats] = useState(null);
   const [feedbackMessage, setFeedbackMessage] = useState(null);
   const [currentWordMeaning, setCurrentWordMeaning] = useState(null);
   const [isMeaningModalOpen, setIsMeaningModalOpen] = useState(false);
   const [goalNotice, setGoalNotice] = useState(null);
 
-  // Dynamic Biome & Floor Modifier State
+  // Dynamic Biome, Floor Modifier & Board Slot Modifiers State
   const [activeBiome, setActiveBiome] = useState(null);
   const [activeFloorModifier, setActiveFloorModifier] = useState(null);
+  const [boardSlotModifiers, setBoardSlotModifiers] = useState({});
+
+  const generateBoardSlotModifiers = (floorNumber = 1) => {
+    // Kat 1 & Kat 2: Clean empty slots #1..#7 without multipliers
+    if (floorNumber <= 2) {
+      return {};
+    }
+
+    const possibleMods = ['2xH', '3xH', '2xK', 'GOLD_5', 'COMBO_1'];
+    const slots = [0, 1, 2, 3, 4, 5, 6];
+    const shuffledSlots = [...slots].sort(() => 0.5 - Math.random());
+
+    // Progressive unlock: Kat 3..4 -> 1 mod, Kat 5..9 -> 2 mods, Kat 10+ -> 3 mods
+    let chosenCount = 1;
+    if (floorNumber >= 10) {
+      chosenCount = 3;
+    } else if (floorNumber >= 5) {
+      chosenCount = 2;
+    }
+
+    const result = {};
+    for (let i = 0; i < chosenCount; i++) {
+      const slotIdx = shuffledSlots[i];
+      const mod = possibleMods[Math.floor(Math.random() * possibleMods.length)];
+      result[slotIdx] = mod;
+    }
+    return result;
+  };
+
+  const proceedToRewardsFromVictory = () => {
+    soundEngine.playTap();
+    setGameState('DRAFT_REWARD');
+  };
+
+  const passTurnOrSurrender = () => {
+    if (gameState !== 'PLAYING') return;
+    soundEngine.playDeselect();
+
+    const nextHands = handsLeft - 1;
+    setHandsLeft(nextHands);
+
+    if (nextHands <= 0) {
+      soundEngine.playInvalidWord();
+      setFeedbackMessage('⚠️ Hamle hakkın kalmadı! Tur sona erdi.');
+      setTimeout(() => {
+        setGameState('GAME_OVER');
+      }, 1200);
+    } else {
+      setFeedbackMessage(`⚠️ Tur pas geçildi! Kalan el hakkı: ${nextHands}`);
+      const allToDiscard = [...discardPile, ...hand, ...selectedCards];
+      setSelectedCards([]);
+      const refilled = fillHandFromDrawPile([], drawPile, allToDiscard, 7);
+      setHand(refilled.newHand);
+      setDrawPile(refilled.newDraw);
+      setDiscardPile(refilled.newDiscard);
+    }
+  };
 
   const shuffleArray = (array) => {
     const arr = [...array];
@@ -111,6 +198,9 @@ export function useGameState() {
     return { newHand, newDraw: remainingDraw, newDiscard: disc };
   }, []);
 
+  const [secretWordTrigger, setSecretWordTrigger] = useState('GİZEM');
+  const [isSecretFoundThisRun, setIsSecretFoundThisRun] = useState(false);
+
   /**
    * Start a new Run
    */
@@ -119,13 +209,19 @@ export function useGameState() {
     const initialCards = createDeckFromLetterList(starter.letters);
     const floors = generateRunMap();
 
+    const secretTriggers = ['GİZEM', 'SİHRİ', 'ALTIN', 'KADER', 'EFSANE', 'BİLGİ', 'EVRİM', 'YILDIZ'];
+    const pickedSecret = secretTriggers[Math.floor(Math.random() * secretTriggers.length)];
+
     setMapFloors(floors);
     setCurrentFloorIndex(0);
     setActiveNodeId(floors[0][0].id);
-    setGold(20);
+    setGold(10); // Rebalanced starting gold
     setLives(3);
     setActiveRelicKeys([]);
     setFullDeck(initialCards);
+    setBankCards([]);
+    setSecretWordTrigger(pickedSecret);
+    setIsSecretFoundThisRun(false);
     setGameState('MAP');
     soundEngine.playTap();
   };
@@ -152,15 +248,26 @@ export function useGameState() {
       setGameState('EVENT');
       return;
     }
+    if (node.type === 'TRIVIA') {
+      setGameState('TRIVIA');
+      return;
+    }
+    if (node.type === 'CAMP') {
+      setGameState('CAMP');
+      return;
+    }
 
     // Stage Node (Normal / Special / Elite / Boss)
-    const stg = node.stage;
+    const stg = node.stage || (currentFloorIndex + 1);
+    if (node.biome) {
+      discoverCodexItem(node.biome.id);
+      setActiveBiome(node.biome);
+    }
     const bossRule = node.bossRule || null;
     const bonusObj = node.bonusObjective || null;
     const maxHands = node.maxHandsOverride || (node.type === 'BOSS' ? 8 : 6);
 
     // Biome & Modifier
-    if (node.biome) setActiveBiome(node.biome);
     if (node.modifier) setActiveFloorModifier(node.modifier);
 
     const shuffled = shuffleArray(fullDeck);
@@ -168,7 +275,11 @@ export function useGameState() {
     const remainingDraw = shuffled.slice(7);
 
     setStage(stg);
-    setCurrentScore(0);
+    setCurrentScore(campBonusPoints);
+    if (campBonusPoints > 0) {
+      setFeedbackMessage(`☕ Kamp Bonusu Devrede! +${campBonusPoints} Puan ile başladın!`);
+      setCampBonusPoints(0);
+    }
     setTargetScore(node.targetScore || getStageTargetScore(stg));
     setHandsLeft(maxHands);
     setDiscardsLeft(3);
@@ -179,6 +290,7 @@ export function useGameState() {
     setActiveBossRule(bossRule);
     setActiveBonusObjective(bonusObj);
     setIsBonusCompleted(false);
+    setBoardSlotModifiers(generateBoardSlotModifiers((node.floor || 0) + 1));
 
     setDrawPile(remainingDraw);
     setDiscardPile([]);
@@ -225,18 +337,69 @@ export function useGameState() {
     setSelectedCards(prev => [...prev, card]);
   };
 
+  const bankCardFromHand = (card) => {
+    if (gameState !== 'PLAYING') return;
+    if (bankCards.length >= 2) {
+      soundEngine.playInvalidWord();
+      setFeedbackMessage('⚠️ Harf Bankası dolu! En fazla 2 harf saklanabilir.');
+      return;
+    }
+    soundEngine.playTap();
+    setHand(prev => prev.filter(c => c.id !== card.id));
+    setBankCards(prev => [...prev, card]);
+    setFeedbackMessage(`🏦 "${card.letter}" Harf Bankasına kaldırıldı!`);
+  };
+
+  const unbankCardToHand = (card) => {
+    if (gameState !== 'PLAYING') return;
+    if (hand.length >= 9) {
+      soundEngine.playInvalidWord();
+      setFeedbackMessage('⚠️ El dolu! (Maks 9 harf)');
+      return;
+    }
+    soundEngine.playTap();
+    setBankCards(prev => prev.filter(c => c.id !== card.id));
+    setHand(prev => [...prev, card]);
+    setFeedbackMessage(`" ${card.letter}" Harf Bankasından ele geri alındı.`);
+  };
+
+  const selectCardFromBank = (card) => {
+    if (gameState !== 'PLAYING') return;
+    soundEngine.playTap();
+    setBankCards(prev => prev.filter(c => c.id !== card.id));
+    setSelectedCards(prev => [...prev, { ...card, fromBank: true }]);
+  };
+
   const unselectCard = (index) => {
     if (gameState !== 'PLAYING') return;
     soundEngine.playDeselect();
     const targetCard = selectedCards[index];
     setSelectedCards(prev => prev.filter((_, i) => i !== index));
-    setHand(prev => [...prev, targetCard]);
+    if (targetCard.fromBank) {
+      const cleanCard = { ...targetCard };
+      delete cleanCard.fromBank;
+      setBankCards(prev => [...prev, cleanCard]);
+    } else {
+      setHand(prev => [...prev, targetCard]);
+    }
   };
 
   const clearSelectedCards = () => {
     if (selectedCards.length === 0) return;
     soundEngine.playDeselect();
-    setHand(prev => [...prev, ...selectedCards]);
+    const returnToBank = selectedCards.filter(c => c.fromBank).map(c => {
+      const clean = { ...c };
+      delete clean.fromBank;
+      return clean;
+    });
+    const returnToHand = selectedCards.filter(c => !c.fromBank);
+
+    if (returnToBank.length > 0) {
+      setBankCards(prev => [...prev, ...returnToBank]);
+    }
+    if (returnToHand.length > 0) {
+      setHand(prev => [...prev, ...returnToHand]);
+    }
     setSelectedCards([]);
   };
 
@@ -250,7 +413,9 @@ export function useGameState() {
       combo,
       playedWordsThisStage,
       activeRelicKeys,
-      isFirstWordInStage
+      isFirstWordInStage,
+      boardSlotModifiers,
+      wordTypeLevels
     );
 
     setLastScoreBreakdown(breakdown);
@@ -285,11 +450,35 @@ export function useGameState() {
         setIsBonusCompleted(true);
         bonusBonusGold = activeBonusObjective.rewardGold || 15;
         setGoalNotice({
-          title: activeBonusObjective.title || 'BONUS HEDEF TAMAMLANDI!',
-          description: activeBonusObjective.desc || `${breakdown.word} kelimesi ile hedef başarıldı!`,
+          category: '🎯 GÖREV TAMAMLANDI',
+          title: activeBonusObjective.title || 'KADEMELİ HEDEF BAŞARILDI',
+          description: activeBonusObjective.desc || `"${breakdown.word}" kelimesi ile hedef başarıldı!`,
           rewardGold: bonusBonusGold
         });
       }
+    }
+
+    // Secret Word Trigger Check
+    if (secretWordTrigger && breakdown.word === secretWordTrigger && !isSecretFoundThisRun) {
+      setIsSecretFoundThisRun(true);
+      confetti({ particleCount: 120, spread: 100, origin: { y: 0.5 } });
+
+      const infusedTypes = ['ignited', 'electric', 'lucky', 'frozen'];
+      const randomInfused = infusedTypes[Math.floor(Math.random() * infusedTypes.length)];
+      const rareLetters = ['Ş', 'Z', 'Ğ', 'Ç', 'Ö', 'Ü'];
+      const pickLetter = rareLetters[Math.floor(Math.random() * rareLetters.length)];
+      const infusedCard = createCard(pickLetter, 1, randomInfused);
+
+      setFullDeck(prev => [...prev, infusedCard]);
+
+      setGoalNotice({
+        category: '🌌 GİZLİ GEÇİT AÇILDI!',
+        title: `Gizli Kelime Çözüldü: "${secretWordTrigger}"`,
+        description: `Efsanevi Tapınak Geçidi Açıldı! Desteğe ${pickLetter} (${randomInfused.toUpperCase()}) Harfi Eklendi!`,
+        rewardGold: 35,
+        rewardSecret: 'Efsanevi Mühürlü Harf'
+      });
+      bonusBonusGold += 35;
     }
 
     // Valid word played!
@@ -338,16 +527,25 @@ export function useGameState() {
         localStorage.setItem('kd_high_score', newScore.toString());
       }
 
+      setLastStageVictoryStats({
+        stage,
+        score: newScore,
+        targetScore,
+        goldEarned: earnedGold,
+        playedWords: [...playedWordsThisStage, breakdown.word.toUpperCase()],
+        combo: nextCombo
+      });
+
       setGoalNotice({
         title: `KADEME ${stage} HEDEFİ TAMAMLANDI!`,
         description: `${targetScore} Puan Barajı Başarıyla Geçildi!`,
         rewardStars: earnedStars
       });
 
-      setFeedbackMessage(`🎉 KADEME TAMAMLAMDI! +${earnedStars} Yıldız Puanı`);
+      setFeedbackMessage(`🎉 KADEME TAMAMLANDI! +${earnedStars} Yıldız Puanı`);
       setTimeout(() => {
-        setGameState('DRAFT_REWARD');
-      }, 1200);
+        setGameState('STAGE_VICTORY_SUMMARY');
+      }, 900);
       return;
     }
 
@@ -479,17 +677,96 @@ export function useGameState() {
     if (actionKey === 'GOLD_35') setGold(prev => prev + 35);
     if (actionKey === 'GOLD_50') setGold(prev => prev + 50);
     if (actionKey === 'GOLD_15') setGold(prev => prev + 15);
+    if (actionKey === 'GOLD_25') setGold(prev => prev + 25);
+    if (actionKey === 'GOLD_40') setGold(prev => prev + 40);
+    if (actionKey === 'GOLD_60') setGold(prev => prev + 60);
+
     if (actionKey === 'ADD_RARE') {
       const rareKeys = ['Ş', 'Ğ', 'Ç', 'Ö', 'Ü'];
       const pick = rareKeys[Math.floor(Math.random() * rareKeys.length)];
       setFullDeck(prev => [...prev, createCard(pick)]);
     }
+
+    if (actionKey === 'ADD_INFUSED') {
+      const types = ['ignited', 'lucky', 'electric'];
+      const pickedType = types[Math.floor(Math.random() * types.length)];
+      const pickLetter = ['A', 'E', 'K', 'L', 'S', 'T'][Math.floor(Math.random() * 6)];
+      setFullDeck(prev => [...prev, createCard(pickLetter, 0, pickedType)]);
+    }
+
+    if (actionKey === 'BUY_INFUSED_20' && gold >= 20) {
+      setGold(prev => prev - 20);
+      setFullDeck(prev => [...prev, createCard('A', 0, 'ignited')]);
+    }
+
+    if (actionKey === 'BUY_RELIC_35' && gold >= 35) {
+      setGold(prev => prev - 35);
+      const allRelicKeys = ['KESKIN_KALEM', 'UZUN_SOZ', 'KISA_SOZ', 'NADIR_MUHUR', 'SERI_KATIP', 'MUREKKEP', 'ZINCIR_USTASI', 'BANKACI', 'CIFT_HARF'];
+      const unowned = allRelicKeys.filter(k => !activeRelicKeys.includes(k));
+      if (unowned.length > 0) {
+        const rewardKey = unowned[Math.floor(Math.random() * unowned.length)];
+        setActiveRelicKeys(prev => [...prev, rewardKey]);
+      }
+    }
+
+    if (actionKey === 'BUY_JOKER_30' && gold >= 30) {
+      setGold(prev => prev - 30);
+      const jokerCard = { id: `card_joker_${Date.now()}`, letter: '🃏', points: 0, rarity: 'nadir', isSpecial: true, specialType: 'joker' };
+      setFullDeck(prev => [...prev, jokerCard]);
+    }
+
+    if (actionKey === 'REMOVE_CARD_EVENT' && fullDeck.length > 6) {
+      setFullDeck(prev => prev.slice(1));
+    }
+
+    if (actionKey === 'TRY_CHEST') {
+      const isSuccess = Math.random() < 0.7;
+      if (isSuccess) {
+        setGold(prev => prev + 50);
+        setFeedbackMessage('🎉 Sandığı başarıyla açtın! +50 Altın!');
+      } else {
+        setFeedbackMessage('⚠️ Sandık kilitli kaldı!');
+      }
+    }
+
     if (actionKey === 'UPGRADE_FREE' && fullDeck.length > 0) {
       const randomCard = fullDeck[Math.floor(Math.random() * fullDeck.length)];
       setFullDeck(prev => prev.map(c => c.id === randomCard.id ? createCard(c.letter, (c.upgradeLevel || 0) + 1) : c));
     }
+
     setCurrentFloorIndex(prev => prev + 1);
     setGameState('MAP');
+  };
+
+  // Trivia Action
+  const handleResolveTrivia = (actionKey, isCorrect) => {
+    soundEngine.playTap();
+    if (isCorrect) {
+      setGold(prev => prev + 40);
+      setFeedbackMessage('🎉 Bilmece Sınavı Tamamlandı! +40 Altın kazandın!');
+    } else {
+      setFeedbackMessage('💡 Bilmece Sınavı Sona Erdi.');
+    }
+    setCurrentFloorIndex(prev => prev + 1);
+    setGameState('MAP');
+  };
+
+  // Camp Action
+  const handleResolveCamp = (actionType, extraData = {}) => {
+    soundEngine.playTap();
+    if (actionType === 'REMOVE_CARD' && extraData.cardId) {
+      setFullDeck(prev => prev.filter(c => c.id !== extraData.cardId));
+    }
+    if (actionType === 'UPGRADE_CARD' && extraData.cardId) {
+      setFullDeck(prev => prev.map(c => c.id === extraData.cardId ? createCard(c.letter, (c.upgradeLevel || 0) + 1) : c));
+    }
+    if (actionType === 'ENTER_BOSS') {
+      if (extraData.bonusPoints) {
+        setCampBonusPoints(extraData.bonusPoints);
+      }
+      setCurrentFloorIndex(prev => prev + 1);
+      setGameState('MAP');
+    }
   };
 
   const unlockDeck = (deckId, cost) => {
@@ -546,9 +823,11 @@ export function useGameState() {
     drawPile,
     discardPile,
     hand,
+    bankCards,
     selectedCards,
     gameState,
     lastScoreBreakdown,
+    lastStageVictoryStats,
     feedbackMessage,
     starPoints,
     highScore,
@@ -559,14 +838,21 @@ export function useGameState() {
     goalNotice,
     activeBiome,
     activeFloorModifier,
+    boardSlotModifiers,
+    wordTypeLevels,
 
     setSelectedDeckId,
     startNewRun,
     enterMapNode,
     selectCardFromHand,
+    bankCardFromHand,
+    unbankCardToHand,
+    selectCardFromBank,
     unselectCard,
     clearSelectedCards,
     playWord,
+    passTurnOrSurrender,
+    proceedToRewardsFromVictory,
     discardAndRedraw,
     handleAddCardToDeck,
     handleUpgradeCardInDeck,
@@ -577,6 +863,9 @@ export function useGameState() {
     handleShopBuyRelic,
     handleLeaveShop,
     handleResolveEvent,
+    handleResolveTrivia,
+    handleResolveCamp,
+    upgradeWordTypeLevel,
     unlockDeck,
     openWordMeaningModal,
     closeWordMeaningModal,
