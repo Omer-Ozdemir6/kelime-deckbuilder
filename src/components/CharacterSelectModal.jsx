@@ -25,7 +25,7 @@ export const HERO_CHARACTERS = [
     color: 'from-amber-900/90 via-slate-900 to-amber-950 border-amber-500/60 text-amber-300',
     perkDesc: '5+ Harfli uzun kelimeler yazıldığında kombo asla sıfırlanmaz ve %25 ekstra puan bonusu kazanılır.',
     perkBadge: '🛡️ Çelik Kombo',
-    achievementReq: 'Bölge 2 Boss\'unu Mağlup Et veya 1,000 Yıldız Puanı Topla'
+    achievementReq: 'Bölge 2 Boss\'unu Mağlup Et'
   },
   {
     id: 'TRICKSTER',
@@ -36,7 +36,7 @@ export const HERO_CHARACTERS = [
     color: 'from-emerald-900/90 via-slate-900 to-emerald-950 border-emerald-500/60 text-emerald-300',
     perkDesc: 'Kelime zincirlerinde (Uzatma/Dönüştürme) +8 Ekstra Altın kazandırır ve rastgele Mühür verir.',
     perkBadge: '💰 Şair Midası',
-    achievementReq: '1 Savaşta 15 Kelime Yap veya 2,500 Yıldız Puanı Topla'
+    achievementReq: '1 Savaşta 15 Kelime Yap'
   },
   {
     id: 'LEXICON_ARCHON',

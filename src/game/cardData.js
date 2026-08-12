@@ -674,8 +674,8 @@ export const PASSIVE_JOKERS = {
   LEGEND_JOKER: {
     id: 'LEGEND_JOKER', icon: '🏆', name: 'Efsane',
     rarity: 'efsane_otesi', cost: 220,
-    effect: { type: 'star_points_to_mult' },
-    desc: 'Bu koşuda kazandığın toplam Yıldız\'ı Çarpan olarak ekler.',
+    effect: { type: 'stage_progress_to_mult' },
+    desc: 'Bu koşuda tamamladığın Bölge sayısını Çarpan olarak ekler.',
     bgGradient: 'from-yellow-400 via-amber-500 to-orange-700', glowColor: 'rgba(251,191,36,0.8)'
   },
   VOID_JOKER: {
@@ -707,38 +707,66 @@ export const PASSIVE_JOKERS_BY_RARITY = {
 export const STARTER_DECKS = [
   {
     id: 'starter_basit',
-    name: 'Başlangıç Destesi',
-    desc: 'Temel Türkçe harflerden oluşan 10 kartlık dengeli deste.',
+    name: 'Standart Deste (Kırmızı)',
+    desc: '20 Türkçe harften oluşan dengeli ve klasik başlangıç destesi.',
     icon: '🃏',
     unlocked: true,
-    letters: ['A', 'A', 'E', 'İ', 'K', 'L', 'R', 'S', 'T', 'N']
+    letters: ['A', 'A', 'A', 'E', 'E', 'E', 'İ', 'O', 'U', 'K', 'K', 'L', 'L', 'M', 'N', 'R', 'S', 'T', 'B', 'Y']
   },
   {
-    id: 'starter_uzun',
-    name: 'Uzun Kelime Destesi',
-    desc: 'Büyük ve kompozit kelimeler oluşturmak için geniş harf havuzu.',
-    icon: '📜',
+    id: 'starter_sesli',
+    name: 'Sesli Harf Krallığı (Mavi)',
+    desc: 'Bolca sesli harf içeren 22 kartlık kolay kelime türetme destesi.',
+    icon: '🌊',
+    unlocked: true,
+    letters: ['A', 'A', 'A', 'A', 'E', 'E', 'E', 'İ', 'İ', 'I', 'O', 'Ö', 'U', 'Ü', 'K', 'L', 'M', 'N', 'R', 'S', 'T', 'Y']
+  },
+  {
+    id: 'starter_tyccar',
+    name: 'Tüccar Destesi (Altın)',
+    desc: 'Oyuna ekstra +20 Altın ve 2 adet Altın Harf avantajıyla başlar.',
+    icon: '💰',
     unlocked: false,
     unlockCost: 40,
-    letters: ['A', 'E', 'İ', 'K', 'L', 'M', 'N', 'R', 'S', 'T', 'O']
+    bonusGold: 20,
+    letters: ['A', 'A', 'E', 'E', 'İ', 'O', 'K', 'K', 'L', 'M', 'N', 'R', 'S', 'T', 'B', 'D', 'Y', 'Z', 'GOLDEN', 'GOLDEN']
   },
   {
     id: 'starter_nadir',
-    name: 'Nadir Harfler Destesi',
-    desc: 'Ş, Ğ, Ç, Z gibi yüksek puanlı ama riskli Türkçe harfler içerir.',
+    name: 'Nadir Harfler Destesi (Zümrüt)',
+    desc: 'J, Z, Ş, Ğ, Ç, V, P gibi devasa puanlı ama zor Türkçe harfler içerir.',
     icon: '💎',
     unlocked: false,
     unlockCost: 80,
-    letters: ['A', 'E', 'İ', 'K', 'L', 'R', 'Ş', 'Ç', 'Ğ', 'Z', 'JOKER']
+    letters: ['A', 'A', 'E', 'E', 'İ', 'K', 'L', 'R', 'Ş', 'Ç', 'Ğ', 'Z', 'J', 'F', 'P', 'V', 'C', 'H']
   },
   {
-    id: 'starter_combo',
-    name: 'Seri Kombo Destesi',
-    desc: 'Arka arkaya hızlı ve kısa kelimelerle yüksek kombo yapma destesi.',
-    icon: '⚡',
+    id: 'starter_erratic',
+    name: 'Kaotik Rastgele Deste (Mor)',
+    desc: 'Her yeni oyunda 20 harf tamamen rastgele ve sürpriz biçimde türetilir!',
+    icon: '🎲',
+    unlocked: false,
+    unlockCost: 100,
+    isErratic: true,
+    letters: []
+  },
+  {
+    id: 'starter_thin',
+    name: 'İnce & Keskin Deste (Siyah)',
+    desc: 'Sadece 12 harften oluşan ultra hızlı dönen kombo destesi.',
+    icon: '🗡️',
     unlocked: false,
     unlockCost: 120,
-    letters: ['A', 'A', 'E', 'E', 'İ', 'K', 'R', 'S', 'T', 'DOUBLE']
+    letters: ['A', 'A', 'E', 'İ', 'K', 'K', 'L', 'M', 'N', 'R', 'S', 'T']
+  },
+  {
+    id: 'starter_elemental',
+    name: 'Efsunlu Element Destesi (Alev)',
+    desc: 'Başlangıçta Ateşli, Şanslı ve Çift Harf efsunlu harfler taşır.',
+    icon: '🔥',
+    unlocked: false,
+    unlockCost: 150,
+    letters: ['A', 'A', 'E', 'E', 'İ', 'O', 'K', 'L', 'M', 'N', 'R', 'S', 'T', 'Y', 'MIRROR', 'DOUBLE', 'JOKER', 'ASH']
   }
 ];
 

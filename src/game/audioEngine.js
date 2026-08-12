@@ -3,10 +3,14 @@
 
 let audioCtx = null;
 let userHasInteracted = false;
+let muted = false;
+try {
+  muted = localStorage.getItem('kelime_destesi_muted') === 'true';
+} catch (e) {}
 
 function getAudioContext() {
   // Only create AudioContext after user interaction (browser autoplay policy)
-  if (!userHasInteracted) return null;
+  if (!userHasInteracted || muted) return null;
 
   if (!audioCtx) {
     try {
@@ -75,6 +79,10 @@ export const soundEngine = {
     } catch (e) {
       // Audio fallback silent
     }
+  },
+
+  playTileClick() {
+    this.playTap();
   },
 
   // Tile deselect
@@ -219,5 +227,21 @@ export const soundEngine = {
 
   playSuccess() {
     this.playVictory();
+  },
+
+  isMuted() {
+    return muted;
+  },
+
+  setMuted(value) {
+    muted = value;
+    try {
+      localStorage.setItem('kelime_destesi_muted', String(value));
+    } catch (e) {}
+  },
+
+  toggleMute() {
+    this.setMuted(!muted);
+    return muted;
   }
 };

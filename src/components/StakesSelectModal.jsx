@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, ChevronRight, ChevronLeft, X, Lock, Star, Zap, ShieldAlert, Info } from 'lucide-react';
+import { Trophy, ChevronRight, ChevronLeft, X, Lock, Zap, ShieldAlert, Info } from 'lucide-react';
 import { soundEngine } from '../game/audioEngine';
 import { getUnlockedStakes } from '../game/codexManager';
 
@@ -21,9 +21,8 @@ export const STAKES_DEFINITIONS = [
     borderColor: '#475569',
     accentColor: '#94a3b8',
     cumulativeModifiers: [],
-    desc: 'Temel roguelite sınav kural ve puan hedefleri. Yeni başlayanlar için ideal.',
+    desc: 'Temel roguelite mücadele kural ve puan hedefleri. Yeni başlayanlar için ideal.',
     achievementReq: 'Varsayılan Açık',
-    estimatedStars: 50,
   },
   {
     id: 'RED_STAKE',
@@ -42,7 +41,6 @@ export const STAKES_DEFINITIONS = [
     ],
     desc: 'Çarşıdaki tüm harf, efsun ve tılsım fiyatları %25 daha pahalıdır.',
     achievementReq: 'Varsayılan Açık',
-    estimatedStars: 70,
   },
   {
     id: 'GREEN_STAKE',
@@ -62,7 +60,6 @@ export const STAKES_DEFINITIONS = [
     ],
     desc: 'Skor hedefleri her bölgede önceki mühürlere kıyasla daha hızlı yükselir.',
     achievementReq: '🔴 Kırmızı Mühür\'de Bölge 2\'yi geç',
-    estimatedStars: 100,
   },
   {
     id: 'BLACK_STAKE',
@@ -83,7 +80,6 @@ export const STAKES_DEFINITIONS = [
     ],
     desc: 'Çarşıda "Kalıcı" Jokerler çıkabilir — satamaz veya yok edemezsin.',
     achievementReq: '🟢 Yeşil Mühür\'de Bölge 3\'ü geç',
-    estimatedStars: 140,
   },
   {
     id: 'BLUE_STAKE',
@@ -105,7 +101,6 @@ export const STAKES_DEFINITIONS = [
     ],
     desc: 'Her savaş başında Atma Hakkın 1 adet azaltılmış olarak başlar.',
     achievementReq: '⚫ Siyah Mühür\'de Ante 4\'ü bitir',
-    estimatedStars: 185,
   },
   {
     id: 'PURPLE_STAKE',
@@ -128,7 +123,6 @@ export const STAKES_DEFINITIONS = [
     ],
     desc: 'Bölge Boss hedefleri %40 daha yüksektir ve ek engel kuralları içerir.',
     achievementReq: '🔵 Mavi Mühür\'de Ante 4 Boss\'u mağlup et',
-    estimatedStars: 240,
   },
   {
     id: 'ORANGE_STAKE',
@@ -152,7 +146,6 @@ export const STAKES_DEFINITIONS = [
     ],
     desc: 'Çarşıda "Geçici" Jokerler çıkabilir — 5 tur sonunda kendiliğinden yok olur.',
     achievementReq: '🟣 Mor Mühür\'de tam zafer kazan',
-    estimatedStars: 310,
   },
   {
     id: 'GOLD_STAKE',
@@ -177,7 +170,6 @@ export const STAKES_DEFINITIONS = [
     ],
     desc: 'Çarşıda "Kiralık" Jokerler çıkabilir — her tur 5 Altın harcar.',
     achievementReq: '🟠 Turuncu Mühür\'de tam zafer kazan',
-    estimatedStars: 400,
   },
   {
     id: 'OBSIDIAN_STAKE',
@@ -204,7 +196,6 @@ export const STAKES_DEFINITIONS = [
     ],
     desc: 'Her tur başında eldeki 1 harf kilitlenir. Joker slotun 4\'e düşer.',
     achievementReq: '🟡 Altın Mühür\'de tam zafer kazan',
-    estimatedStars: 520,
   },
   {
     id: 'DIAMOND_STAKE',
@@ -231,7 +222,6 @@ export const STAKES_DEFINITIONS = [
     ],
     desc: 'Maksimum cehennem: Hedef 3x, Atma Hakkı 0, tek Joker slotu. Gerçek ustalar için.',
     achievementReq: '🖤 Obsidyen Mühür\'de tam zafer kazan',
-    estimatedStars: 750,
   },
 ];
 
@@ -250,18 +240,6 @@ const TIER_LABELS = [
   { label: 'Kaos', color: '#818cf8' },
   { label: 'Efsane', color: '#22d3ee' },
 ];
-
-// ─────────────────────────────────────────────────────────────
-// Yıldız sayacı bileşeni
-// ─────────────────────────────────────────────────────────────
-function StarBadge({ count, color }) {
-  return (
-    <div style={{ color }} className="flex items-center gap-1 text-xs font-black">
-      <Star size={11} fill="currentColor" />
-      <span>~{count}</span>
-    </div>
-  );
-}
 
 // ─────────────────────────────────────────────────────────────
 // Ana Modal
@@ -468,9 +446,6 @@ export function StakesSelectModal({ onSelectStake, onBack }) {
                   <Zap size={14} fill="currentColor" />
                   <span>{currentStake.multiplier}x Skor Hedefi</span>
                 </div>
-
-                {/* Estimated stars */}
-                <StarBadge count={currentStake.estimatedStars} color={currentStake.accentColor} />
 
                 {/* Description or unlock requirement */}
                 <div

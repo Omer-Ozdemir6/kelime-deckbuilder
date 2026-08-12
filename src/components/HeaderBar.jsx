@@ -14,7 +14,6 @@ export function HeaderBar({
   gold = 20,
   lives = 3,
   activeRelicKeys = [],
-  starPoints,
   fullDeckCount,
   onOpenDeckInspector,
   onDiscardHand,

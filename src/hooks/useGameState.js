@@ -20,7 +20,7 @@ export function getStageTargetScore(stage) {
 }
 
 export function getBossStageRule(stage) {
-  if (stage === 9 || stage === 10) return { title: 'Kelime Sınavı', desc: '8 tur içinde 400 puan yap!', maxHands: 8, handSize: 7 };
+  if (stage === 9 || stage === 10) return { title: 'Kelime Mücadelesi', desc: '8 tur içinde 400 puan yap!', maxHands: 8, handSize: 7 };
   return null;
 }
 
@@ -36,6 +36,8 @@ export function useGameState() {
   });
 
   const [selectedDeckId, setSelectedDeckId] = useState('starter_basit');
+  const [maxWordsInBattle, setMaxWordsInBattle] = useState(0);
+  const [runUnlockedAchievements, setRunUnlockedAchievements] = useState([]);
 
   // Active Run State (Kademe / Ante System)
   const [currentKademe, setCurrentKademe] = useState(1);
@@ -244,7 +246,14 @@ export function useGameState() {
    */
   const startNewRun = (deckId = selectedDeckId) => {
     const starter = STARTER_DECKS.find(d => d.id === deckId) || STARTER_DECKS[0];
-    const initialCards = createDeckFromLetterList(starter.letters);
+    let lettersToUse = starter.letters;
+
+    if (starter.isErratic) {
+      const allLetterKeys = Object.keys(LETTER_DEFINITIONS);
+      lettersToUse = Array.from({ length: 20 }, () => allLetterKeys[Math.floor(Math.random() * allLetterKeys.length)]);
+    }
+
+    const initialCards = createDeckFromLetterList(lettersToUse);
     const initialKademe = generateKademe(1);
 
     const secretTriggers = ['GİZEM', 'SİHRİ', 'ALTIN', 'KADER', 'EFSANE', 'BİLGİ', 'EVRİM', 'YILDIZ'];
@@ -253,6 +262,19 @@ export function useGameState() {
     setCurrentKademe(1);
     setKademeData(initialKademe);
     setCurrentBlindIndex(0);
+
+    if (starter.bonusGold) {
+      setGold(20 + starter.bonusGold);
+    } else {
+      setGold(20);
+    }
+
+    // Auto-discover starting deck letters and biome in Codex
+    initialCards.forEach(c => {
+      discoverCodexItem(c.letter);
+      if (c.seal) discoverCodexItem(c.seal);
+    });
+    if (initialKademe?.biome?.id) discoverCodexItem(initialKademe.biome.id);
     setActiveTags([]);
     setGuaranteedRareCard(false);
     setShopDiscountPercent(0);
@@ -267,6 +289,8 @@ export function useGameState() {
     setBankCards([]);
     setSecretWordTrigger(pickedSecret);
     setIsSecretFoundThisRun(false);
+    setMaxWordsInBattle(0);
+    setRunUnlockedAchievements([]);
     setGameState('MAP');
     soundEngine.playTap();
   };
@@ -285,6 +309,10 @@ export function useGameState() {
     }
     if (targetBlind.type === 'TRIVIA') {
       setGameState('TRIVIA');
+      return;
+    }
+    if (targetBlind.type === 'CHALLENGE') {
+      setGameState('CHALLENGE');
       return;
     }
     if (targetBlind.type === 'TREASURE') {
@@ -359,7 +387,7 @@ export function useGameState() {
         setGoalNotice({ category: '🏷️ ETİKET ÖDÜLÜ', title: tag.name, description: `+${tag.effect.amount} Altın kazandın!`, rewardGold: tag.effect.amount });
       } else if (tag.effect.type === 'ADD_DISCARDS') {
         setExtraDiscardsNextStage(prev => prev + tag.effect.amount);
-        setGoalNotice({ category: '🏷️ ETİKET ÖDÜLÜ', title: tag.name, description: `Sonraki sınav için +${tag.effect.amount} el yenileme hakkı eklendi!` });
+        setGoalNotice({ category: '🏷️ ETİKET ÖDÜLÜ', title: tag.name, description: `Sonraki mücadele için +${tag.effect.amount} el yenileme hakkı eklendi!` });
       } else if (tag.effect.type === 'RARE_CARD_GUARANTEE') {
         setGuaranteedRareCard(true);
         setGoalNotice({ category: '🏷️ ETİKET ÖDÜLÜ', title: tag.name, description: 'Sonraki kart ödülünde garantili nadir harf sunulacak!' });
@@ -453,7 +481,7 @@ export function useGameState() {
 
     soundEngine.playTap();
     setHand(prev => prev.filter(c => c.id !== card.id));
-    setSelectedCards(prev => [...prev, card]);
+    setSelectedCards(prev => prev.some(c => c.id === card.id) ? prev : [...prev, card]);
   };
 
   const [pendingJokerCard, setPendingJokerCard] = useState(null);
@@ -671,6 +699,15 @@ export function useGameState() {
     setIsFirstWordInStage(false);
     setPlayedWordsThisStage(prev => [...prev, breakdown.word.toUpperCase()]);
 
+    // Progressive Codex Item Discoveries (Letters, Seals, Relics, Biomes)
+    breakdown.word.toUpperCase().split('').forEach(char => discoverCodexItem(char));
+    selectedCards.forEach(c => {
+      if (c.seal) discoverCodexItem(c.seal);
+      if (c.specialType) discoverCodexItem(c.specialType);
+    });
+    if (activeBiome?.id) discoverCodexItem(activeBiome.id);
+    activeRelicKeys.forEach(k => discoverCodexItem(k));
+
     const newScore = currentScore + breakdown.score;
     const earnedGold = (breakdown.goldEarned || 3) + bonusBonusGold;
     const newGold = gold + earnedGold;
@@ -692,23 +729,40 @@ export function useGameState() {
     });
 
     // REAL-TIME ACHIEVEMENT CHECK
+    const wordsThisBattle = playedWordsThisStage.length + 1;
+    setMaxWordsInBattle(prev => Math.max(prev, wordsThisBattle));
+
     const newlyUnlocked = checkNewAchievements({
       maxWordLength: breakdown.word.length,
       maxCombo: nextCombo,
       totalGoldEarned: newGold,
       maxStage: stage,
       maxSingleWordScore: breakdown.score,
-      totalWordsPlayed: (playedWordsThisStage.length + 1)
+      totalWordsPlayed: wordsThisBattle
     });
     if (newlyUnlocked.length > 0) {
       setActiveAchievementToast(newlyUnlocked[0]);
+      setRunUnlockedAchievements(prev => [...prev, ...newlyUnlocked]);
     }
 
     let msg = `${breakdown.message} (+${earnedGold} 💰 Altın)`;
     if (bonusBonusGold > 0) msg += ` 🎉 BONUS HEDEF TAMAMLANDI! (+${bonusBonusGold} 💰)`;
     setFeedbackMessage(msg);
 
-    const newDiscard = [...discardPile, ...selectedCards];
+    const resetJokerCard = (card) => {
+      if (!card) return card;
+      if (card.specialType === 'joker' || card.type === 'joker' || card.isJoker || card.letter === '🃏') {
+        return {
+          ...card,
+          letter: '🃏',
+          assignedLetter: undefined,
+          displayLetter: undefined
+        };
+      }
+      return card;
+    };
+
+    const newDiscard = [...discardPile, ...selectedCards].map(resetJokerCard);
     setSelectedCards([]);
 
     // Check Stage Victory
@@ -734,21 +788,16 @@ export function useGameState() {
         combo: nextCombo
       });
 
-      setGoalNotice({
-        title: `KADEME ${stage} HEDEFİ TAMAMLANDI!`,
-        description: `${targetScore} Puan Barajı Başarıyla Geçildi! ${overkillGold > 0 ? `(+${overkillGold} Skor Fazlası Altını)` : ''}`
-      });
-
       setFeedbackMessage(`🎉 KADEME TAMAMLANDI! ${overkillGold > 0 ? `(+${overkillGold} 💰 Bonus Altın)` : ''}`);
       setTimeout(() => {
         setGameState('STAGE_VICTORY_SUMMARY');
-      }, 900);
+      }, 700);
       return;
     }
 
     if (nextHands <= 0 && newScore < targetScore) {
       soundEngine.playInvalidWord();
-      setFeedbackMessage('⚠️ Hamle hakkınız bitti! Baraj puanına ulaşılamadığı için sınav elendi.');
+      setFeedbackMessage('⚠️ Hamle hakkınız bitti! Baraj puanına ulaşılamadığı için mücadele elendi.');
       setTimeout(() => {
         setGameState('GAME_OVER');
       }, 1000);
@@ -772,7 +821,20 @@ export function useGameState() {
     const nextDiscards = discardsLeft - 1;
     setDiscardsLeft(nextDiscards);
 
-    const allToDiscard = [...discardPile, ...hand, ...selectedCards];
+    const resetJokerCard = (card) => {
+      if (!card) return card;
+      if (card.specialType === 'joker' || card.type === 'joker' || card.isJoker) {
+        return {
+          ...card,
+          letter: '🃏',
+          assignedLetter: undefined,
+          displayLetter: undefined
+        };
+      }
+      return card;
+    };
+
+    const allToDiscard = [...discardPile, ...hand, ...selectedCards].map(resetJokerCard);
     setSelectedCards([]);
 
     const bossRule = getBossStageRule(stage);
@@ -967,11 +1029,39 @@ export function useGameState() {
     soundEngine.playTap();
     if (isCorrect) {
       setGold(prev => prev + 40);
-      setFeedbackMessage('🎉 Bilmece Sınavı Tamamlandı! +40 Altın kazandın!');
+      setFeedbackMessage('🎉 Bilmece Mücadelesi Tamamlandı! +40 Altın kazandın!');
     } else {
-      setFeedbackMessage('💡 Bilmece Sınavı Sona Erdi.');
+      setFeedbackMessage('💡 Bilmece Mücadelesi Sona Erdi.');
     }
     
+    // Advance Kademe blind progression
+    const updatedBlinds = kademeData.blinds.map((b, i) => {
+      if (i === currentBlindIndex) return { ...b, status: 'COMPLETED' };
+      if (i === currentBlindIndex + 1) return { ...b, status: 'ACTIVE' };
+      return b;
+    });
+    setKademeData(prev => ({ ...prev, blinds: updatedBlinds }));
+    const nextIdx = currentBlindIndex + 1;
+    setCurrentBlindIndex(nextIdx);
+    setGameState('MAP');
+  };
+
+  // Speed Challenge Action
+  const handleResolveChallenge = (goldReward = 0, challengeScore = 0) => {
+    soundEngine.playTap();
+    if (goldReward > 0) {
+      setGold(prev => prev + goldReward);
+    }
+    setFeedbackMessage(`⚡ Süreli Harf Challenge Tamamlandı! +${goldReward} 💰 Altın (Skor: ${challengeScore})`);
+
+    const newlyUnlocked = checkNewAchievements({
+      challengeScore
+    });
+    if (newlyUnlocked.length > 0) {
+      setActiveAchievementToast(newlyUnlocked[0]);
+      setRunUnlockedAchievements(prev => [...prev, ...newlyUnlocked]);
+    }
+
     // Advance Kademe blind progression
     const updatedBlinds = kademeData.blinds.map((b, i) => {
       if (i === currentBlindIndex) return { ...b, status: 'COMPLETED' };
@@ -1103,6 +1193,7 @@ export function useGameState() {
     handleLeaveShop,
     handleResolveEvent,
     handleResolveTrivia,
+    handleResolveChallenge,
     handleResolveCamp,
     upgradeWordTypeLevel,
     unlockDeck,
@@ -1114,6 +1205,8 @@ export function useGameState() {
     clearGoalNotice,
     activeAchievementToast,
     setActiveAchievementToast,
+    maxWordsInBattle,
+    runUnlockedAchievements,
     setGameState
   };
 }

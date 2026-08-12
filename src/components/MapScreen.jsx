@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Coins, Star, Home, FastForward, Play, Lock, CheckCircle2, ShieldAlert, Award, Tag, HelpCircle, Lightbulb, Key, Swords, Zap } from 'lucide-react';
+import { Sparkles, Coins, Star, Home, FastForward, Play, Lock, CheckCircle2, ShieldAlert, Award, Tag, HelpCircle, Lightbulb, Key, Swords, Zap, ChevronLeft, ChevronRight } from 'lucide-react';
 import { generateKademe } from '../game/mapGenerator';
 import { soundEngine } from '../game/audioEngine';
 
@@ -135,7 +135,6 @@ export function MapScreen({
   kademeData: inputKademeData,
   currentBlindIndex = 0,
   gold = 0,
-  starPoints = 0,
   activeTags = [],
   onSelectNode,
   onPlayBlind,
@@ -145,6 +144,7 @@ export function MapScreen({
   const kademeData = inputKademeData || generateKademe(currentKademe);
   const blinds = kademeData.blinds || [];
   const activeCardRef = useRef(null);
+  const carouselRef = useRef(null);
   const theme = getKademeTheme(currentKademe);
 
   useEffect(() => {
@@ -152,6 +152,13 @@ export function MapScreen({
       activeCardRef.current.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
     }
   }, [currentBlindIndex]);
+
+  const scrollCarousel = (dir) => {
+    soundEngine.playTap();
+    if (carouselRef.current) {
+      carouselRef.current.scrollBy({ left: dir * 292, behavior: 'smooth' });
+    }
+  };
 
   const handlePlayClick = (index) => {
     soundEngine.playTap();
@@ -171,8 +178,8 @@ export function MapScreen({
 
   const getBlindCategoryLabel = (type) => {
     switch (type) {
-      case 'SMALL_BLIND': return 'Normal Sınav';
-      case 'BIG_BLIND': return 'Yüksek Sınav';
+      case 'SMALL_BLIND': return 'Normal Mücadele';
+      case 'BIG_BLIND': return 'Yüksek Mücadele';
       case 'BOSS_BLIND': return 'Özel Boss Kuralı';
       case 'EVENT': return '🎭 Gizemli Durak';
       case 'TRIVIA': return '🧩 Kelime Bilmecesi';
@@ -183,11 +190,11 @@ export function MapScreen({
 
   const getPlayButtonText = (type) => {
     switch (type) {
-      case 'BOSS_BLIND': return '👑 BOSS SINAVINA BAŞLA';
+      case 'BOSS_BLIND': return '👑 BOSS MÜCADELESİNE BAŞLA';
       case 'EVENT': return '❓ OLAYI İNCELE';
       case 'TRIVIA': return '💡 BİLMECENİ ÇÖZ';
       case 'TREASURE': return '💰 SANDIĞI AÇ';
-      default: return 'SINAVI OYNA';
+      default: return 'MÜCADELEYİ OYNA';
     }
   };
 
@@ -240,7 +247,7 @@ export function MapScreen({
                 <span className="text-[10px] font-bold opacity-60 normal-case">— {theme.name}</span>
               </h2>
               <p className="text-[10px] text-slate-400 font-medium">
-                Sınavları Tamamla Veya Atla!
+                Mücadeleleri Tamamla Veya Atla!
               </p>
             </div>
           </div>
@@ -277,7 +284,7 @@ export function MapScreen({
                 <div
                   className={`flex items-center gap-1 px-2 py-1 rounded-lg border text-[10px] sm:text-xs font-bold transition-all whitespace-nowrap ${
                     isCurrent
-                      ? `bg-gradient-to-r ${theme.progressBar} bg-opacity-20 border-current ${theme.titleColor} shadow-[0_0_10px_rgba(0,0,0,0.3)] animate-pulse`
+                      ? `bg-gradient-to-r ${theme.progressBar} border-current text-white shadow-[0_0_10px_rgba(0,0,0,0.3)] animate-pulse`
                       : isDone
                       ? 'bg-emerald-950 border-emerald-500/60 text-emerald-300'
                       : isSkipped
@@ -299,7 +306,15 @@ export function MapScreen({
         </div>
 
         {/* ── 3. BLIND CARDS CAROUSEL ── */}
-        <div className="flex-1 flex items-center overflow-x-auto snap-x snap-mandatory gap-3 py-2 px-1 scrollbar-none z-10 min-h-[380px]">
+        <div className="flex-1 flex items-center gap-1.5 z-10 min-h-[380px]">
+          <button
+            onClick={() => scrollCarousel(-1)}
+            className={`shrink-0 w-9 h-14 rounded-2xl flex items-center justify-center transition active:scale-90 bg-slate-950/80 border ${theme.headerBorder} ${theme.accentColor} shadow-md cursor-pointer`}
+          >
+            <ChevronLeft size={22} />
+          </button>
+
+          <div ref={carouselRef} className="flex-1 h-full flex items-center overflow-x-auto snap-x snap-mandatory gap-3 py-2 px-1 scrollbar-none">
           {blinds.map((blind, idx) => {
             const isCurrent = idx === currentBlindIndex && blind.status !== 'COMPLETED' && blind.status !== 'SKIPPED';
             const isDone = blind.status === 'COMPLETED';
@@ -490,6 +505,14 @@ export function MapScreen({
               </motion.div>
             );
           })}
+          </div>
+
+          <button
+            onClick={() => scrollCarousel(1)}
+            className={`shrink-0 w-9 h-14 rounded-2xl flex items-center justify-center transition active:scale-90 bg-slate-950/80 border ${theme.headerBorder} ${theme.accentColor} shadow-md cursor-pointer`}
+          >
+            <ChevronRight size={22} />
+          </button>
         </div>
 
         {/* ── 4. ACTIVE TAGS TRAY ── */}

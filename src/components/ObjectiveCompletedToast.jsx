@@ -13,7 +13,7 @@ export function ObjectiveCompletedToast({ goalNotice, onClose }) {
 
   if (!goalNotice) return null;
 
-  const { title, description, category = 'BAŞARIM TAMAMLANDI', rewardGold, rewardStars, rewardSecret } = goalNotice;
+  const { title, description, category = 'BAŞARIM TAMAMLANDI', rewardGold, rewardSecret } = goalNotice;
 
   return (
     <AnimatePresence>
@@ -48,10 +48,9 @@ export function ObjectiveCompletedToast({ goalNotice, onClose }) {
                 </p>
               )}
 
-              {(rewardGold || rewardStars || rewardSecret) && (
+              {(rewardGold || rewardSecret) && (
                 <div className="flex items-center gap-1.5 text-[10px] font-extrabold text-amber-300 pt-1 flex-wrap">
                   {rewardGold && <span className="bg-amber-900/80 px-2 py-0.5 rounded-lg border border-amber-500/60 shadow-sm">+ {rewardGold} 💰 Altın</span>}
-                  {rewardStars && <span className="bg-amber-900/80 px-2 py-0.5 rounded-lg border border-amber-500/60 shadow-sm">+ {rewardStars} ⭐ Yıldız</span>}
                   {rewardSecret && <span className="bg-purple-900/80 text-purple-200 px-2 py-0.5 rounded-lg border border-purple-500/60 shadow-sm">🌌 {rewardSecret}</span>}
                 </div>
               )}

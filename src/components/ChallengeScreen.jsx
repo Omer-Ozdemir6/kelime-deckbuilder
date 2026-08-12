@@ -55,22 +55,27 @@ export function ChallengeScreen({
   }, [isChallengeEnded]);
 
   const handleSelectLetter = (item) => {
-    if (placedLetters.length >= currentPuzzle.targetLength) return;
-    soundEngine.playTileClick();
-    setPlacedLetters((prev) => [...prev, item]);
-    setCurrentPuzzle((prev) => ({
-      ...prev,
-      scrambledPool: prev.scrambledPool.map(l => l.id === item.id ? { ...l, isUsed: true } : l)
-    }));
+    setPlacedLetters((prev) => {
+      if (prev.some(l => l.id === item.id) || prev.length >= currentPuzzle.targetLength) return prev;
+      soundEngine.playTileClick();
+      setCurrentPuzzle((pz) => ({
+        ...pz,
+        scrambledPool: pz.scrambledPool.map(l => l.id === item.id ? { ...l, isUsed: true } : l)
+      }));
+      return [...prev, item];
+    });
   };
 
   const handleRemovePlacedLetter = (item) => {
-    soundEngine.playTileClick();
-    setPlacedLetters((prev) => prev.filter(l => l.id !== item.id));
-    setCurrentPuzzle((prev) => ({
-      ...prev,
-      scrambledPool: prev.scrambledPool.map(l => l.id === item.id ? { ...l, isUsed: false } : l)
-    }));
+    setPlacedLetters((prev) => {
+      if (!prev.some(l => l.id === item.id)) return prev;
+      soundEngine.playTileClick();
+      setCurrentPuzzle((pz) => ({
+        ...pz,
+        scrambledPool: pz.scrambledPool.map(l => l.id === item.id ? { ...l, isUsed: false } : l)
+      }));
+      return prev.filter(l => l.id !== item.id);
+    });
   };
 
   const handleClearLetters = () => {

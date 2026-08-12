@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { VerticalMobileContainer } from './components/VerticalMobileContainer';
 import { HeaderBar } from './components/HeaderBar';
 import { WordPlayArea } from './components/WordPlayArea';
@@ -25,6 +25,7 @@ import { StakesSelectModal, STAKES_DEFINITIONS } from './components/StakesSelect
 import { JokerSelectorModal } from './components/JokerSelectorModal';
 import { AchievementToast } from './components/AchievementToast';
 import { useGameState } from './hooks/useGameState';
+import { checkMetaUnlocks } from './game/metaUnlocks';
 
 export default function App() {
   const gameStateObj = useGameState();
@@ -33,6 +34,7 @@ export default function App() {
   const [selectedRelicKey, setSelectedRelicKey] = useState(null);
   const [isCodexOpen, setIsCodexOpen] = useState(false);
   const [isWheelOpen, setIsWheelOpen] = useState(false);
+  const [runMetaUnlocks, setRunMetaUnlocks] = useState([]);
 
   const [selectedHero, setSelectedHero] = useState(HERO_CHARACTERS[0]);
   const [selectedStake, setSelectedStake] = useState(STAKES_DEFINITIONS[0]);
@@ -55,7 +57,6 @@ export default function App() {
     selectedCards,
     gameState,
     feedbackMessage,
-    starPoints,
     highScore,
     unlockedDecks,
     selectedDeckId,
@@ -106,6 +107,19 @@ export default function App() {
     startNewRun(selectedHero.starterDeckId);
   };
 
+  // Run bittiğinde (Game Over) başarım tabanlı kahraman/mühür açılımlarını kontrol et
+  useEffect(() => {
+    if (gameState === 'GAME_OVER') {
+      const newly = checkMetaUnlocks({
+        heroId: selectedHero.id,
+        stakeId: selectedStake.id,
+        maxKademeReached: gameStateObj.currentKademe,
+        maxWordsInBattle: gameStateObj.maxWordsInBattle
+      });
+      setRunMetaUnlocks(newly);
+    }
+  }, [gameState]);
+
   return (
     <VerticalMobileContainer activeBiome={activeBiome}>
       {/* REAL-TIME UNLOCKED ACHIEVEMENT POPUP TOAST */}
@@ -129,7 +143,6 @@ export default function App() {
       {/* 1. MAIN MENU SCREEN */}
       {gameState === 'START_MENU' && !isSplashActive && (
         <StartMenuModal
-          starPoints={starPoints}
           highScore={highScore}
           unlockedDecks={unlockedDecks}
           selectedDeckId={selectedDeckId}
@@ -165,7 +178,6 @@ export default function App() {
           kademeData={gameStateObj.kademeData}
           currentBlindIndex={gameStateObj.currentBlindIndex}
           gold={gold}
-          starPoints={starPoints}
           activeTags={gameStateObj.activeTags}
           onPlayBlind={gameStateObj.playBlind}
           onSkipBlind={gameStateObj.skipBlind}
@@ -187,7 +199,6 @@ export default function App() {
             gold={gold}
             lives={gameStateObj.lives}
             activeRelicKeys={activeRelicKeys}
-            starPoints={starPoints}
             fullDeckCount={fullDeck.length}
             onOpenDeckInspector={() => setIsDeckInspectorOpen(true)}
             onDiscardHand={discardAndRedraw}
@@ -287,8 +298,7 @@ export default function App() {
       {gameState === 'CHALLENGE' && (
         <ChallengeScreen
           onCompleteChallenge={(goldReward, challengeScore) => {
-            gameStateObj.addGold(goldReward);
-            gameStateObj.proceedFromNode();
+            gameStateObj.handleResolveChallenge(goldReward, challengeScore);
           }}
         />
       )}
@@ -328,6 +338,8 @@ export default function App() {
           currentScore={currentScore}
           totalRunGold={gold}
           totalRunWords={playedWordsThisStage.length}
+          runAchievements={gameStateObj.runUnlockedAchievements}
+          runMetaUnlocks={runMetaUnlocks}
           onReturnToMainMenu={() => setGameState('START_MENU')}
         />
       )}

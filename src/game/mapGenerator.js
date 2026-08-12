@@ -1,9 +1,9 @@
 /**
  * Balatro-style Kademe (Ante) & Blind Generator for Kelime Destesi
  * Each Kademe consists of:
- * 1. Küçük Sınav (Small Blind) - Can be played or skipped for a Tag reward
- * 2. Büyük Sınav (Big Blind) - Can be played or skipped for a Tag reward
- * 3. Boss Sınavı (Boss Blind) - Unskippable, active Boss Rule constraint
+ * 1. Küçük Mücadele (Small Blind) - Can be played or skipped for a Tag reward
+ * 2. Büyük Mücadele (Big Blind) - Can be played or skipped for a Tag reward
+ * 3. Boss Mücadelesi (Boss Blind) - Unskippable, active Boss Rule constraint
  * 4. Dükkân (Shop) - After defeating Boss
  */
 
@@ -28,7 +28,7 @@ export const REGIONAL_BIOMES = [
     accentColor: 'text-emerald-400',
     borderColor: 'border-emerald-500/50',
     glowColor: 'rgba(16, 185, 129, 0.2)',
-    modifier: { id: 'FOREST_ZONE', name: 'Bol Hazine', icon: '💎', desc: 'Tüm sınavlar +10 Altın kazandırır!' }
+    modifier: { id: 'FOREST_ZONE', name: 'Bol Hazine', icon: '💎', desc: 'Tüm mücadeleler +10 Altın kazandırır!' }
   },
   {
     colIndex: 2,
@@ -71,7 +71,7 @@ export const TAG_DEFINITIONS = [
     name: 'Ekstra Yenileme',
     icon: '🔄',
     badgeClass: 'bg-cyan-950 border-cyan-500 text-cyan-300',
-    desc: 'Sonraki sınavlarda +2 el yenileme hakkı ekler.',
+    desc: 'Sonraki mücadelelerde +2 el yenileme hakkı ekler.',
     effect: { type: 'ADD_DISCARDS', amount: 2 }
   },
   {
@@ -163,7 +163,7 @@ export function generateKademe(kademeNumber = 1) {
       id: `k${kademeNumber}_b0`,
       index: 0,
       type: 'SMALL_BLIND',
-      title: 'Küçük Sınav',
+      title: 'Küçük Mücadele',
       icon: '📜',
       targetScore: smallTarget,
       rewardGold: 10 + kademeNumber * 2,
@@ -226,7 +226,7 @@ export function generateKademe(kademeNumber = 1) {
     id: `k${kademeNumber}_b1`,
     index: nextIdx++,
     type: 'BIG_BLIND',
-    title: 'Büyük Sınav',
+    title: 'Büyük Mücadele',
     icon: '⚔️',
     targetScore: bigTarget,
     rewardGold: 20 + kademeNumber * 3,
