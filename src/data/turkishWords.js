@@ -22,9 +22,13 @@ EXPLICIT_ADDITIONS.forEach(w => WORD_SET.add(w));
  */
 function isMorphologicallyValidTurkishWord(word) {
   if (word.length < 2) return false;
-  let testStr = word.toUpperCase('tr-TR').trim();
+  const testStr = word.toUpperCase('tr-TR').trim();
 
   if (WORD_SET.has(testStr)) return true;
+
+  const VOWELS = ['A', 'E', 'I', 'İ', 'O', 'Ö', 'U', 'Ü'];
+  const BACK_VOWELS = ['A', 'I', 'O', 'U'];
+  const FRONT_VOWELS = ['E', 'İ', 'Ö', 'Ü'];
 
   // Vowel drop fallback (e.g. NAKLİ -> NAKİL, FİKRİ -> FİKİR, AKLI -> AKIL)
   if (testStr.length >= 4) {
@@ -35,33 +39,59 @@ function isMorphologicallyValidTurkishWord(word) {
     }
   }
 
-  const suffixes = [
+  const validSuffixes = [
     "LARIMIZDAN", "LERİMİZDEN", "LARINIZDAN", "LERİNİZDEN", "LARINDAN", "LERİNDEN",
     "LARIMIZDA", "LERİMİZDE", "LARINIZDA", "LERİNİZDE", "LARINDA", "LERİNDE",
-    "LARIMIZI", "LERİMİZİ", "LARINIZI", "LERİNİZİ", "LARINI", "LERİNİ",
+    "LARIMIZI", "LERİMİZİ", "LARINIZI", "LERİNİZİ", "LARINI", "LERİNDEN",
     "LARIMIZ", "LERİMİZ", "LARINIZ", "LERİNİZ", "LARIM", "LARIN", "LERİM", "LERİN",
     "LARDAN", "LERDEN", "LARDA", "LERDE", "LARI", "LERİ", "LAR", "LER",
-    "LİK", "LİK", "LUK", "LÜK", "Lİ", "LI", "LU", "LÜ", "SİZ", "SUZ", "SÜZ",
+    "LİK", "LÜK", "Lİ", "LI", "LU", "LÜ", "SİZ", "SUZ", "SÜZ",
     "DEN", "DAN", "TEN", "TAN", "DE", "DA", "TE", "TA", "YE", "YA", "NE", "NA", "Yİ", "YI", "YU", "YÜ",
-    "MİŞ", "MIŞ", "MUŞ", "MÜŞ", "Dİ", "Dİ", "DU", "DÜ", "Tİ", "Tİ", "TU", "TÜ", "CEK", "CAK", "ECEK", "ACAK",
+    "MİŞ", "MIŞ", "MUŞ", "MÜŞ", "Dİ", "DU", "DÜ", "Tİ", "TU", "TÜ", "CEK", "CAK", "ECEK", "ACAK",
     "YOR", "MAK", "MEK", "EN", "AN", "İR", "ÜR", "ER", "AR",
     "İMİZ", "IMIZ", "UMUZ", "ÜMÜZ", "İNİZ", "INIZ", "UNUZ", "ÜNÜZ",
-    "İM", "İM", "UM", "ÜM", "İN", "İN", "UN", "ÜN", "İ", "I", "U", "Ü", "E", "A"
+    "İM", "UM", "ÜM", "İN", "UN", "ÜN", "İ", "I", "U", "Ü", "E", "A"
   ];
 
   for (let i = 2; i < testStr.length; i++) {
     const prefix = testStr.substring(0, i);
     const suffix = testStr.substring(i);
 
-    if (suffixes.includes(suffix)) {
+    if (validSuffixes.includes(suffix)) {
+      const prefixLastChar = prefix[prefix.length - 1];
+      const suffixFirstChar = suffix[0];
+
+      // Rule 1: In Turkish orthography, two vowels CANNOT meet directly without a buffer consonant (Y, N, S)
+      if (VOWELS.includes(prefixLastChar) && VOWELS.includes(suffixFirstChar)) {
+        continue;
+      }
+
+      // Rule 2: Check Vowel Harmony (Büyük Ses Uyum)
+      const prefixVowels = [...prefix].filter(c => VOWELS.includes(c));
+      const lastVowelInPrefix = prefixVowels[prefixVowels.length - 1];
+
+      if (lastVowelInPrefix) {
+        const isBack = BACK_VOWELS.includes(lastVowelInPrefix);
+        const suffixVowels = [...suffix].filter(c => VOWELS.includes(c));
+        const firstVowelInSuffix = suffixVowels[0];
+
+        if (firstVowelInSuffix) {
+          const suffixIsBack = BACK_VOWELS.includes(firstVowelInSuffix);
+          // Reject harmony mismatch (e.g. KAPIDEN is invalid)
+          if (isBack !== suffixIsBack) {
+            continue;
+          }
+        }
+      }
+
       if (WORD_SET.has(prefix)) return true;
 
-      const lastChar = prefix[prefix.length - 1];
+      // Consonant softening check (Ğ->K, D->T, B->P, C->Ç)
       let restoredPrefix = prefix;
-      if (lastChar === 'Ğ') restoredPrefix = prefix.slice(0, -1) + 'K';
-      else if (lastChar === 'D') restoredPrefix = prefix.slice(0, -1) + 'T';
-      else if (lastChar === 'B') restoredPrefix = prefix.slice(0, -1) + 'P';
-      else if (lastChar === 'C') restoredPrefix = prefix.slice(0, -1) + 'Ç';
+      if (prefixLastChar === 'Ğ') restoredPrefix = prefix.slice(0, -1) + 'K';
+      else if (prefixLastChar === 'D') restoredPrefix = prefix.slice(0, -1) + 'T';
+      else if (prefixLastChar === 'B') restoredPrefix = prefix.slice(0, -1) + 'P';
+      else if (prefixLastChar === 'C') restoredPrefix = prefix.slice(0, -1) + 'Ç';
 
       if (WORD_SET.has(restoredPrefix)) return true;
     }

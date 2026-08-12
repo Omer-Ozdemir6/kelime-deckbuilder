@@ -12,12 +12,12 @@ import { isWordValid } from '../data/turkishWords';
  */
 export function getLengthBonus(length) {
   if (length <= 2) return 0;
-  if (length === 3) return 1;
-  if (length === 4) return 2;
-  if (length === 5) return 4;
-  if (length === 6) return 7;
-  if (length === 7) return 11;
-  return 16 + (length - 8) * 5;
+  if (length === 3) return 2;
+  if (length === 4) return 4;
+  if (length === 5) return 4 + 5; // +9 (+5 Bonus on Slot #5)
+  if (length === 6) return 7 + 5 + 10; // +22 (+10 Bonus on Slot #6)
+  if (length === 7) return 11 + 5 + 10 + 15; // +41 (+15 Bonus on Slot #7)
+  return 16 + 30 + (length - 8) * 8;
 }
 
 export function isWordExtension(previousWord, newWord) {
@@ -58,7 +58,7 @@ export function isWordTransformation(previousWord, newWord) {
 /**
  * Calculates score, perks, relic synergies, and word archetype rewards
  */
-const TURKISH_ALPHABET = [
+export const TURKISH_ALPHABET = [
   'A', 'B', 'C', 'Ç', 'D', 'E', 'F', 'G', 'Ğ', 'H',
   'I', 'İ', 'J', 'K', 'L', 'M', 'N', 'O', 'Ö', 'P',
   'R', 'S', 'Ş', 'T', 'U', 'Ü', 'V', 'Y', 'Z'
@@ -274,10 +274,22 @@ export function calculateWordScore(
     for (let evalIdx = 0; evalIdx < evaluationsCount; evalIdx++) {
       if (card.isSpecial) {
         if (card.specialType === 'joker' || card.type === 'joker') {
-          // Joker base points = 2 * slot multiplier
-          cardSum += 2 * slotLetterMult;
+          // Joker base points = 0 (substitutes missing letter, 0 base points)
+          cardSum += (card.points || 0) * slotLetterMult;
         } else if (card.specialType === 'double' || card.type === 'double') {
           doubleMultiplier *= 2;
+        } else if (card.specialType === 'mirror' || card.type === 'mirror') {
+          // Mirror tile: copies preceding card points
+          const prevCard = idx > 0 ? selectedCards[idx - 1] : null;
+          const mirroredPts = prevCard ? (prevCard.points || 2) : 2;
+          cardSum += mirroredPts * slotLetterMult;
+        } else if (card.specialType === 'golden' || card.type === 'golden') {
+          cardSum += 10 * slotLetterMult;
+          slotBonusGold += 15;
+        } else if (card.specialType === 'ash' || card.type === 'ash') {
+          cardSum += 25 * slotLetterMult;
+        } else if (card.specialType === 'chain_tile' || card.type === 'chain_tile') {
+          cardSum += 5 * slotLetterMult;
         }
       } else {
         // Base points
@@ -329,12 +341,16 @@ export function calculateWordScore(
   });
 
   const upperWord = wordStr.toUpperCase().trim();
+  const lengthBonus = getLengthBonus(upperWord.length);
+  const potentialSubtotal = (cardSum + lengthBonus + sealBonusChips) * doubleMultiplier * polychromeMultiplier;
+  const potentialScore = Math.max(1, Math.floor(potentialSubtotal * (currentCombo || 1)));
 
   if (upperWord.length < 2) {
     return {
       isValid: false,
       word: wordStr,
       score: 0,
+      potentialScore: potentialScore,
       goldEarned: 0,
       basePoints: cardSum,
       lengthBonus: 0,
@@ -353,6 +369,7 @@ export function calculateWordScore(
       isValid: false,
       word: wordStr,
       score: 0,
+      potentialScore: potentialScore,
       goldEarned: 0,
       basePoints: cardSum,
       lengthBonus: 0,
@@ -371,20 +388,18 @@ export function calculateWordScore(
       isValid: false,
       word: wordStr,
       score: 0,
+      potentialScore: potentialScore,
       goldEarned: 0,
       basePoints: cardSum,
-      lengthBonus: 0,
+      lengthBonus: lengthBonus,
       extensionBonus: 0,
       chainType: 'NONE',
-      comboMultiplier: 1,
+      comboMultiplier: currentCombo || 1,
       isExtension: false,
       newCombo: 1,
-      message: `"${wordStr}" sözlükte bulunamadı!`
+      message: `"${wordStr}" TDK sözlüğünde bulunamadı!`
     };
   }
-
-  // Length Bonus
-  const lengthBonus = getLengthBonus(upperWord.length);
 
   // Word Chain Analysis (UZAT vs DÖNÜŞTÜR)
   let chainType = 'NONE';
@@ -444,6 +459,19 @@ export function calculateWordScore(
   if (activeRelicKeys.includes('CIFT_HARF') && hasDuplicateLetters) {
     relicScoreMultiplier += 0.25; // +25% on Double Letters
   }
+  // Üç Sesli Mührü: 3 different vowels
+  const vowels = ['A', 'E', 'I', 'İ', 'O', 'Ö', 'U', 'Ü'];
+  const uniqueVowels = new Set([...upperWord].filter(c => vowels.includes(c)));
+  if (activeRelicKeys.includes('UC_SESLI') && uniqueVowels.size >= 3) {
+    relicScoreMultiplier += 0.35; // +35% on 3 Vowels
+  }
+  // Son Harf Tılsımı: 2x final letter points
+  if (activeRelicKeys.includes('SON_HARF') && selectedCards.length > 0) {
+    const lastCard = selectedCards[selectedCards.length - 1];
+    if (lastCard && !lastCard.isSpecial) {
+      cardSum += (lastCard.points || 1);
+    }
+  }
 
   // Chain Type extra percentage multiplier
   if (chainType === 'EXTEND') relicScoreMultiplier += 0.20; // +20%
@@ -493,6 +521,7 @@ export function calculateWordScore(
     isValid: true,
     word: upperWord,
     score: totalScore,
+    potentialScore: totalScore,
     goldEarned: totalGoldEarned,
     basePoints: cardSum,
     lengthBonus: lengthBonus,

@@ -1,126 +1,86 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Compass, Star, Coins, Lock, CheckCircle2, Sparkles, Home, ChevronRight, EyeOff } from 'lucide-react';
-import { REGIONAL_BIOMES } from '../game/mapGenerator';
-
-const NODE_TYPE_CONFIG = {
-  NORMAL:            { label: 'Kelime Sınavı', color: 'text-slate-300', bg: 'bg-slate-900/90', border: 'border-slate-700' },
-  SPECIAL_OBJECTIVE: { label: 'Özel Sınav',    color: 'text-cyan-300',   bg: 'bg-cyan-950/80', border: 'border-cyan-700/60' },
-  ELITE:             { label: '⚔️ ELİT SINAV', color: 'text-red-300',    bg: 'bg-red-950/80',  border: 'border-red-700/60' },
-  SHOP:              { label: '🏪 Çarşı',       color: 'text-amber-300',  bg: 'bg-amber-950/80',border: 'border-amber-700/60' },
-  EVENT:             { label: '❓ Olay',         color: 'text-purple-300', bg: 'bg-purple-950/80',border:'border-purple-700/60' },
-  TRIVIA:            { label: '💡 Bilmece',     color: 'text-yellow-300', bg: 'bg-yellow-950/80',border:'border-yellow-700/60' },
-  TREASURE:          { label: '💰 Hazine',       color: 'text-yellow-300', bg: 'bg-yellow-950/80',border:'border-yellow-700/60' },
-  CAMP:              { label: '🏕️ SON KAMP',     color: 'text-emerald-300',bg: 'bg-emerald-950/90',border:'border-emerald-500/80' },
-  BOSS:              { label: '👑 BOSS',          color: 'text-rose-300',   bg: 'bg-rose-950/90', border: 'border-rose-500/80' }
-};
-
-const PATH_CATEGORY_CONFIG = {
-  SAFE:    { label: '🟢 Güvenli Yol', badge: 'bg-emerald-950/80 border-emerald-500/40 text-emerald-300' },
-  RISK:    { label: '🔴 Riskli Yol',  badge: 'bg-rose-950/80 border-rose-500/40 text-rose-300' },
-  BUILD:   { label: '🔵 Build Yolu',  badge: 'bg-cyan-950/80 border-cyan-500/40 text-cyan-300' },
-  MYSTERY: { label: '🟣 Gizem Yolu', badge: 'bg-purple-950/80 border-purple-500/40 text-purple-300' }
-};
+import { Sparkles, Coins, Star, Home, FastForward, Play, Lock, CheckCircle2, ShieldAlert, Award, Tag, HelpCircle, Lightbulb, Key } from 'lucide-react';
+import { generateKademe } from '../game/mapGenerator';
+import { soundEngine } from '../game/audioEngine';
 
 export function MapScreen({
-  mapFloors = [],
-  currentFloorIndex = 0,
-  gold,
-  starPoints,
+  currentKademe = 1,
+  kademeData: inputKademeData,
+  currentBlindIndex = 0,
+  gold = 0,
+  starPoints = 0,
+  activeTags = [],
   onSelectNode,
+  onPlayBlind,
+  onSkipBlind,
   onOpenMainMenu
 }) {
-  const currentFloor = mapFloors[currentFloorIndex] || mapFloors[0] || [];
-  const [selectedBranchIndex, setSelectedBranchIndex] = useState(0);
-  const [isConfirmingNode, setIsConfirmingNode] = useState(false);
+  const kademeData = inputKademeData || generateKademe(currentKademe);
+  const blinds = kademeData.blinds || [];
+  const activeCardRef = useRef(null);
 
-  const selectedNode = currentFloor[selectedBranchIndex] || currentFloor[0];
-
-  const currentBiome = selectedNode?.biome || currentFloor[0]?.biome;
-  const currentModifier = selectedNode?.modifier || currentFloor[0]?.modifier;
-
-  const activeFloorRef = useRef(null);
-  const containerRef = useRef(null);
-
-  // Mouse Click-and-Drag State
-  const [isMouseDown, setIsMouseDown] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [startY, setStartY] = useState(0);
-  const [scrollLeft, setScrollLeft] = useState(0);
-  const [scrollTop, setScrollTop] = useState(0);
-
-  // Auto-scroll vertically & horizontally to active node
   useEffect(() => {
-    if (activeFloorRef.current) {
-      setTimeout(() => {
-        activeFloorRef.current.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
-      }, 100);
+    if (activeCardRef.current) {
+      activeCardRef.current.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
     }
-  }, [currentFloorIndex]);
+  }, [currentBlindIndex]);
 
-  // Mouse Drag Handlers
-  const handleMouseDown = (e) => {
-    if (!containerRef.current) return;
-    setIsMouseDown(true);
-    setStartX(e.pageX - containerRef.current.offsetLeft);
-    setStartY(e.pageY - containerRef.current.offsetTop);
-    setScrollLeft(containerRef.current.scrollLeft);
-    setScrollTop(containerRef.current.scrollTop);
+  const handlePlayClick = (index) => {
+    soundEngine.playTap();
+    if (onPlayBlind) {
+      onPlayBlind(index);
+    } else if (onSelectNode) {
+      onSelectNode(index);
+    }
   };
 
-  const handleMouseMove = (e) => {
-    if (!isMouseDown || !containerRef.current) return;
-    e.preventDefault();
-    const x = e.pageX - containerRef.current.offsetLeft;
-    const y = e.pageY - containerRef.current.offsetTop;
-    const walkX = (x - startX) * 1.5;
-    const walkY = (y - startY) * 1.5;
-    containerRef.current.scrollLeft = scrollLeft - walkX;
-    containerRef.current.scrollTop = scrollTop - walkY;
+  const handleSkipClick = (index) => {
+    soundEngine.playTap();
+    if (onSkipBlind) {
+      onSkipBlind(index);
+    }
   };
 
-  const handleMouseUpOrLeave = () => {
-    setIsMouseDown(false);
+  const getBlindCategoryLabel = (type) => {
+    switch (type) {
+      case 'SMALL_BLIND': return 'Normal Sınav';
+      case 'BIG_BLIND': return 'Yüksek Sınav';
+      case 'BOSS_BLIND': return 'Özel Boss Kuralı';
+      case 'EVENT': return '🎭 Gizemli Durak';
+      case 'TRIVIA': return '🧩 Kelime Bilmecesi';
+      case 'TREASURE': return '💎 Kilitli Hazine';
+      default: return 'Özel Durak';
+    }
   };
 
-  // Confirm Node Button Click Sequence:
-  // Step 1: Green line fills from 0 to 1 over 800ms
-  // Step 2: AFTER green line finishes filling 100%, trigger screen transition!
-  const handleConfirmNodeClick = () => {
-    if (isConfirmingNode || !selectedNode) return;
-    setIsConfirmingNode(true);
-
-    setTimeout(() => {
-      onSelectNode(selectedNode);
-    }, 850);
-  };
-
-  // Map 5-Column Grid Layout Dimensions
-  const colWidth = 115; // 115px per column
-  const rowHeight = 110; // 110px per floor layer
-
-  // Helper to compute (X, Y) center position for any node
-  const getNodeCoordinates = (colIdx, floorIdx) => {
-    const xCol = colIdx !== undefined ? colIdx : 2;
-    const x = xCol * colWidth + 60;
-    const y = floorIdx * rowHeight + rowHeight / 2 + 10;
-    return { x, y };
+  const getPlayButtonText = (type) => {
+    switch (type) {
+      case 'BOSS_BLIND': return '👑 BOSS SINAVINA BAŞLA';
+      case 'EVENT': return '❓ OLAYI İNCELE';
+      case 'TRIVIA': return '💡 BİLMECENİ ÇÖZ';
+      case 'TREASURE': return '💰 SANDIĞI AÇ';
+      default: return 'SINAVI OYNA';
+    }
   };
 
   return (
-    <div className={`flex-1 flex flex-col justify-between p-3.5 bg-gradient-to-b ${currentBiome?.themeClass || 'from-slate-950 via-[#0a0f1d] to-slate-950'} text-slate-100 overflow-hidden relative transition-all duration-700 select-none`}>
-      {/* Top Fixed Header Bar */}
-      <div className="flex items-center justify-between border-b border-slate-800/80 pb-2.5 shrink-0 z-20 bg-slate-950/90 backdrop-blur-md">
+    <div className="flex-1 flex flex-col justify-between p-3 sm:p-4 bg-gradient-to-b from-slate-950 via-[#0a0f1d] to-slate-950 text-slate-100 overflow-y-auto select-none relative">
+      {/* Ambient Top Glow */}
+      <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-amber-500/10 to-transparent pointer-events-none" />
+
+      {/* 1. TOP HEADER BAR */}
+      <div className="flex items-center justify-between border-b border-slate-800/80 pb-2.5 shrink-0 z-10 bg-slate-950/90 backdrop-blur-md px-2 py-1 rounded-2xl">
         <div className="flex items-center gap-2">
           <div className="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-400/50 flex items-center justify-center text-amber-300 shadow-md">
-            <Compass size={18} />
+            <Sparkles size={18} />
           </div>
           <div>
-            <h2 className="text-sm sm:text-base font-black text-amber-300 font-cinzel tracking-wide">
-              SÖZ DİYARI ELMAS HARİTASI
+            <h2 className="text-base font-black text-amber-300 tracking-wide font-cinzel flex items-center gap-1">
+              KADEME {currentKademe}
             </h2>
             <p className="text-[10px] text-slate-400 font-medium">
-              Kat {currentFloorIndex + 1} / {mapFloors.length} — Rotaları & Biyomları Keşfet!
+              Sınavları Tamamla Veya Atla!
             </p>
           </div>
         </div>
@@ -130,14 +90,10 @@ export function MapScreen({
             <Coins size={12} className="text-amber-400 fill-amber-400" />
             <span>{gold}</span>
           </div>
-          <div className="flex items-center gap-1 bg-slate-900 border border-slate-700 px-2 py-1 rounded-xl text-xs font-black text-amber-300 shadow-sm">
-            <Star size={12} className="fill-amber-400 text-amber-400" />
-            <span>{starPoints}</span>
-          </div>
           {onOpenMainMenu && (
             <button
               onClick={onOpenMainMenu}
-              className="p-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 transition active:scale-95 shadow-sm"
+              className="p-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 transition active:scale-95 shadow-sm cursor-pointer"
               title="Ana Menüye Dön"
             >
               <Home size={15} />
@@ -146,295 +102,247 @@ export function MapScreen({
         </div>
       </div>
 
-      {/* Active Biome & Region Modifier Clue Banner */}
-      {(currentBiome || currentModifier) && (
-        <div className="mt-2 px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between gap-2 shadow-inner shrink-0 z-20 animate-fade-in">
-          {currentBiome && (
-            <div className={`flex items-center gap-1.5 text-xs font-black ${currentBiome.accentColor}`}>
-              <span className="text-base">{currentBiome.icon}</span>
-              <span>{currentBiome.name}</span>
-            </div>
-          )}
-          {currentModifier && (
-            <div className="flex items-center gap-1 text-[11px] font-extrabold text-yellow-300 bg-yellow-950/60 px-2 py-0.5 rounded-lg border border-yellow-700/50">
-              <span>{currentModifier.icon}</span>
-              <span>{currentModifier.desc || currentModifier.name}</span>
-            </div>
-          )}
-        </div>
-      )}
+      {/* 2. ANTE RUN TRACK BAR (BALATRO PROGRESS STEPPER) */}
+      <div className="my-2.5 px-3 py-2 rounded-2xl bg-slate-900/90 border border-slate-800/90 shadow-inner flex items-center justify-between gap-1 z-10 shrink-0 overflow-x-auto scrollbar-none">
+        {blinds.map((blind, idx) => {
+          const isCurrent = idx === currentBlindIndex && blind.status !== 'COMPLETED' && blind.status !== 'SKIPPED';
+          const isDone = blind.status === 'COMPLETED';
+          const isSkipped = blind.status === 'SKIPPED';
 
-      {/* 2D FREE PAN / SCROLL CANVAS CONTAINER */}
-      <div
-        ref={containerRef}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUpOrLeave}
-        onMouseLeave={handleMouseUpOrLeave}
-        className={`flex-1 my-2 overflow-auto scrollbar-thin relative touch-pan-x touch-pan-y p-3 rounded-2xl bg-slate-950/70 border border-slate-900 ${
-          isMouseDown ? 'cursor-grabbing' : 'cursor-grab'
-        }`}
-      >
-        <div
-          className="relative min-w-[620px]"
-          style={{ height: `${mapFloors.length * rowHeight + 70}px` }}
-        >
-          {/* Top Column Regional Biome Clues Bar */}
-          <div className="absolute top-0 left-0 right-0 flex items-center justify-around px-3 z-20 pointer-events-none">
-            {REGIONAL_BIOMES.map((b) => (
+          return (
+            <React.Fragment key={blind.id}>
+              {idx > 0 && (
+                <div className={`h-0.5 flex-1 min-w-[8px] transition-colors duration-500 ${isDone || isSkipped ? 'bg-amber-400' : 'bg-slate-800'}`} />
+              )}
               <div
-                key={b.id}
-                className={`w-24 sm:w-28 p-1 rounded-xl border text-center flex flex-col items-center justify-center bg-slate-950/90 shadow-md ${b.borderColor}`}
+                className={`flex items-center gap-1 px-2 py-1 rounded-lg border text-[10px] sm:text-xs font-bold transition-all whitespace-nowrap ${
+                  isCurrent
+                    ? 'bg-amber-500/20 border-amber-400 text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.3)] animate-pulse'
+                    : isDone
+                    ? 'bg-emerald-950 border-emerald-500/60 text-emerald-300'
+                    : isSkipped
+                    ? 'bg-purple-950 border-purple-500/60 text-purple-300'
+                    : 'bg-slate-950 border-slate-800 text-slate-500'
+                }`}
               >
-                <span className="text-[10px] font-black text-slate-200 flex items-center gap-1">
-                  <span>{b.icon}</span>
-                  <span className="truncate">{b.name.replace(/[^a-zA-ZĞÜŞİÖÇğüşiöç\s]/g, '').trim()}</span>
-                </span>
-                <span className="text-[7px] text-slate-400 font-bold truncate max-w-full">
-                  {b.modifier.name}
-                </span>
+                <span>{isDone ? '✓' : isSkipped ? '⏩' : isCurrent ? '◉' : '🔒'}</span>
+                <span>{blind.title}</span>
               </div>
-            ))}
-          </div>
-
-          {/* SVG Tree Connecting Lines Overlay */}
-          <svg className="absolute inset-0 w-full h-full pointer-events-none z-0">
-            {mapFloors.map((floorNodes, floorIdx) => {
-              if (floorIdx >= mapFloors.length - 1) return null;
-
-              const isCompletedFloor = floorIdx < currentFloorIndex;
-              const isCurrentFloorLayer = floorIdx === currentFloorIndex - 1;
-              const isCurrentFloor = floorIdx === currentFloorIndex;
-              const isFogged = floorIdx > currentFloorIndex + 2;
-
-              if (isFogged) return null;
-
-              // 1. Past Completed Green Paths (< currentFloorIndex - 1)
-              if (isCompletedFloor && !isCurrentFloorLayer) {
-                const parentNode = floorNodes.find(n => n.completed) || floorNodes[0];
-                const nextFloorNodes = mapFloors[floorIdx + 1] || [];
-                const childNode = nextFloorNodes.find(n => n.completed) || nextFloorNodes[0];
-
-                if (!parentNode || !childNode) return null;
-
-                const parentPos = getNodeCoordinates(parentNode.colIndex, floorIdx);
-                const childPos = getNodeCoordinates(childNode.colIndex, floorIdx + 1);
-                const pathD = `M ${parentPos.x} ${parentPos.y + 40} C ${parentPos.x} ${parentPos.y + 70}, ${childPos.x} ${childPos.y + 10}, ${childPos.x} ${childPos.y + 40}`;
-
-                return (
-                  <g key={`group_completed_f${floorIdx}`}>
-                    <path d={pathD} fill="none" stroke="#050811" strokeWidth="7" strokeLinecap="round" />
-                    <path d={pathD} fill="none" stroke="#10b981" strokeWidth="3.5" strokeLinecap="round" opacity={0.9} />
-                  </g>
-                );
-              }
-
-              // 2. Line from Previous Floor to Currently Selected Node (Floor N-1 to Floor N)
-              if (isCurrentFloorLayer && selectedNode) {
-                const parentNode = floorNodes.find(n => n.completed) || floorNodes[0];
-                if (!parentNode) return null;
-
-                const parentPos = getNodeCoordinates(parentNode.colIndex, floorIdx);
-                const childPos = getNodeCoordinates(selectedNode.colIndex, currentFloorIndex);
-                const pathD = `M ${parentPos.x} ${parentPos.y + 40} C ${parentPos.x} ${parentPos.y + 70}, ${childPos.x} ${childPos.y + 10}, ${childPos.x} ${childPos.y + 40}`;
-
-                return (
-                  <g key={`group_active_path_to_selected`}>
-                    {/* Black Background Track */}
-                    <path d={pathD} fill="none" stroke="#050811" strokeWidth="7" strokeLinecap="round" />
-
-                    {isConfirmingNode ? (
-                      /* Animated Green Fill AFTER Confirm Click! */
-                      <motion.path
-                        initial={{ pathLength: 0 }}
-                        animate={{ pathLength: 1 }}
-                        transition={{ duration: 0.8, ease: 'easeInOut' }}
-                        d={pathD}
-                        fill="none"
-                        stroke="#10b981"
-                        strokeWidth="4"
-                        strokeLinecap="round"
-                        className="shadow-[0_0_15px_rgba(16,185,129,0.9)]"
-                      />
-                    ) : (
-                      /* Yellow Dashed Preview BEFORE Confirm Click! */
-                      <path
-                        d={pathD}
-                        fill="none"
-                        stroke="#f59e0b"
-                        strokeWidth="3"
-                        strokeDasharray="5,4"
-                        className="animate-pulse"
-                        opacity={0.95}
-                      />
-                    )}
-                  </g>
-                );
-              }
-
-              // 3. Options from Current Selected Node to Next Floor Nodes
-              if (isCurrentFloor && selectedNode) {
-                const parentPos = getNodeCoordinates(selectedNode.colIndex, floorIdx);
-                const nextFloorNodes = mapFloors[floorIdx + 1] || [];
-
-                return nextFloorNodes.map((childNode) => {
-                  const childPos = getNodeCoordinates(childNode.colIndex, floorIdx + 1);
-                  const pathD = `M ${parentPos.x} ${parentPos.y + 40} C ${parentPos.x} ${parentPos.y + 70}, ${childPos.x} ${childPos.y + 10}, ${childPos.x} ${childPos.y + 40}`;
-
-                  return (
-                    <g key={`group_active_${selectedNode.id}_to_${childNode.id}`}>
-                      <path d={pathD} fill="none" stroke="#050811" strokeWidth="6" strokeLinecap="round" />
-                      <path
-                        d={pathD}
-                        fill="none"
-                        stroke="#f59e0b"
-                        strokeWidth="2"
-                        strokeDasharray="4,4"
-                        className="animate-pulse"
-                        opacity={0.6}
-                      />
-                    </g>
-                  );
-                });
-              }
-
-              return null;
-            })}
-          </svg>
-
-          {/* 2D 5-Column Tree Nodes Canvas Layer */}
-          {mapFloors.map((floorNodes, floorIdx) => {
-            const isCompleted = floorIdx < currentFloorIndex;
-            const isCurrent = floorIdx === currentFloorIndex;
-            const isFuture = floorIdx > currentFloorIndex;
-            const isFogged = floorIdx > currentFloorIndex + 2;
-            const isCamp = floorNodes[0]?.type === 'CAMP';
-            const isBoss = floorNodes[0]?.type === 'BOSS';
-
-            return (
-              <div
-                key={`floor_layer_${floorIdx}`}
-                ref={isCurrent ? activeFloorRef : null}
-                className="absolute left-0 right-0 flex items-center justify-between px-3 transition-all"
-                style={{ top: `${floorIdx * rowHeight + 35}px`, height: `${rowHeight}px` }}
-              >
-                {/* Layer Floor Badge Indicator */}
-                <div className="absolute left-1 text-[9px] font-black text-slate-600 uppercase tracking-widest pointer-events-none">
-                  {isBoss ? '👑 BOSS' : isCamp ? '🏕️ KAMP' : `K${floorIdx + 1}`}
-                </div>
-
-                {/* Nodes 5-Column Grid */}
-                <div className="w-full flex items-center justify-around">
-                  {floorNodes.map((node, branchIdx) => {
-                    const isNodeSelected = isCurrent && selectedBranchIndex === branchIdx;
-                    const typeCfg = NODE_TYPE_CONFIG[node.type] || NODE_TYPE_CONFIG.NORMAL;
-                    const pathCfg = PATH_CATEGORY_CONFIG[node.pathCategory] || PATH_CATEGORY_CONFIG.SAFE;
-
-                    if (isFogged) {
-                      return (
-                        <div
-                          key={node.id}
-                          className="w-24 sm:w-28 p-2.5 rounded-2xl border border-slate-900 bg-slate-950/40 opacity-25 blur-xs flex flex-col items-center justify-center text-slate-600 pointer-events-none"
-                        >
-                          <EyeOff size={16} />
-                          <span className="text-[8px] font-bold mt-1">Sisli Yol</span>
-                        </div>
-                      );
-                    }
-
-                    return (
-                      <motion.div
-                        key={node.id}
-                        initial={isCurrent ? { scale: 0.9, opacity: 0 } : false}
-                        animate={isCurrent ? { scale: 1, opacity: 1 } : {}}
-                        onClick={() => { if (isCurrent && !isConfirmingNode) setSelectedBranchIndex(branchIdx); }}
-                        className={`w-24 sm:w-28 p-2 rounded-2xl border-2 transition-all flex flex-col justify-between relative shadow-lg z-10 ${
-                          isNodeSelected
-                            ? 'border-amber-400 bg-amber-950/90 ring-2 ring-amber-400 shadow-[0_0_18px_rgba(245,158,11,0.4)] scale-105'
-                            : isCurrent
-                            ? 'border-slate-600 bg-slate-900/95 hover:border-amber-400/60 cursor-pointer'
-                            : isCompleted
-                            ? 'border-slate-800 bg-slate-950/70 opacity-60 cursor-default'
-                            : 'border-slate-900 bg-slate-950/50 opacity-40 cursor-not-allowed'
-                        }`}
-                      >
-                        {/* Path Category Badge */}
-                        {pathCfg && (
-                          <span className={`text-[7px] font-black px-1 rounded-sm w-fit mb-0.5 border ${pathCfg.badge}`}>
-                            {pathCfg.label}
-                          </span>
-                        )}
-
-                        {/* Node Top Header */}
-                        <div className="flex items-center gap-1 min-w-0">
-                          <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs border shrink-0 ${
-                            isNodeSelected
-                              ? 'bg-amber-500/30 border-amber-400 text-amber-200'
-                              : isCurrent
-                              ? 'bg-slate-800 border-slate-700 text-slate-200'
-                              : 'bg-slate-900 border-slate-800 text-slate-500'
-                          }`}>
-                            {node.icon}
-                          </div>
-
-                          <div className="flex flex-col min-w-0">
-                            <span className="text-[10px] font-black text-slate-100 truncate leading-tight">
-                              {node.title}
-                            </span>
-                            <span className={`text-[7px] font-black px-1 rounded w-fit mt-0.5 ${typeCfg.color} ${typeCfg.bg} border ${typeCfg.border}`}>
-                              {typeCfg.label}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Status Badges */}
-                        <div className="mt-1 pt-0.5 border-t border-slate-800/80 flex items-center justify-between text-[8px] font-bold">
-                          {isNodeSelected ? (
-                            <span className="text-amber-300 font-black flex items-center gap-0.5">
-                              SEÇİLDİ ✓
-                            </span>
-                          ) : isCompleted ? (
-                            <span className="text-emerald-400 font-extrabold flex items-center gap-0.5">
-                              <CheckCircle2 size={9} /> Geçildi
-                            </span>
-                          ) : isFuture ? (
-                            <span className="text-slate-600 font-bold flex items-center gap-0.5">
-                              <Lock size={8} /> Kilitli
-                            </span>
-                          ) : (
-                            <span className="text-slate-400">Puan: {node.targetScore}</span>
-                          )}
-
-                          {node.targetScore > 0 && (
-                            <span className="text-slate-300 font-black">
-                              🎯{node.targetScore}
-                            </span>
-                          )}
-                        </div>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
+            </React.Fragment>
+          );
+        })}
+        <div className="h-0.5 w-2 bg-slate-800" />
+        <div className="px-2 py-1 rounded-lg bg-amber-950/60 border border-amber-500/40 text-amber-300 text-[10px] font-bold flex items-center gap-1 shrink-0">
+          <span>🏪</span>
+          <span>Dükkân</span>
         </div>
       </div>
 
-      {/* Sticky Bottom Enter Node Button */}
-      {selectedNode && (
-        <div className="pt-2 border-t border-slate-800/80 shrink-0 z-20">
-          <motion.button
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            whileTap={{ scale: 0.96 }}
-            disabled={isConfirmingNode}
-            onClick={handleConfirmNodeClick}
-            className="w-full bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-yellow-300 disabled:opacity-50 text-slate-950 font-black py-3.5 px-5 rounded-2xl transition flex items-center justify-center gap-2 shadow-2xl shadow-amber-500/30 text-sm tracking-wide border border-amber-300 cursor-pointer animate-pulse-glow"
-          >
-            <span>{isConfirmingNode ? 'ROTA DOLUYOR... ZİNDANA GİRİLİYOR 🔮' : `${selectedNode.icon} ${selectedNode.title} — GİR`}</span>
-            <ChevronRight size={18} />
-          </motion.button>
+      {/* 3. BLIND CARDS CAROUSEL CONTAINER (RESPONSIVE SNAP-SCROLLING 9:16 CARDS) */}
+      <div className="flex-1 flex items-center overflow-x-auto snap-x snap-mandatory gap-3 py-2 px-1 scrollbar-none z-10 min-h-[380px]">
+        {blinds.map((blind, idx) => {
+          const isCurrent = idx === currentBlindIndex && blind.status !== 'COMPLETED' && blind.status !== 'SKIPPED';
+          const isDone = blind.status === 'COMPLETED';
+          const isSkipped = blind.status === 'SKIPPED';
+          const isLocked = !isCurrent && !isDone && !isSkipped;
+          const isBoss = blind.type === 'BOSS_BLIND';
+          const isSideEncounter = blind.type === 'EVENT' || blind.type === 'TRIVIA' || blind.type === 'TREASURE';
+
+          return (
+            <motion.div
+              key={blind.id}
+              ref={isCurrent ? activeCardRef : null}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: idx * 0.08 }}
+              className={`w-[260px] sm:w-[280px] h-full snap-center shrink-0 rounded-3xl p-4 flex flex-col justify-between border transition-all duration-300 relative overflow-hidden shadow-2xl ${
+                isCurrent
+                  ? isBoss
+                    ? 'bg-gradient-to-b from-rose-950/95 via-slate-900 to-slate-950 border-rose-500/90 ring-2 ring-rose-500/50 shadow-rose-950/60'
+                    : isSideEncounter
+                    ? 'bg-gradient-to-b from-purple-950/95 via-slate-900 to-slate-950 border-purple-500/90 ring-2 ring-purple-500/50 shadow-purple-950/60'
+                    : 'bg-gradient-to-b from-amber-950/40 via-slate-900 to-slate-950 border-amber-500/90 ring-2 ring-amber-500/50 shadow-amber-950/60'
+                  : isDone
+                  ? 'bg-slate-900/60 border-emerald-900/60 opacity-85'
+                  : isSkipped
+                  ? 'bg-slate-900/60 border-purple-900/60 opacity-85'
+                  : 'bg-slate-950/80 border-slate-900 opacity-60'
+              }`}
+            >
+              {/* Card Header Section */}
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className={`w-11 h-11 rounded-2xl flex items-center justify-center text-2xl shadow-md border ${
+                      isBoss ? 'bg-rose-950 border-rose-500/60' : isSideEncounter ? 'bg-purple-950 border-purple-500/60' : 'bg-amber-950/80 border-amber-500/60'
+                    }`}>
+                      {blind.icon}
+                    </div>
+                    <div>
+                      <h3 className={`text-base font-black tracking-wide leading-tight ${
+                        isBoss ? 'text-rose-300' : isSideEncounter ? 'text-purple-300' : 'text-amber-300'
+                      }`}>
+                        {blind.title}
+                      </h3>
+                      <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">
+                        {getBlindCategoryLabel(blind.type)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Status Badge */}
+                <div className="flex items-center gap-1.5 mt-1">
+                  {isDone && (
+                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-950 border border-emerald-500/60 text-emerald-400 text-[10px] font-black flex items-center gap-1">
+                      <CheckCircle2 size={11} /> Tamamlandı
+                    </span>
+                  )}
+                  {isSkipped && (
+                    <span className="px-2.5 py-0.5 rounded-full bg-purple-950 border border-purple-500/60 text-purple-300 text-[10px] font-black flex items-center gap-1">
+                      <FastForward size={11} /> Atlandı
+                    </span>
+                  )}
+                  {isLocked && (
+                    <span className="px-2.5 py-0.5 rounded-full bg-slate-950 border border-slate-800 text-slate-500 text-[10px] font-bold flex items-center gap-1">
+                      <Lock size={11} /> Kilitli
+                    </span>
+                  )}
+                  {isCurrent && (
+                    <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/80 text-amber-300 text-[10px] font-black animate-pulse">
+                      ◉ Aktif Aşama
+                    </span>
+                  )}
+                </div>
+
+                {/* Target Score Banner or Description Box */}
+                {!isSideEncounter ? (
+                  <div className={`p-3 rounded-2xl my-1.5 border flex items-center justify-between shadow-inner ${
+                    isBoss ? 'bg-rose-950/60 border-rose-800/80' : 'bg-slate-950/90 border-slate-800'
+                  }`}>
+                    <span className="text-xs text-slate-400 font-medium">Hedef Puan:</span>
+                    <span className={`text-lg font-black tracking-wider ${isBoss ? 'text-rose-400' : 'text-amber-400'}`}>
+                      🎯 {blind.targetScore}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="p-3 rounded-2xl my-1.5 border bg-slate-950/90 border-purple-900/60 text-slate-300 text-xs shadow-inner">
+                    <p className="text-[11px] leading-relaxed">{blind.desc}</p>
+                  </div>
+                )}
+
+                {/* Boss Rule Modifier Box */}
+                {isBoss && blind.bossRule && (
+                  <div className="p-2.5 rounded-2xl bg-rose-950/50 border border-rose-700/60 text-rose-200 text-xs font-semibold flex flex-col gap-1 shadow-inner">
+                    <div className="flex items-center gap-1.5 text-rose-300 font-black">
+                      <ShieldAlert size={14} className="text-rose-400" />
+                      <span>{blind.bossRule.title}</span>
+                    </div>
+                    <p className="text-[11px] text-rose-200/90 leading-normal">
+                      {blind.bossRule.desc}
+                    </p>
+                  </div>
+                )}
+
+                {/* Standard Play Reward Info */}
+                {!isSideEncounter && (
+                  <div className="text-xs text-slate-300 flex items-center gap-1.5 font-bold">
+                    <Coins size={14} className="text-amber-400 fill-amber-400" />
+                    <span>Ödül: <strong className="text-amber-300">+{blind.rewardGold} Altın</strong></span>
+                  </div>
+                )}
+
+                {/* Skip Tag Preview Box */}
+                {blind.canSkip && blind.tag && !isDone && !isSkipped && (
+                  <div className="mt-2 p-2.5 rounded-2xl bg-slate-950/90 border border-purple-500/50 flex flex-col gap-1 shadow-md">
+                    <div className="flex items-center justify-between text-xs font-black text-purple-300">
+                      <span className="flex items-center gap-1">
+                        <Tag size={12} className="text-purple-400" />
+                        <span>ATLA & ETİKET AL:</span>
+                      </span>
+                      <span className="text-[10px] px-2 py-0.5 rounded-lg bg-purple-900/80 border border-purple-500/60 text-purple-200 font-black">
+                        {blind.tag.icon} {blind.tag.name}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-300 leading-snug">
+                      {blind.tag.desc}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Card Action Buttons Section */}
+              <div className="mt-3 pt-3 border-t border-slate-800/80 flex flex-col gap-2 shrink-0">
+                {isCurrent && (
+                  <>
+                    <button
+                      onClick={() => handlePlayClick(idx)}
+                      className={`w-full py-3 px-3 rounded-2xl font-black text-xs sm:text-sm tracking-wide flex items-center justify-center gap-2 transition active:scale-95 shadow-xl cursor-pointer ${
+                        isBoss
+                          ? 'bg-gradient-to-r from-rose-600 via-rose-500 to-red-600 hover:from-rose-500 hover:to-red-500 text-white shadow-rose-950/50'
+                          : isSideEncounter
+                          ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-purple-950/50'
+                          : 'bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-yellow-300 text-slate-950 shadow-amber-950/50 border border-amber-300'
+                      }`}
+                    >
+                      <Play size={16} className="fill-current" />
+                      <span>{getPlayButtonText(blind.type)}</span>
+                    </button>
+
+                    {blind.canSkip && (
+                      <button
+                        onClick={() => handleSkipClick(idx)}
+                        className="w-full py-2 px-3 rounded-2xl bg-purple-950/90 hover:bg-purple-900 border border-purple-500/70 text-purple-200 font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 shadow-md cursor-pointer"
+                      >
+                        <FastForward size={14} />
+                        <span>ATLA ({blind.tag?.name})</span>
+                      </button>
+                    )}
+                  </>
+                )}
+
+                {isDone && (
+                  <div className="text-center text-xs font-black text-emerald-400 py-1.5 bg-emerald-950/50 rounded-xl border border-emerald-900/60">
+                    ✓ Aşama Başarıyla Tamamlandı
+                  </div>
+                )}
+
+                {isSkipped && (
+                  <div className="text-center text-xs font-black text-purple-300 py-1.5 bg-purple-950/50 rounded-xl border border-purple-900/60">
+                    ⏩ Atlandı (Etiket Ödülü Alındı)
+                  </div>
+                )}
+
+                {isLocked && (
+                  <div className="text-center text-xs font-medium text-slate-500 py-2 flex items-center justify-center gap-1 bg-slate-950/60 rounded-xl border border-slate-900">
+                    <Lock size={12} /> Önceki Aşamayı Tamamla
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          );
+        })}
+      </div>
+
+      {/* 4. ACTIVE TAGS TRAY */}
+      {activeTags.length > 0 && (
+        <div className="mt-2.5 p-2.5 rounded-2xl bg-slate-900/90 border border-purple-900/50 flex items-center gap-2 overflow-x-auto shrink-0 z-10">
+          <div className="flex items-center gap-1 text-xs font-black text-purple-300 shrink-0">
+            <Award size={14} className="text-purple-400" />
+            <span>ETİKETLER:</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            {activeTags.map((tag, i) => (
+              <div
+                key={i}
+                className="px-2.5 py-1 rounded-xl bg-purple-950 border border-purple-500/50 text-purple-200 text-xs font-bold flex items-center gap-1 shadow-sm whitespace-nowrap"
+                title={tag.desc}
+              >
+                <span>{tag.icon}</span>
+                <span>{tag.name}</span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

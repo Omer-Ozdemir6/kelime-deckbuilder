@@ -234,6 +234,50 @@ export const SPECIAL_CARDS = {
     rarity: 'normal',
     desc: 'Eldeki tüm harfleri desteye karıştırıp yeniden çeker.',
     bgGradient: 'from-emerald-600 to-teal-800'
+  },
+  MIRROR: {
+    id: 'SPECIAL_MIRROR',
+    letter: '🪞',
+    name: 'Ayna Harfi',
+    points: 0,
+    type: 'mirror',
+    cost: 40,
+    rarity: 'nadir',
+    desc: 'Solundaki harfin değerini ve kendisini kopyalar.',
+    bgGradient: 'from-slate-700 via-cyan-800 to-slate-900'
+  },
+  GOLDEN: {
+    id: 'SPECIAL_GOLDEN',
+    letter: '💰',
+    name: 'Altın Harf',
+    points: 10,
+    type: 'golden',
+    cost: 45,
+    rarity: 'nadir',
+    desc: 'Oynandığında anında +15 Ekstra Altın kazandırır.',
+    bgGradient: 'from-yellow-400 via-amber-500 to-yellow-600'
+  },
+  ASH: {
+    id: 'SPECIAL_ASH',
+    letter: '🔥',
+    name: 'Kül Harfi',
+    points: 25,
+    type: 'ash',
+    cost: 35,
+    rarity: 'nadir',
+    desc: 'Tek kullanımlık: +25 Puan verir fakat oynandıktan sonra desteden yok olur.',
+    bgGradient: 'from-orange-600 via-red-700 to-slate-900'
+  },
+  CHAIN_TILE: {
+    id: 'SPECIAL_CHAIN_TILE',
+    letter: '🔗',
+    name: 'Zincir Harfi',
+    points: 5,
+    type: 'chain_tile',
+    cost: 40,
+    rarity: 'nadir',
+    desc: 'Kelime zincirlerinde oynanırsa +%30 Çarpan ekler.',
+    bgGradient: 'from-amber-600 via-orange-600 to-amber-800'
   }
 };
 
@@ -667,7 +711,7 @@ export function createCard(letterOrSpecialKey, upgradeLevel = 0, infusedType = n
   if (SPECIAL_CARDS[letterOrSpecialKey]) {
     const spec = SPECIAL_CARDS[letterOrSpecialKey];
     return {
-      id: `card_${nextCardId++}_${Date.now()}`,
+      id: `card_${nextCardId++}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       letter: spec.letter,
       isSpecial: true,
       specialType: spec.type,
@@ -689,7 +733,7 @@ export function createCard(letterOrSpecialKey, upgradeLevel = 0, infusedType = n
   const currentPoints = basePoints + upgradeLevel * 2;
 
   return {
-    id: `card_${nextCardId++}_${Date.now()}`,
+    id: `card_${nextCardId++}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
     letter: upper,
     isSpecial: false,
     name: `${upper} Harfi`,

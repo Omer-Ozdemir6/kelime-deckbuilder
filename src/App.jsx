@@ -11,6 +11,7 @@ import { MapScreen } from './components/MapScreen';
 import { ShopScreen } from './components/ShopScreen';
 import { EventScreen } from './components/EventScreen';
 import { TriviaScreen } from './components/TriviaScreen';
+import { ChallengeScreen } from './components/ChallengeScreen';
 import { CampScreen } from './components/CampScreen';
 import WordMeaningModal from './components/WordMeaningModal';
 import { ObjectiveCompletedToast } from './components/ObjectiveCompletedToast';
@@ -21,6 +22,8 @@ import { WheelOfFortuneModal } from './components/WheelOfFortuneModal';
 import { SplashScreen } from './components/SplashScreen';
 import { CharacterSelectModal, HERO_CHARACTERS } from './components/CharacterSelectModal';
 import { StakesSelectModal, STAKES_DEFINITIONS } from './components/StakesSelectModal';
+import { JokerSelectorModal } from './components/JokerSelectorModal';
+import { AchievementToast } from './components/AchievementToast';
 import { useGameState } from './hooks/useGameState';
 
 export default function App() {
@@ -105,6 +108,13 @@ export default function App() {
 
   return (
     <VerticalMobileContainer activeBiome={activeBiome}>
+      {/* REAL-TIME UNLOCKED ACHIEVEMENT POPUP TOAST */}
+      {gameStateObj.activeAchievementToast && (
+        <AchievementToast
+          achievement={gameStateObj.activeAchievementToast}
+          onClose={() => gameStateObj.setActiveAchievementToast(null)}
+        />
+      )}
       {/* 0. INTRO SPLASH SCREEN */}
       {isSplashActive && (
         <SplashScreen onStart={() => setIsSplashActive(false)} />
@@ -148,13 +158,17 @@ export default function App() {
         />
       )}
 
-      {/* 2. RUN MAP */}
+      {/* 2. RUN KADEME TRACK MAP */}
       {gameState === 'MAP' && (
         <MapScreen
-          mapFloors={gameStateObj.mapFloors}
-          currentFloorIndex={gameStateObj.currentFloorIndex}
+          currentKademe={gameStateObj.currentKademe}
+          kademeData={gameStateObj.kademeData}
+          currentBlindIndex={gameStateObj.currentBlindIndex}
           gold={gold}
           starPoints={starPoints}
+          activeTags={gameStateObj.activeTags}
+          onPlayBlind={gameStateObj.playBlind}
+          onSkipBlind={gameStateObj.skipBlind}
           onSelectNode={enterMapNode}
           onOpenMainMenu={() => setGameState('START_MENU')}
         />
@@ -221,6 +235,7 @@ export default function App() {
           playedWords={gameStateObj.lastStageVictoryStats.playedWords}
           combo={gameStateObj.lastStageVictoryStats.combo}
           onProceedToRewards={gameStateObj.proceedToRewardsFromVictory}
+          onOpenMeaningModal={openWordMeaningModal}
         />
       )}
 
@@ -270,6 +285,16 @@ export default function App() {
         />
       )}
 
+      {/* 5B2. SPEED FILL CHALLENGE SCREEN */}
+      {gameState === 'CHALLENGE' && (
+        <ChallengeScreen
+          onCompleteChallenge={(goldReward, challengeScore) => {
+            gameStateObj.addGold(goldReward);
+            gameStateObj.proceedFromNode();
+          }}
+        />
+      )}
+
       {/* 5C. PRE-BOSS CAMP SCREEN */}
       {gameState === 'CAMP' && (
         <CampScreen
@@ -303,14 +328,24 @@ export default function App() {
         <GameOverModal
           stage={stage}
           currentScore={currentScore}
-          starPoints={starPoints}
-          onRestart={() => startNewRun(selectedDeckId)}
+          totalRunGold={gold}
+          totalRunWords={playedWordsThisStage.length}
+          onReturnToMainMenu={() => setGameState('START_MENU')}
         />
       )}
 
       {/* CODEX COMPENDIUM ENCYCLOPEDIA */}
       {isCodexOpen && (
         <CodexModal onClose={() => setIsCodexOpen(false)} />
+      )}
+
+      {/* JOKER LETTER SELECTOR MODAL */}
+      {gameStateObj.pendingJokerCard && (
+        <JokerSelectorModal
+          jokerCard={gameStateObj.pendingJokerCard}
+          onSelectLetter={gameStateObj.handleAssignJokerLetter}
+          onClose={() => gameStateObj.setPendingJokerCard(null)}
+        />
       )}
 
       {/* WHEEL OF FORTUNE MINI-GAME */}

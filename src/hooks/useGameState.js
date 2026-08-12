@@ -3,10 +3,11 @@ import confetti from 'canvas-confetti';
 import { STARTER_DECKS, createDeckFromLetterList, createCard, LETTER_DEFINITIONS, SPECIAL_CARDS } from '../game/cardData';
 import { calculateWordScore } from '../game/wordEngine';
 import { soundEngine } from '../game/audioEngine';
-import { generateRunMap } from '../game/mapGenerator';
+import { generateRunMap, generateKademe } from '../game/mapGenerator';
 import { RELICS } from '../game/relicData';
 import { getWordMeaning } from '../services/dictionaryService';
 import { discoverCodexItem } from '../game/codexManager';
+import { checkNewAchievements } from '../game/achievementsData';
 
 export function getStageTargetScore(stage) {
   if (stage === 1) return 50;
@@ -25,9 +26,6 @@ export function getBossStageRule(stage) {
 
 export function useGameState() {
   // Meta progression
-  const [starPoints, setStarPoints] = useState(() => {
-    return parseInt(localStorage.getItem('kd_star_points') || '0', 10);
-  });
 
   const [highScore, setHighScore] = useState(() => {
     return parseInt(localStorage.getItem('kd_high_score') || '0', 10);
@@ -39,7 +37,15 @@ export function useGameState() {
 
   const [selectedDeckId, setSelectedDeckId] = useState('starter_basit');
 
-  // Active Run State
+  // Active Run State (Kademe / Ante System)
+  const [currentKademe, setCurrentKademe] = useState(1);
+  const [kademeData, setKademeData] = useState(() => generateKademe(1));
+  const [currentBlindIndex, setCurrentBlindIndex] = useState(0);
+  const [activeTags, setActiveTags] = useState([]);
+  const [guaranteedRareCard, setGuaranteedRareCard] = useState(false);
+  const [shopDiscountPercent, setShopDiscountPercent] = useState(0);
+  const [extraDiscardsNextStage, setExtraDiscardsNextStage] = useState(0);
+
   const [mapFloors, setMapFloors] = useState([]);
   const [currentFloorIndex, setCurrentFloorIndex] = useState(0);
   const [activeNodeId, setActiveNodeId] = useState(null);
@@ -105,6 +111,7 @@ export function useGameState() {
   const [currentWordMeaning, setCurrentWordMeaning] = useState(null);
   const [isMeaningModalOpen, setIsMeaningModalOpen] = useState(false);
   const [goalNotice, setGoalNotice] = useState(null);
+  const [activeAchievementToast, setActiveAchievementToast] = useState(null);
 
   // Dynamic Biome, Floor Modifier & Board Slot Modifiers State
   const [activeBiome, setActiveBiome] = useState(null);
@@ -138,9 +145,31 @@ export function useGameState() {
     return result;
   };
 
-  const proceedToRewardsFromVictory = () => {
+  const proceedFromVictory = () => {
     soundEngine.playTap();
-    setGameState('DRAFT_REWARD');
+
+    // Mark current blind COMPLETED and unlock next blind in current Kademe
+    const updatedBlinds = kademeData.blinds.map((b, i) => {
+      if (i === currentBlindIndex) return { ...b, status: 'COMPLETED' };
+      if (i === currentBlindIndex + 1) return { ...b, status: 'ACTIVE' };
+      return b;
+    });
+
+    setKademeData(prev => ({ ...prev, blinds: updatedBlinds }));
+
+    const isLastBlind = currentBlindIndex >= kademeData.blinds.length - 1;
+    const isBossBlind = kademeData.blinds[currentBlindIndex]?.type === 'BOSS_BLIND';
+
+    if (!isBossBlind && !isLastBlind) {
+      // Small or Big Blind completed -> return to Kademe Run Track
+      const nextIdx = currentBlindIndex + 1;
+      setCurrentBlindIndex(nextIdx);
+      setGameState('MAP');
+    } else {
+      // Boss Blind completed -> Open Shop!
+      setCurrentBlindIndex(kademeData.blinds.length);
+      setGameState('SHOP');
+    }
   };
 
   const passTurnOrSurrender = () => {
@@ -202,20 +231,27 @@ export function useGameState() {
   const [isSecretFoundThisRun, setIsSecretFoundThisRun] = useState(false);
 
   /**
-   * Start a new Run
+   * Start a new Run (Kademe 1)
    */
   const startNewRun = (deckId = selectedDeckId) => {
     const starter = STARTER_DECKS.find(d => d.id === deckId) || STARTER_DECKS[0];
     const initialCards = createDeckFromLetterList(starter.letters);
-    const floors = generateRunMap();
+    const initialKademe = generateKademe(1);
 
     const secretTriggers = ['GİZEM', 'SİHRİ', 'ALTIN', 'KADER', 'EFSANE', 'BİLGİ', 'EVRİM', 'YILDIZ'];
     const pickedSecret = secretTriggers[Math.floor(Math.random() * secretTriggers.length)];
 
-    setMapFloors(floors);
+    setCurrentKademe(1);
+    setKademeData(initialKademe);
+    setCurrentBlindIndex(0);
+    setActiveTags([]);
+    setGuaranteedRareCard(false);
+    setShopDiscountPercent(0);
+    setExtraDiscardsNextStage(0);
+
+    setMapFloors([initialKademe]);
     setCurrentFloorIndex(0);
-    setActiveNodeId(floors[0][0].id);
-    setGold(10); // Rebalanced starting gold
+    setGold(15);
     setLives(3);
     setActiveRelicKeys([]);
     setFullDeck(initialCards);
@@ -227,79 +263,147 @@ export function useGameState() {
   };
 
   /**
-   * Enter a node from the branching map
+   * Play current or specified blind in the Kademe
    */
-  const enterMapNode = (node) => {
+  const playBlind = (blindIndex = currentBlindIndex) => {
     soundEngine.playTap();
-    setActiveNodeId(node.id);
+    const targetBlind = kademeData.blinds[blindIndex];
+    if (!targetBlind) return;
 
-    if (node.type === 'TREASURE') {
-      soundEngine.playVictory();
-      setGold(prev => prev + 40);
-      setFeedbackMessage('💰 Hazine Odası! +40 Altın kazandın!');
-      setGameState('DRAFT_REWARD');
-      return;
-    }
-    if (node.type === 'SHOP') {
-      setGameState('SHOP');
-      return;
-    }
-    if (node.type === 'EVENT') {
+    if (targetBlind.type === 'EVENT') {
       setGameState('EVENT');
       return;
     }
-    if (node.type === 'TRIVIA') {
+    if (targetBlind.type === 'TRIVIA') {
       setGameState('TRIVIA');
       return;
     }
-    if (node.type === 'CAMP') {
-      setGameState('CAMP');
+    if (targetBlind.type === 'TREASURE') {
+      soundEngine.playVictory();
+      setGold(prev => prev + 40);
+      setGoalNotice({ category: '💎 HAZİNE BULUNDU', title: 'Kilitli Sandık Açıldı!', description: '+40 Altın kazandın!', rewardGold: 40 });
+      
+      const updatedBlinds = kademeData.blinds.map((b, i) => {
+        if (i === blindIndex) return { ...b, status: 'COMPLETED' };
+        if (i === blindIndex + 1) return { ...b, status: 'ACTIVE' };
+        return b;
+      });
+      setKademeData(prev => ({ ...prev, blinds: updatedBlinds }));
+      setCurrentBlindIndex(blindIndex + 1);
+      setGameState('MAP');
       return;
     }
 
-    // Stage Node (Normal / Special / Elite / Boss)
-    const stg = node.stage || (currentFloorIndex + 1);
-    if (node.biome) {
-      discoverCodexItem(node.biome.id);
-      setActiveBiome(node.biome);
-    }
-    const bossRule = node.bossRule || null;
-    const bonusObj = node.bonusObjective || null;
-    const maxHands = node.maxHandsOverride || (node.type === 'BOSS' ? 8 : 6);
-
-    // Biome & Modifier
-    if (node.modifier) setActiveFloorModifier(node.modifier);
+    const maxHands = targetBlind.maxHandsOverride || (targetBlind.type === 'BOSS_BLIND' ? 7 : 6);
+    const baseDiscards = 3 + extraDiscardsNextStage;
+    setExtraDiscardsNextStage(0); // Consume extra discards
 
     const shuffled = shuffleArray(fullDeck);
     const drawn = shuffled.slice(0, 7);
     const remainingDraw = shuffled.slice(7);
 
-    setStage(stg);
+    setStage(currentKademe);
     setCurrentScore(campBonusPoints);
     if (campBonusPoints > 0) {
       setFeedbackMessage(`☕ Kamp Bonusu Devrede! +${campBonusPoints} Puan ile başladın!`);
       setCampBonusPoints(0);
     }
-    setTargetScore(node.targetScore || getStageTargetScore(stg));
+    setTargetScore(targetBlind.targetScore);
     setHandsLeft(maxHands);
-    setDiscardsLeft(3);
+    setDiscardsLeft(baseDiscards);
     setCombo(1);
     setLastPlayedWord('');
     setPlayedWordsThisStage([]);
     setIsFirstWordInStage(true);
-    setActiveBossRule(bossRule);
-    setActiveBonusObjective(bonusObj);
+    setActiveBossRule(targetBlind.bossRule || null);
+    setActiveBonusObjective(null);
     setIsBonusCompleted(false);
-    setBoardSlotModifiers(generateBoardSlotModifiers((node.floor || 0) + 1));
+    setBoardSlotModifiers(generateBoardSlotModifiers(currentKademe));
 
     setDrawPile(remainingDraw);
     setDiscardPile([]);
     setHand(drawn);
     setSelectedCards([]);
-
     setLastScoreBreakdown(null);
-    setFeedbackMessage(`${node.title} Başladı!`);
+
+    setFeedbackMessage(`${targetBlind.title} Başladı! Hedef: ${targetBlind.targetScore} Puan`);
     setGameState('PLAYING');
+  };
+
+  /**
+   * Skip current blind to receive associated Tag reward!
+   */
+  const skipBlind = (blindIndex = currentBlindIndex) => {
+    const targetBlind = kademeData.blinds[blindIndex];
+    if (!targetBlind || !targetBlind.canSkip) return;
+
+    soundEngine.playVictory();
+    confetti({ particleCount: 60, spread: 70, origin: { y: 0.5 } });
+
+    const tag = targetBlind.tag;
+    if (tag) {
+      setActiveTags(prev => [...prev, tag]);
+
+      // Execute Tag Effect
+      if (tag.effect.type === 'ADD_GOLD') {
+        setGold(prev => prev + tag.effect.amount);
+        setGoalNotice({ category: '🏷️ ETİKET ÖDÜLÜ', title: tag.name, description: `+${tag.effect.amount} Altın kazandın!`, rewardGold: tag.effect.amount });
+      } else if (tag.effect.type === 'ADD_DISCARDS') {
+        setExtraDiscardsNextStage(prev => prev + tag.effect.amount);
+        setGoalNotice({ category: '🏷️ ETİKET ÖDÜLÜ', title: tag.name, description: `Sonraki sınav için +${tag.effect.amount} el yenileme hakkı eklendi!` });
+      } else if (tag.effect.type === 'RARE_CARD_GUARANTEE') {
+        setGuaranteedRareCard(true);
+        setGoalNotice({ category: '🏷️ ETİKET ÖDÜLÜ', title: tag.name, description: 'Sonraki kart ödülünde garantili nadir harf sunulacak!' });
+      } else if (tag.effect.type === 'SHOP_DISCOUNT') {
+        setShopDiscountPercent(tag.effect.percent);
+        setGoalNotice({ category: '🏷️ ETİKET ÖDÜLÜ', title: tag.name, description: 'Sonraki Dükkânda %25 indirim hakkı kazandın!' });
+      } else if (tag.effect.type === 'FREE_EFSUN_UPGRADE') {
+        const keys = Object.keys(wordTypeLevels);
+        const randomKey = keys[Math.floor(Math.random() * keys.length)];
+        setWordTypeLevels(prev => ({
+          ...prev,
+          [randomKey]: { ...prev[randomKey], level: prev[randomKey].level + 1 }
+        }));
+        setGoalNotice({ category: '🏷️ ETİKET ÖDÜLÜ', title: tag.name, description: `${wordTypeLevels[randomKey].name} +1 Seviye Yükseldi!` });
+      } else if (tag.effect.type === 'GRANT_RANDOM_RELIC') {
+        const allRelicKeys = ['KESKIN_KALEM', 'UZUN_SOZ', 'KISA_SOZ', 'NADIR_MUHUR', 'SERI_KATIP', 'MUREKKEP', 'ZINCIR_USTASI', 'BANKACI', 'CIFT_HARF'];
+        const unowned = allRelicKeys.filter(k => !activeRelicKeys.includes(k));
+        if (unowned.length > 0) {
+          const rewardRelic = unowned[Math.floor(Math.random() * unowned.length)];
+          setActiveRelicKeys(prev => [...prev, rewardRelic]);
+        }
+        setGoalNotice({ category: '🏷️ ETİKET ÖDÜLÜ', title: tag.name, description: 'Rastgele 1 Emanet kazandın!' });
+      } else if (tag.effect.type === 'ADD_JOKER_CARD') {
+        const jokerCard = { id: `card_joker_${Date.now()}`, letter: '🃏', points: 0, rarity: 'nadir', isSpecial: true, specialType: 'joker' };
+        setFullDeck(prev => [...prev, jokerCard]);
+        setGoalNotice({ category: '🏷️ ETİKET ÖDÜLÜ', title: tag.name, description: 'Desteğe 🃏 Joker Harfi eklendi!' });
+      }
+    }
+
+    // Mark current blind SKIPPED and activate next blind
+    const updatedBlinds = kademeData.blinds.map((b, i) => {
+      if (i === blindIndex) return { ...b, status: 'SKIPPED' };
+      if (i === blindIndex + 1) return { ...b, status: 'ACTIVE' };
+      return b;
+    });
+
+    setKademeData(prev => ({ ...prev, blinds: updatedBlinds }));
+    const nextIdx = blindIndex + 1;
+    setCurrentBlindIndex(nextIdx);
+    setFeedbackMessage(`⏩ ${targetBlind.title} atlandı! Etiket ödülü alındı.`);
+  };
+
+  /**
+   * Backward compatible enterMapNode helper
+   */
+  const enterMapNode = (nodeOrBlind) => {
+    if (typeof nodeOrBlind === 'number') {
+      playBlind(nodeOrBlind);
+    } else if (nodeOrBlind && typeof nodeOrBlind.index === 'number') {
+      playBlind(nodeOrBlind.index);
+    } else {
+      playBlind(currentBlindIndex);
+    }
   };
 
   const selectCardFromHand = (card) => {
@@ -332,9 +436,40 @@ export function useGameState() {
       return;
     }
 
+    if (card.specialType === 'joker' || card.type === 'joker') {
+      setPendingJokerCard(card);
+      return;
+    }
+
     soundEngine.playTap();
     setHand(prev => prev.filter(c => c.id !== card.id));
     setSelectedCards(prev => [...prev, card]);
+  };
+
+  const [pendingJokerCard, setPendingJokerCard] = useState(null);
+
+  const handleAssignJokerLetter = (chosenLetter) => {
+    if (!pendingJokerCard) return;
+    soundEngine.playTap();
+    const isFromBank = pendingJokerCard.fromBank;
+
+    const assignedCard = {
+      ...pendingJokerCard,
+      letter: chosenLetter.toUpperCase('tr-TR'),
+      assignedLetter: chosenLetter.toUpperCase('tr-TR'),
+      displayLetter: `${chosenLetter.toUpperCase('tr-TR')} (🃏)`,
+      points: 0
+    };
+
+    if (isFromBank) {
+      setBankCards(prev => prev.filter(c => c.id !== pendingJokerCard.id));
+    } else {
+      setHand(prev => prev.filter(c => c.id !== pendingJokerCard.id));
+    }
+
+    setSelectedCards(prev => [...prev, assignedCard]);
+    setPendingJokerCard(null);
+    setFeedbackMessage(`🃏 Joker "${chosenLetter.toUpperCase('tr-TR')}" harfine dönüştürüldü!`);
   };
 
   const bankCardFromHand = (card) => {
@@ -375,12 +510,19 @@ export function useGameState() {
     soundEngine.playDeselect();
     const targetCard = selectedCards[index];
     setSelectedCards(prev => prev.filter((_, i) => i !== index));
-    if (targetCard.fromBank) {
-      const cleanCard = { ...targetCard };
+
+    const cleanCard = { ...targetCard };
+    if (cleanCard.specialType === 'joker' || cleanCard.type === 'joker') {
+      cleanCard.letter = '🃏';
+      delete cleanCard.assignedLetter;
+      delete cleanCard.displayLetter;
+    }
+
+    if (cleanCard.fromBank) {
       delete cleanCard.fromBank;
       setBankCards(prev => [...prev, cleanCard]);
     } else {
-      setHand(prev => [...prev, targetCard]);
+      setHand(prev => [...prev, cleanCard]);
     }
   };
 
@@ -423,7 +565,15 @@ export function useGameState() {
     if (!breakdown.isValid) {
       soundEngine.playInvalidWord();
       setCombo(1);
-      setFeedbackMessage(breakdown.message);
+      const playCost = activeBossRule?.doublePlayCost ? 2 : 1;
+      const nextHands = Math.max(0, handsLeft - playCost);
+      setHandsLeft(nextHands);
+      setFeedbackMessage(`⚠️ ${breakdown.message} (-${playCost} Hamle, Kombo Sıfırlandı!)`);
+      if (nextHands <= 0) {
+        setTimeout(() => {
+          setGameState('GAME_OVER');
+        }, 1200);
+      }
       return;
     }
 
@@ -432,6 +582,11 @@ export function useGameState() {
       if (activeBossRule.minWordLength && breakdown.word.length < activeBossRule.minWordLength) {
         soundEngine.playInvalidWord();
         setFeedbackMessage(`⚠️ ${activeBossRule.title}: En az ${activeBossRule.minWordLength} harfli kelime yazmalısın!`);
+        return;
+      }
+      if (activeBossRule.noE && breakdown.word.includes('E')) {
+        soundEngine.playInvalidWord();
+        setFeedbackMessage(`⚠️ ${activeBossRule.title}: "E" harfi içeren kelimeler yasak! (0 Puan)`);
         return;
       }
     }
@@ -481,6 +636,13 @@ export function useGameState() {
       bonusBonusGold += 35;
     }
 
+    // Process single-use Ash (🔥) tile consumption
+    const ashCardsPlayed = selectedCards.filter(c => c.specialType === 'ash' || c.type === 'ash');
+    if (ashCardsPlayed.length > 0) {
+      const ashIds = ashCardsPlayed.map(c => c.id);
+      setFullDeck(prev => prev.filter(c => !ashIds.includes(c.id)));
+    }
+
     // Valid word played!
     soundEngine.playWordSuccess(combo);
     setIsFirstWordInStage(false);
@@ -489,7 +651,8 @@ export function useGameState() {
     const newScore = currentScore + breakdown.score;
     const earnedGold = (breakdown.goldEarned || 3) + bonusBonusGold;
     const newGold = gold + earnedGold;
-    const nextHands = handsLeft - 1;
+    const playCost = activeBossRule?.doublePlayCost ? 2 : 1;
+    const nextHands = Math.max(0, handsLeft - playCost);
     const nextCombo = breakdown.newCombo;
 
     setCurrentScore(newScore);
@@ -505,6 +668,19 @@ export function useGameState() {
       }
     });
 
+    // REAL-TIME ACHIEVEMENT CHECK
+    const newlyUnlocked = checkNewAchievements({
+      maxWordLength: breakdown.word.length,
+      maxCombo: nextCombo,
+      totalGoldEarned: newGold,
+      maxStage: stage,
+      maxSingleWordScore: breakdown.score,
+      totalWordsPlayed: (playedWordsThisStage.length + 1)
+    });
+    if (newlyUnlocked.length > 0) {
+      setActiveAchievementToast(newlyUnlocked[0]);
+    }
+
     let msg = `${breakdown.message} (+${earnedGold} 💰 Altın)`;
     if (bonusBonusGold > 0) msg += ` 🎉 BONUS HEDEF TAMAMLANDI! (+${bonusBonusGold} 💰)`;
     setFeedbackMessage(msg);
@@ -517,10 +693,9 @@ export function useGameState() {
       confetti({ particleCount: 90, spread: 80, origin: { y: 0.6 } });
       soundEngine.playVictory();
 
-      const earnedStars = Math.floor(newScore / 20) + stage * 5;
-      const updatedStars = starPoints + earnedStars;
-      setStarPoints(updatedStars);
-      localStorage.setItem('kd_star_points', updatedStars.toString());
+      const overkillGold = newScore > targetScore ? Math.min(8, Math.floor((newScore - targetScore) / 20)) : 0;
+      const finalGoldEarned = earnedGold + overkillGold;
+      setGold(prev => prev + overkillGold);
 
       if (newScore > highScore) {
         setHighScore(newScore);
@@ -538,31 +713,22 @@ export function useGameState() {
 
       setGoalNotice({
         title: `KADEME ${stage} HEDEFİ TAMAMLANDI!`,
-        description: `${targetScore} Puan Barajı Başarıyla Geçildi!`,
-        rewardStars: earnedStars
+        description: `${targetScore} Puan Barajı Başarıyla Geçildi! ${overkillGold > 0 ? `(+${overkillGold} Skor Fazlası Altını)` : ''}`
       });
 
-      setFeedbackMessage(`🎉 KADEME TAMAMLANDI! +${earnedStars} Yıldız Puanı`);
+      setFeedbackMessage(`🎉 KADEME TAMAMLANDI! ${overkillGold > 0 ? `(+${overkillGold} 💰 Bonus Altın)` : ''}`);
       setTimeout(() => {
         setGameState('STAGE_VICTORY_SUMMARY');
       }, 900);
       return;
     }
 
-    if (nextHands <= 0) {
-      const nextLives = lives - 1;
-      setLives(nextLives);
-      if (nextLives <= 0) {
-        setFeedbackMessage('Can kalmadı! Run bitti.');
-        setTimeout(() => {
-          setGameState('GAME_OVER');
-        }, 1000);
-      } else {
-        setFeedbackMessage(`Tur bitti! -1 Can (Kalan Can: ${nextLives})`);
-        setTimeout(() => {
-          setGameState('MAP');
-        }, 1200);
-      }
+    if (nextHands <= 0 && newScore < targetScore) {
+      soundEngine.playInvalidWord();
+      setFeedbackMessage('⚠️ Hamle hakkınız bitti! Baraj puanına ulaşılamadığı için sınav elendi.');
+      setTimeout(() => {
+        setGameState('GAME_OVER');
+      }, 1000);
       return;
     }
 
@@ -596,11 +762,29 @@ export function useGameState() {
     setFeedbackMessage(`El yenilendi! (Kalan: ${nextDiscards})`);
   };
 
-  // Stage Draft Reward
+  // Stage Draft Reward & Blind Progression
   const advanceAfterDraft = (updatedDeck) => {
     setFullDeck(updatedDeck);
-    setCurrentFloorIndex(prev => prev + 1);
-    setGameState('MAP');
+
+    // Mark current blind COMPLETED and unlock next blind in current Kademe
+    const updatedBlinds = kademeData.blinds.map((b, i) => {
+      if (i === currentBlindIndex) return { ...b, status: 'COMPLETED' };
+      if (i === currentBlindIndex + 1) return { ...b, status: 'ACTIVE' };
+      return b;
+    });
+
+    setKademeData(prev => ({ ...prev, blinds: updatedBlinds }));
+
+    if (currentBlindIndex < 2) {
+      // Small/Big Blind passed -> return to Kademe Screen with next blind active
+      const nextIdx = currentBlindIndex + 1;
+      setCurrentBlindIndex(nextIdx);
+      setGameState('MAP');
+    } else {
+      // Boss Blind passed -> Open Shop!
+      setCurrentBlindIndex(3);
+      setGameState('SHOP');
+    }
   };
 
   const handleAddCardToDeck = (letterOrSpecialKey) => {
@@ -627,20 +811,21 @@ export function useGameState() {
     advanceAfterDraft(updated);
   };
 
-  // Shop Actions
   const handleShopBuyCard = (cardKey, cost) => {
-    if (gold >= cost) {
+    const effectiveCost = shopDiscountPercent > 0 ? Math.round(cost * (1 - shopDiscountPercent / 100)) : cost;
+    if (gold >= effectiveCost) {
       soundEngine.playUpgradeSound();
-      setGold(prev => prev - cost);
+      setGold(prev => prev - effectiveCost);
       const newCard = createCard(cardKey);
       setFullDeck(prev => [...prev, newCard]);
     }
   };
 
   const handleShopUpgradePerk = (cardId, cost) => {
-    if (gold >= cost) {
+    const effectiveCost = shopDiscountPercent > 0 ? Math.round(cost * (1 - shopDiscountPercent / 100)) : cost;
+    if (gold >= effectiveCost) {
       soundEngine.playUpgradeSound();
-      setGold(prev => prev - cost);
+      setGold(prev => prev - effectiveCost);
       setFullDeck(prev => prev.map(c => {
         if (c.id === cardId) {
           return createCard(c.letter, (c.upgradeLevel || 0) + 1);
@@ -651,23 +836,31 @@ export function useGameState() {
   };
 
   const handleShopRemoveCard = (cardId, cost) => {
-    if (gold >= cost && fullDeck.length > 6) {
+    const effectiveCost = shopDiscountPercent > 0 ? Math.round(cost * (1 - shopDiscountPercent / 100)) : cost;
+    if (gold >= effectiveCost && fullDeck.length > 6) {
       soundEngine.playDeleteSound();
-      setGold(prev => prev - cost);
+      setGold(prev => prev - effectiveCost);
       setFullDeck(prev => prev.filter(c => c.id !== cardId));
     }
   };
 
   const handleShopBuyRelic = (relicId, cost) => {
-    if (gold >= cost && !activeRelicKeys.includes(relicId)) {
+    const effectiveCost = shopDiscountPercent > 0 ? Math.round(cost * (1 - shopDiscountPercent / 100)) : cost;
+    if (gold >= effectiveCost && !activeRelicKeys.includes(relicId)) {
       soundEngine.playVictory();
-      setGold(prev => prev - cost);
+      setGold(prev => prev - effectiveCost);
       setActiveRelicKeys(prev => [...prev, relicId]);
     }
   };
 
   const handleLeaveShop = () => {
-    setCurrentFloorIndex(prev => prev + 1);
+    const nextKademeNum = currentKademe + 1;
+    const nextKademe = generateKademe(nextKademeNum);
+
+    setCurrentKademe(nextKademeNum);
+    setKademeData(nextKademe);
+    setCurrentBlindIndex(0);
+    setShopDiscountPercent(0);
     setGameState('MAP');
   };
 
@@ -734,7 +927,15 @@ export function useGameState() {
       setFullDeck(prev => prev.map(c => c.id === randomCard.id ? createCard(c.letter, (c.upgradeLevel || 0) + 1) : c));
     }
 
-    setCurrentFloorIndex(prev => prev + 1);
+    // Advance Kademe blind progression
+    const updatedBlinds = kademeData.blinds.map((b, i) => {
+      if (i === currentBlindIndex) return { ...b, status: 'COMPLETED' };
+      if (i === currentBlindIndex + 1) return { ...b, status: 'ACTIVE' };
+      return b;
+    });
+    setKademeData(prev => ({ ...prev, blinds: updatedBlinds }));
+    const nextIdx = currentBlindIndex + 1;
+    setCurrentBlindIndex(nextIdx);
     setGameState('MAP');
   };
 
@@ -747,7 +948,16 @@ export function useGameState() {
     } else {
       setFeedbackMessage('💡 Bilmece Sınavı Sona Erdi.');
     }
-    setCurrentFloorIndex(prev => prev + 1);
+    
+    // Advance Kademe blind progression
+    const updatedBlinds = kademeData.blinds.map((b, i) => {
+      if (i === currentBlindIndex) return { ...b, status: 'COMPLETED' };
+      if (i === currentBlindIndex + 1) return { ...b, status: 'ACTIVE' };
+      return b;
+    });
+    setKademeData(prev => ({ ...prev, blinds: updatedBlinds }));
+    const nextIdx = currentBlindIndex + 1;
+    setCurrentBlindIndex(nextIdx);
     setGameState('MAP');
   };
 
@@ -769,13 +979,10 @@ export function useGameState() {
     }
   };
 
-  const unlockDeck = (deckId, cost) => {
-    if (starPoints >= cost && !unlockedDecks.includes(deckId)) {
-      const newStars = starPoints - cost;
+  const unlockDeck = (deckId) => {
+    if (!unlockedDecks.includes(deckId)) {
       const newUnlocked = [...unlockedDecks, deckId];
-      setStarPoints(newStars);
       setUnlockedDecks(newUnlocked);
-      localStorage.setItem('kd_star_points', newStars.toString());
       localStorage.setItem('kd_unlocked_decks', JSON.stringify(newUnlocked));
       soundEngine.playVictory();
     }
@@ -829,7 +1036,6 @@ export function useGameState() {
     lastScoreBreakdown,
     lastStageVictoryStats,
     feedbackMessage,
-    starPoints,
     highScore,
     unlockedDecks,
     selectedDeckId,
@@ -841,6 +1047,15 @@ export function useGameState() {
     boardSlotModifiers,
     wordTypeLevels,
 
+    currentKademe,
+    kademeData,
+    currentBlindIndex,
+    activeTags,
+    guaranteedRareCard,
+    shopDiscountPercent,
+
+    playBlind,
+    skipBlind,
     setSelectedDeckId,
     startNewRun,
     enterMapNode,
@@ -852,7 +1067,8 @@ export function useGameState() {
     clearSelectedCards,
     playWord,
     passTurnOrSurrender,
-    proceedToRewardsFromVictory,
+    proceedFromVictory,
+    proceedToRewardsFromVictory: proceedFromVictory,
     discardAndRedraw,
     handleAddCardToDeck,
     handleUpgradeCardInDeck,
@@ -869,7 +1085,12 @@ export function useGameState() {
     unlockDeck,
     openWordMeaningModal,
     closeWordMeaningModal,
+    pendingJokerCard,
+    setPendingJokerCard,
+    handleAssignJokerLetter,
     clearGoalNotice,
+    activeAchievementToast,
+    setActiveAchievementToast,
     setGameState
   };
 }

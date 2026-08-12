@@ -1,6 +1,10 @@
 /**
- * Dynamic Procedural Graph Map Generator for Kelime Destesi
- * Every run generates a 100% unique seed-based map topology!
+ * Balatro-style Kademe (Ante) & Blind Generator for Kelime Destesi
+ * Each Kademe consists of:
+ * 1. Küçük Sınav (Small Blind) - Can be played or skipped for a Tag reward
+ * 2. Büyük Sınav (Big Blind) - Can be played or skipped for a Tag reward
+ * 3. Boss Sınavı (Boss Blind) - Unskippable, active Boss Rule constraint
+ * 4. Dükkân (Shop) - After defeating Boss
  */
 
 export const REGIONAL_BIOMES = [
@@ -61,175 +65,199 @@ export const REGIONAL_BIOMES = [
   }
 ];
 
-export const SET_DEFINITIONS = [
-  { setId: 1, name: 'BÖLGE 1: SAFİR KÜTÜPHANESİ', difficultyMultiplier: 1.0, bossRule: { title: '👑 BÖLGE 1 BOSSU: SÖZ USTASI', desc: 'En az 4 harfli kelimeler kabul edilir! Hedef: 250 Puan', minWordLength: 4 }, bossTargetScore: 250 },
-  { setId: 2, name: 'BÖLGE 2: ALEVLİ VADİ', difficultyMultiplier: 1.25, bossRule: { title: '👑 BÖLGE 2 BOSSU: KIRIK ALFABE', desc: 'En az 4 harfli kelimeler! Hedef: 450 Puan', minWordLength: 4 }, bossTargetScore: 450 },
-  { setId: 3, name: 'BÖLGE 3: ZÜMRÜT ORMANI', difficultyMultiplier: 1.45, bossRule: { title: '👑 BÖLGE 3 BOSSU: DAR SÖZLÜK', desc: 'En az 4 harfli kelimeler kabul edilir! Hedef: 700 Puan', minWordLength: 4 }, bossTargetScore: 700 },
-  { setId: 4, name: 'BÖLGE 4: MOR TİYATRO', difficultyMultiplier: 1.70, bossRule: { title: '👑 BÖLGE 4 BOSSU: SESSİZLİK', desc: 'En az 4 harfli kelimeler kabul edilir! Hedef: 1000 Puan', minWordLength: 4 }, bossTargetScore: 1000 },
-  { setId: 5, name: 'BÖLGE 5: GÖLGE KANYONU', difficultyMultiplier: 1.95, bossRule: { title: '👑 BÖLGE 5 BOSSU: HARF HIRS IZI', desc: 'En az 4 harfli kelimeler! Hedef: 1350 Puan', minWordLength: 4 }, bossTargetScore: 1350 },
-  { setId: 6, name: 'BÖLGE 6: BUZUL TAPINAĞI', difficultyMultiplier: 2.25, bossRule: { title: '👑 BÖLGE 6 BOSSU: DONMUŞ KALEM', desc: 'En az 4 harfli kelimeler! Hedef: 1750 Puan', minWordLength: 4 }, bossTargetScore: 1750 },
-  { setId: 7, name: 'BÖLGE 7: VOLKANİK ZİNDAN', difficultyMultiplier: 2.60, bossRule: { title: '👑 BÖLGE 7 BOSSU: KIYAMET ŞAİRİ', desc: 'En az 4 harfli kelimeler! Hedef: 2200 Puan', minWordLength: 4 }, bossTargetScore: 2200 },
-  { setId: 8, name: 'BÖLGE 8: KOZMİK ZİRVE', difficultyMultiplier: 3.00, bossRule: { title: '👑 FİNAL BOSSU: KADİM KELİME MİMARI', desc: '8 Tur içinde 2800 Puan barajı geçilmeli!', minWordLength: 4 }, bossTargetScore: 2800 }
+export const TAG_DEFINITIONS = [
+  {
+    id: 'TAG_REDRAW',
+    name: 'Ekstra Yenileme',
+    icon: '🔄',
+    badgeClass: 'bg-cyan-950 border-cyan-500 text-cyan-300',
+    desc: 'Sonraki sınavlarda +2 el yenileme hakkı ekler.',
+    effect: { type: 'ADD_DISCARDS', amount: 2 }
+  },
+  {
+    id: 'TAG_GOLD',
+    name: 'Altın Yağmuru',
+    icon: '💰',
+    badgeClass: 'bg-amber-950 border-amber-500 text-amber-300',
+    desc: 'Anında +25 Altın kazandırır.',
+    effect: { type: 'ADD_GOLD', amount: 25 }
+  },
+  {
+    id: 'TAG_RARE_CARD',
+    name: 'Nadir Mühür',
+    icon: '🌟',
+    badgeClass: 'bg-yellow-950 border-yellow-500 text-yellow-300',
+    desc: 'Sonraki kart ödülünde garantili nadir harf verir.',
+    effect: { type: 'RARE_CARD_GUARANTEE' }
+  },
+  {
+    id: 'TAG_SHOP_DISCOUNT',
+    name: 'Çarşı İndirimi',
+    icon: '🏷️',
+    badgeClass: 'bg-emerald-950 border-emerald-500 text-emerald-300',
+    desc: 'Sonraki Dükkânda tüm ürünlerde %25 indirim sağlar.',
+    effect: { type: 'SHOP_DISCOUNT', percent: 25 }
+  },
+  {
+    id: 'TAG_EFSUN',
+    name: 'Bedava Efsun',
+    icon: '📘',
+    badgeClass: 'bg-purple-950 border-purple-500 text-purple-300',
+    desc: 'Rastgele 1 Kelime Tipi seviyesini bedava yükseltir.',
+    effect: { type: 'FREE_EFSUN_UPGRADE' }
+  },
+  {
+    id: 'TAG_RELIC',
+    name: 'Hazine Emaneti',
+    icon: '🏺',
+    badgeClass: 'bg-rose-950 border-rose-500 text-rose-300',
+    desc: 'Anında rastgele 1 Emanet kazandırır.',
+    effect: { type: 'GRANT_RANDOM_RELIC' }
+  },
+  {
+    id: 'TAG_JOKER',
+    name: 'Joker Harfi',
+    icon: '🃏',
+    badgeClass: 'bg-indigo-950 border-indigo-500 text-indigo-300',
+    desc: 'Desteğe 1 adet 🃏 Joker Harfi ekler.',
+    effect: { type: 'ADD_JOKER_CARD' }
+  }
 ];
 
-export function generateRunMap() {
-  const floors = [];
-  const floorsPerAnte = 9;
-  const totalAntes = 4;
-  const totalFloors = floorsPerAnte * totalAntes;
+export const KADEME_BOSS_RULES = [
+  { title: 'Söz Ustası', desc: '4 harften kısa kelimeler kabul edilmez!', minWordLength: 4 },
+  { title: 'Kırık Alfabe', desc: 'En az 4 harfli kelimeler oynanmalı!', minWordLength: 4 },
+  { title: 'Dar Sözlük', desc: 'En az 4 harfli kelimeler kabul edilir!', minWordLength: 4 },
+  { title: 'Kozmik Mühür', desc: 'En az 5 harfli kelimeler oynamalısın!', minWordLength: 5 },
+  { title: 'Sessiz Katip', desc: 'En az 4 harfli kelimeler oyna!', minWordLength: 4 },
+  { title: 'Gölge Şair', desc: 'En az 5 harfli kelimeler kabul edilir!', minWordLength: 5 },
+  { title: 'Alevli Mühür', desc: 'En az 4 harfli kelimeler oynamalısın!', minWordLength: 4 },
+  { title: 'Kadim Kelime Mimarı', desc: 'Final Boss! En az 5 harfli kelimeler oyna!', minWordLength: 5 }
+];
 
-  const nodeTypePool = [
-    { type: 'NORMAL', pathCategory: 'SAFE', weight: 25 },
-    { type: 'SPECIAL_OBJECTIVE', pathCategory: 'SAFE', weight: 25 },
-    { type: 'SHOP', pathCategory: 'BUILD', weight: 20 },
-    { type: 'EVENT', pathCategory: 'MYSTERY', weight: 15 },
-    { type: 'ELITE', pathCategory: 'RISK', weight: 10 },
-    { type: 'TRIVIA', pathCategory: 'MYSTERY', weight: 5 } // 5% Rare Trivia
+export function generateKademe(kademeNumber = 1) {
+  const baseScale = Math.pow(1.85, kademeNumber - 1);
+  const smallTarget = Math.round(75 * baseScale);
+  const bigTarget = Math.round(140 * baseScale);
+  const bossTarget = Math.round(250 * baseScale);
+
+  // Pick 2 random unique tags
+  const shuffledTags = [...TAG_DEFINITIONS].sort(() => 0.5 - Math.random());
+  const smallTag = shuffledTags[0];
+  const bigTag = shuffledTags[1];
+
+  const bossRuleIndex = (kademeNumber - 1) % KADEME_BOSS_RULES.length;
+  const bossRuleDef = KADEME_BOSS_RULES[bossRuleIndex];
+
+  // Procedurally roll surprise stop:
+  // 35% Event, 25% Trivia, 20% Challenge, 10% Treasure, 10% None
+  const roll = Math.random() * 100;
+  let surpriseType = 'NONE';
+  if (roll < 35) surpriseType = 'EVENT';
+  else if (roll < 60) surpriseType = 'TRIVIA';
+  else if (roll < 80) surpriseType = 'CHALLENGE';
+  else if (roll < 90) surpriseType = 'TREASURE';
+
+  const blinds = [
+    {
+      id: `k${kademeNumber}_b0`,
+      index: 0,
+      type: 'SMALL_BLIND',
+      title: 'Küçük Sınav',
+      icon: '📜',
+      targetScore: smallTarget,
+      rewardGold: 10 + kademeNumber * 2,
+      tag: smallTag,
+      canSkip: true,
+      status: 'ACTIVE'
+    }
   ];
 
-  const getRandomNodeType = () => {
-    const rand = Math.random() * 100;
-    let acc = 0;
-    for (const item of nodeTypePool) {
-      acc += item.weight;
-      if (rand <= acc) return item;
-    }
-    return nodeTypePool[0];
-  };
+  let nextIdx = 1;
 
-  const getTypeTitleIcon = (t) => {
-    switch (t) {
-      case 'SHOP': return { title: 'Gezgin Çarşı', icon: '🏪' };
-      case 'EVENT': return { title: 'Gizemli Olay', icon: '❓' };
-      case 'TRIVIA': return { title: '💡 BİLMECE SINAVI (NADİR)', icon: '💡' };
-      case 'TREASURE': return { title: 'Hazine Mahzeni', icon: '💰' };
-      case 'ELITE': return { title: 'Elit Sınav', icon: '⚔️' };
-      case 'SPECIAL_OBJECTIVE': return { title: 'Özel Sınav', icon: '🎯' };
-      default: return { title: 'Kelime Sınavı', icon: '📜' };
-    }
-  };
-
-  for (let floorIdx = 0; floorIdx < totalFloors; floorIdx++) {
-    const anteIdx = Math.floor(floorIdx / floorsPerAnte);
-    const anteFloorIndex = floorIdx % floorsPerAnte;
-    const anteDef = SET_DEFINITIONS[anteIdx] || SET_DEFINITIONS[0];
-    const diffMult = anteDef.difficultyMultiplier || 1.0;
-    const stageNumber = floorIdx + 1;
-    const targetBase = Math.round((45 + floorIdx * 35 + Math.floor(Math.random() * 20)) * diffMult);
-
-    if (anteFloorIndex === 0 && floorIdx === 0) {
-      // Root Node
-      const centerBiome = REGIONAL_BIOMES[2];
-      floors.push([
-        {
-          id: 'node_f0_n0',
-          floor: 0,
-          stage: 1,
-          colIndex: 2,
-          type: 'NORMAL',
-          pathCategory: 'SAFE',
-          title: 'Giriş Kapısı',
-          icon: centerBiome.icon,
-          biome: centerBiome,
-          modifier: centerBiome.modifier,
-          targetScore: 45,
-          desc: 'Hedef 45 Puan',
-          bonusObjective: { desc: 'En az 1 adet 4+ harfli kelime oyna', rewardGold: 10, targetLength: 4, count: 1 },
-          completed: false
-        }
-      ]);
-    } else if (anteFloorIndex === 7) {
-      // CAMP NODE
-      const campBiome = REGIONAL_BIOMES[2];
-      floors.push([
-        {
-          id: `node_f${floorIdx}_camp`,
-          floor: floorIdx,
-          stage: stageNumber,
-          colIndex: 2,
-          type: 'CAMP',
-          pathCategory: 'BUILD',
-          title: '🏕️ Son Kamp',
-          icon: '🏕️',
-          biome: campBiome,
-          modifier: { id: 'PRE_BOSS_REST', name: 'Boss Öncesi Dinlenme', icon: '☕', desc: 'Desteni düzenle, dinlen veya kart yükselt!' },
-          targetScore: 0,
-          desc: 'Boss savaşı öncesi dinlen ve desteni düzenle!',
-          completed: false
-        }
-      ]);
-    } else if (anteFloorIndex === 8) {
-      // ANTE BOSS NODE
-      const bossBiome = REGIONAL_BIOMES[2];
-      floors.push([
-        {
-          id: `node_f${floorIdx}_boss`,
-          floor: floorIdx,
-          stage: stageNumber,
-          colIndex: 2,
-          type: 'BOSS',
-          pathCategory: 'RISK',
-          title: anteDef.bossRule.title.replace('👑 ', ''),
-          icon: '👑',
-          biome: bossBiome,
-          modifier: bossBiome.modifier,
-          targetScore: anteDef.bossTargetScore,
-          desc: anteDef.bossRule.desc,
-          bossRule: anteDef.bossRule,
-          maxHandsOverride: 8,
-          completed: false
-        }
-      ]);
-    } else {
-      // Procedurally Generate Random Floor Columns (2 to 4 random columns from [0..4])
-      const availableCols = [0, 1, 2, 3, 4];
-      const count = anteFloorIndex === 3 ? 4 : (Math.floor(Math.random() * 3) + 2); // 2 to 4 cols
-      
-      // Shuffle & pick count columns
-      const selectedCols = availableCols
-        .sort(() => 0.5 - Math.random())
-        .slice(0, count)
-        .sort((a, b) => a - b);
-
-      const floorNodes = [];
-      selectedCols.forEach((colIdx, nodeIdx) => {
-        const regionalBiome = REGIONAL_BIOMES[colIdx];
-        const nCfg = getRandomNodeType();
-
-        const tInfo = getTypeTitleIcon(nCfg.type);
-
-        floorNodes.push({
-          id: `node_f${floorIdx}_n${nodeIdx}`,
-          floor: floorIdx,
-          stage: stageNumber,
-          colIndex: colIdx,
-          type: nCfg.type,
-          pathCategory: nCfg.pathCategory,
-          title: tInfo.title,
-          icon: tInfo.icon,
-          biome: regionalBiome,
-          modifier: regionalBiome.modifier,
-          targetScore: targetBase + colIdx * 15,
-          desc: `Hedef ${targetBase + colIdx * 15} Puan`,
-          bonusObjective: nCfg.type === 'SHOP' || nCfg.type === 'TRIVIA' ? null : { desc: 'En az 2 adet 5+ harfli kelime oyna', rewardGold: 12 + colIdx * 2, targetLength: 5, count: 2 },
-          completed: false
-        });
-      });
-
-      floors.push(floorNodes);
-    }
-  }
-
-  // Connect child array ids cleanly
-  for (let f = 0; f < floors.length - 1; f++) {
-    const parentFloor = floors[f];
-    const childFloor = floors[f + 1];
-    const childIds = childFloor.map(n => n.id);
-
-    parentFloor.forEach(parentNode => {
-      parentNode.children = childIds;
+  if (surpriseType === 'EVENT') {
+    blinds.push({
+      id: `k${kademeNumber}_e`,
+      index: nextIdx++,
+      type: 'EVENT',
+      title: 'Gizemli Olay',
+      icon: '❓',
+      desc: 'Terk edilmiş bir harf masası veya kadim bir yazıt buldun. Karar ver!',
+      canSkip: false,
+      status: 'LOCKED'
+    });
+  } else if (surpriseType === 'TRIVIA') {
+    blinds.push({
+      id: `k${kademeNumber}_t`,
+      index: nextIdx++,
+      type: 'TRIVIA',
+      title: 'Kelime Bilmecesi',
+      icon: '💡',
+      desc: 'Bir bilge sana kelime bilmecesi sordu. Çöz ve ödülü kap!',
+      canSkip: false,
+      status: 'LOCKED'
+    });
+  } else if (surpriseType === 'CHALLENGE') {
+    blinds.push({
+      id: `k${kademeNumber}_ch`,
+      index: nextIdx++,
+      type: 'CHALLENGE',
+      title: '⚡ Süreli Harf Challenge',
+      icon: '⚡',
+      desc: '30 saniye boyunca kilitli kare bulmacalarını hızlıca doldur ve dev ödülü kap!',
+      canSkip: false,
+      status: 'LOCKED'
+    });
+  } else if (surpriseType === 'TREASURE') {
+    blinds.push({
+      id: `k${kademeNumber}_tr`,
+      index: nextIdx++,
+      type: 'TREASURE',
+      title: 'Kilitli Hazine',
+      icon: '💰',
+      desc: 'Çalıların arasına saklanmış kilitli bir sandık buldun!',
+      canSkip: false,
+      status: 'LOCKED'
     });
   }
 
-  return floors;
+  // Big Blind
+  blinds.push({
+    id: `k${kademeNumber}_b1`,
+    index: nextIdx++,
+    type: 'BIG_BLIND',
+    title: 'Büyük Sınav',
+    icon: '⚔️',
+    targetScore: bigTarget,
+    rewardGold: 20 + kademeNumber * 3,
+    tag: bigTag,
+    canSkip: true,
+    status: 'LOCKED'
+  });
+
+  // Boss Blind
+  blinds.push({
+    id: `k${kademeNumber}_b2`,
+    index: nextIdx++,
+    type: 'BOSS_BLIND',
+    title: `Boss: ${bossRuleDef.title}`,
+    icon: '👑',
+    targetScore: bossTarget,
+    rewardGold: 35 + kademeNumber * 5,
+    bossRule: { ...bossRuleDef, title: `👑 ${bossRuleDef.title}`, desc: `${bossRuleDef.desc} (Hedef: ${bossTarget} Puan)` },
+    maxHandsOverride: 7,
+    canSkip: false,
+    status: 'LOCKED'
+  });
+
+  return {
+    kademeNumber,
+    blinds
+  };
 }
+
+// Backward compatibility alias for generateRunMap
+export function generateRunMap() {
+  return [generateKademe(1)];
+}
+

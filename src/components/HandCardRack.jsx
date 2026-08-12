@@ -157,6 +157,7 @@ export function HandCardRack({
                   )}
 
                   <motion.button
+                    whileHover={{ y: -4, scale: 1.05 }}
                     whileTap={{ scale: 0.92 }}
                     onClick={() => onSelectCard(card)}
                     className={`w-full h-full rounded-2xl flex flex-col items-center justify-between p-1 transition-all cursor-pointer ${tileClass}`}

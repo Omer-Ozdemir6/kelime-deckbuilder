@@ -46,15 +46,10 @@ export function StartMenuModal({
         </div>
 
         {/* Stats Row */}
-        <div className="flex items-center gap-3 mt-4">
-          <div className="flex items-center gap-1.5 bg-amber-950/80 border border-amber-500/40 px-3.5 py-1.5 rounded-2xl text-xs font-black text-amber-300 shadow-md">
-            <Star size={14} className="fill-amber-400 text-amber-400" />
-            <span>{starPoints} Yıldız</span>
-          </div>
-
+        <div className="flex items-center justify-center gap-3 mt-4">
           <div className="flex items-center gap-1.5 bg-slate-900/90 border border-emerald-500/40 px-3.5 py-1.5 rounded-2xl text-xs font-black text-emerald-400 shadow-md">
             <Trophy size={14} className="text-emerald-400" />
-            <span>En Yüksek: {highScore}</span>
+            <span>En Yüksek Skor: {highScore}</span>
           </div>
         </div>
       </div>
@@ -157,18 +152,10 @@ export function StartMenuModal({
                         {isSelected ? 'SEÇİLİ' : 'SEÇ'}
                       </button>
                     ) : (
-                      <button
-                        onClick={() => onUnlockDeck(deck.id, deck.unlockCost)}
-                        disabled={starPoints < deck.unlockCost}
-                        className={`px-3 py-1.5 rounded-xl font-black text-xs transition flex items-center gap-1 ${
-                          starPoints >= deck.unlockCost
-                            ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-md'
-                            : 'bg-slate-900 border border-slate-800 text-slate-600 cursor-not-allowed'
-                        }`}
-                      >
-                        <Lock size={12} />
-                        <span>AÇ ({deck.unlockCost} ⭐)</span>
-                      </button>
+                      <span className="px-2.5 py-1 rounded-xl bg-slate-900 border border-slate-800 text-slate-500 font-bold text-[10px] flex items-center gap-1">
+                        <Lock size={11} />
+                        <span>🏆 BAŞARIM İLE AÇILIR</span>
+                      </span>
                     )}
                   </div>
 

@@ -80,6 +80,30 @@ export const RELICS = {
     cost: 70,
     desc: 'Aynı harfi 2 veya daha fazla kez içeren kelimeler +25% bonus puan kazandırır.',
     bgGradient: 'from-purple-600 to-indigo-900'
+  },
+  UC_SESLI: {
+    id: 'UC_SESLI',
+    name: 'Üç Sesli Mührü',
+    icon: '🎵',
+    cost: 80,
+    desc: '3 farklı sesli harf içeren kelimeler +35% ekstra puan kazandırır.',
+    bgGradient: 'from-cyan-600 to-blue-900'
+  },
+  SON_HARF: {
+    id: 'SON_HARF',
+    name: 'Son Harf Tılsımı',
+    icon: '🏁',
+    cost: 75,
+    desc: 'Kelimenin son harfinin taban puanı 2x hesaplanır.',
+    bgGradient: 'from-amber-600 to-rose-900'
+  },
+  TAZELENME: {
+    id: 'TAZELENME',
+    name: 'Tazelenme Mührü',
+    icon: '🔄',
+    cost: 65,
+    desc: 'Her bölümde +1 ekstra Yenileme (Refresh) hakkı kazandırır.',
+    bgGradient: 'from-emerald-600 to-teal-900'
   }
 };
 

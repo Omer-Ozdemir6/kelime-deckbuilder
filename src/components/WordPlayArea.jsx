@@ -44,7 +44,7 @@ export function WordPlayArea({
   }, [feedbackMessage]);
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-between p-3 relative overflow-hidden bg-slate-950/30">
+    <div className="flex-1 flex flex-col items-center justify-between p-3 relative overflow-hidden dark-felt-table">
       {/* Played Words History Bar & Modal Toggle */}
       <div className="w-full flex items-center justify-between gap-2 px-1 mb-1">
         {playedWordsThisStage.length > 0 ? (
@@ -137,9 +137,9 @@ export function WordPlayArea({
       </AnimatePresence>
 
       {/* Word Rack Area (Tile Tray Container) */}
-      <div className="w-full flex-1 flex flex-col items-center justify-center my-1.5 min-h-[140px]">
+      <div className="w-full flex-1 flex flex-col items-center justify-center my-1.5 min-h-[140px] relative">
         {/* Selected Tiles Rack: 7 Fixed Board Slots */}
-        <div className="w-full min-h-[85px] p-2 bg-slate-950/85 backdrop-blur-xl border border-slate-700/60 rounded-2xl shadow-2xl flex items-center justify-center gap-1 sm:gap-1.5 transition-all relative overflow-hidden">
+        <div className="w-full min-h-[85px] p-2 bg-slate-950/90 backdrop-blur-xl gold-glow-border rounded-2xl shadow-2xl flex items-center justify-center gap-1 sm:gap-1.5 transition-all relative overflow-hidden">
           {[0, 1, 2, 3, 4, 5, 6].map((slotIdx) => {
             const card = selectedCards[slotIdx];
             const slotMod = boardSlotModifiers[slotIdx];
@@ -214,63 +214,63 @@ export function WordPlayArea({
                     </span>
                   </div>
                 ) : (
-                  <span className="text-[9px] font-bold text-slate-700 my-auto">
-                    #{slotIdx + 1}
-                  </span>
+                  <div className="my-auto flex flex-col items-center justify-center gap-0.5">
+                    {slotIdx >= 4 ? (
+                      <>
+                        <span className="text-[10px] font-black text-amber-300 animate-pulse drop-shadow-[0_0_8px_rgba(245,158,11,0.8)]">
+                          +{slotIdx === 4 ? '5p' : slotIdx === 5 ? '10p' : '15p'}
+                        </span>
+                        <span className="text-[8px] font-extrabold text-amber-500/60">
+                          #{slotIdx + 1}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-[9px] font-bold text-slate-700">
+                        #{slotIdx + 1}
+                      </span>
+                    )}
+                  </div>
                 )}
               </div>
             );
           })}
         </div>
 
-        {/* Live Score Breakdown Preview Badge */}
+        {/* Potential Score Calculation Badge (Shows potential score calculation without leaking dictionary validity) */}
         {selectedCards.length >= 2 && (
           <motion.div
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`mt-2 px-3.5 py-1.5 rounded-2xl border text-xs font-bold flex flex-col items-center gap-1 shadow-lg backdrop-blur-md ${
-              scoreBreakdown.isValid
-                ? 'bg-emerald-950/90 border-emerald-500/60 text-emerald-200 shadow-emerald-950/50'
-                : 'bg-rose-950/90 border-rose-500/60 text-rose-200 shadow-rose-950/50'
-            }`}
+            className="mt-2 px-3.5 py-1.5 rounded-2xl bg-slate-950/90 border border-amber-500/50 text-xs font-bold flex flex-col items-center gap-1 shadow-lg backdrop-blur-md text-amber-200"
           >
-            {scoreBreakdown.isValid ? (
-              <>
-                <div className="flex items-center gap-2 flex-wrap justify-center">
-                  <CheckCircle2 size={16} className="text-emerald-400 shrink-0" />
-                  <span className="font-black text-sm text-emerald-300">{scoreBreakdown.score} Puan</span>
-                  <span className="text-[10px] opacity-80 font-medium">
-                    (Taban: {scoreBreakdown.basePoints} + Bonus: +{scoreBreakdown.lengthBonus}
-                    {scoreBreakdown.extensionBonus > 0 && ` + Zincir: +${scoreBreakdown.extensionBonus}`}
-                    {combo > 1 && ` × ${combo}`})
-                  </span>
-                </div>
+            <div className="flex items-center gap-2 flex-wrap justify-center">
+              <Sparkles size={15} className="text-amber-400 shrink-0" />
+              <span className="font-black text-sm text-amber-300">Potansiyel: +{scoreBreakdown.potentialScore || scoreBreakdown.score || 10} Puan</span>
+              <span className="text-[10px] text-slate-400 font-medium">
+                (Taban: {scoreBreakdown.basePoints} + Bonus: +{scoreBreakdown.lengthBonus}
+                {scoreBreakdown.extensionBonus > 0 && ` + Zincir: +${scoreBreakdown.extensionBonus}`}
+                {combo > 1 && ` × ${combo}`})
+              </span>
+            </div>
 
-                {/* Chain & Bank Badges */}
-                <div className="flex items-center gap-1.5 flex-wrap justify-center pt-0.5">
-                  {scoreBreakdown.chainType === 'EXTEND' && (
-                    <span className="px-2 py-0.5 rounded-full bg-amber-500/30 text-amber-300 border border-amber-500/50 text-[9px] font-black tracking-wide flex items-center gap-1 animate-pulse">
-                      🔗 KELİME ZİNCİRİ (UZAT) (+%20)
-                    </span>
-                  )}
-                  {scoreBreakdown.chainType === 'TRANSFORM' && (
-                    <span className="px-2 py-0.5 rounded-full bg-cyan-500/30 text-cyan-300 border border-cyan-500/50 text-[9px] font-black tracking-wide flex items-center gap-1">
-                      🔀 KELİME DÖNÜŞÜMÜ (+%15)
-                    </span>
-                  )}
-                  {scoreBreakdown.isBankUsed && (
-                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/30 text-emerald-300 border border-emerald-500/50 text-[9px] font-black tracking-wide flex items-center gap-1">
-                      🏦 BANKA HARFİ
-                    </span>
-                  )}
-                </div>
-              </>
-            ) : (
-              <div className="flex items-center gap-1.5">
-                <AlertCircle size={16} className="text-rose-400 shrink-0" />
-                <span className="font-extrabold">{scoreBreakdown.message || 'Geçersiz Kelime'}</span>
-              </div>
-            )}
+            {/* Chain & Bank Badges */}
+            <div className="flex items-center gap-1.5 flex-wrap justify-center pt-0.5">
+              {scoreBreakdown.chainType === 'EXTEND' && (
+                <span className="px-2 py-0.5 rounded-full bg-amber-500/30 text-amber-300 border border-amber-500/50 text-[9px] font-black tracking-wide flex items-center gap-1 animate-pulse">
+                  🔗 KELİME ZİNCİRİ (UZAT) (+%20)
+                </span>
+              )}
+              {scoreBreakdown.chainType === 'TRANSFORM' && (
+                <span className="px-2 py-0.5 rounded-full bg-cyan-500/30 text-cyan-300 border border-cyan-500/50 text-[9px] font-black tracking-wide flex items-center gap-1">
+                  🔀 KELİME DÖNÜŞÜMÜ (+%15)
+                </span>
+              )}
+              {scoreBreakdown.isBankUsed && (
+                <span className="px-2 py-0.5 rounded-full bg-emerald-500/30 text-emerald-300 border border-emerald-500/50 text-[9px] font-black tracking-wide flex items-center gap-1">
+                  🏦 BANKA HARFİ
+                </span>
+              )}
+            </div>
           </motion.div>
         )}
       </div>
@@ -314,14 +314,14 @@ export function WordPlayArea({
 
         <button
           onClick={onPlayWord}
-          disabled={selectedCards.length < 2 || !scoreBreakdown.isValid}
-          className={`${onPassTurn ? 'col-span-3' : 'col-span-4'} font-black py-3.5 px-3 rounded-2xl transition flex items-center justify-center gap-2 shadow-2xl active:scale-95 text-xs sm:text-sm tracking-wide border ${
-            selectedCards.length >= 2 && scoreBreakdown.isValid
+          disabled={selectedCards.length < 2}
+          className={`${onPassTurn ? 'col-span-3' : 'col-span-4'} font-black py-3.5 px-3 rounded-2xl transition flex items-center justify-center gap-2 shadow-2xl active:scale-95 text-xs sm:text-sm tracking-wide border cursor-pointer ${
+            selectedCards.length >= 2
               ? 'bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-yellow-300 text-slate-950 border-amber-300 shadow-amber-500/40 animate-pulse-glow'
               : 'bg-slate-900 border-slate-800 text-slate-600 cursor-not-allowed'
           }`}
         >
-          <Play size={16} className={selectedCards.length >= 2 && scoreBreakdown.isValid ? 'fill-slate-950' : 'fill-slate-600'} />
+          <Play size={16} className={selectedCards.length >= 2 ? 'fill-slate-950' : 'fill-slate-600'} />
           <span>KELİMEYİ OYNA</span>
         </button>
       </div>
