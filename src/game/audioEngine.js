@@ -1,29 +1,53 @@
 // Procedural Web Audio API sound effects generator for Kelime Destesi
+// AudioContext is lazily created ONLY after a user gesture, avoiding autoplay policy errors.
 
 let audioCtx = null;
+let userHasInteracted = false;
 
 function getAudioContext() {
+  // Only create AudioContext after user interaction (browser autoplay policy)
+  if (!userHasInteracted) return null;
+
   if (!audioCtx) {
-    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-    if (AudioContextClass) {
-      audioCtx = new AudioContextClass();
+    try {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (AudioContextClass) {
+        audioCtx = new AudioContextClass();
+      }
+    } catch (e) {
+      return null;
     }
   }
+
   if (audioCtx && audioCtx.state === 'suspended') {
     audioCtx.resume().catch(() => {});
   }
+
   return audioCtx;
 }
 
+// Mark user as having interacted, and lazily create the AudioContext on first interaction
 if (typeof window !== 'undefined') {
-  const unlockAudio = () => {
+  const handleFirstInteraction = () => {
+    userHasInteracted = true;
+    // Try to create and resume AudioContext on first interaction
+    if (!audioCtx) {
+      try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+          audioCtx = new AudioContextClass();
+        }
+      } catch (e) {}
+    }
     if (audioCtx && audioCtx.state === 'suspended') {
       audioCtx.resume().catch(() => {});
     }
   };
-  window.addEventListener('click', unlockAudio, { passive: true });
-  window.addEventListener('touchstart', unlockAudio, { passive: true });
-  window.addEventListener('keydown', unlockAudio, { passive: true });
+
+  window.addEventListener('click', handleFirstInteraction, { once: false, passive: true });
+  window.addEventListener('touchstart', handleFirstInteraction, { once: false, passive: true });
+  window.addEventListener('keydown', handleFirstInteraction, { once: false, passive: true });
+  window.addEventListener('pointerdown', handleFirstInteraction, { once: false, passive: true });
 }
 
 export const soundEngine = {

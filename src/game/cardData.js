@@ -284,7 +284,12 @@ export const SPECIAL_CARDS = {
 // ─────────────────────────────────────────────────────────────
 // PASSIVE JOKERS — Balatro tarzı pasif etkili güçlendiriciler
 // rarity: 'yaygin' | 'nadir' | 'efsanevi' | 'efsane_otesi'
+// maxPerRun: Bir koşuda bu jokerden maksimum kaç tane olabilir (varsayılan: 1)
 // ─────────────────────────────────────────────────────────────
+
+// Tur başına maksimum aktif joker sayısı (Balatro tarzı)
+export const MAX_ACTIVE_JOKERS = 5;
+export const JOKER_MAX_PER_RUN = 1;
 
 export const PASSIVE_JOKERS = {
 
@@ -294,108 +299,138 @@ export const PASSIVE_JOKERS = {
 
   SCRIBE_JOKER: {
     id: 'SCRIBE_JOKER', icon: '📝', name: 'Katip Jokeri',
-    rarity: 'yaygin', cost: 35,
+    rarity: 'yaygin', cost: 35, maxPerRun: 1,
     effect: { type: 'per_word_chips', value: 4 },
     desc: 'Her başarılı kelimede +4 Taban Puan biriktirir.',
-    bgGradient: 'from-slate-700 to-slate-900', glowColor: 'rgba(148,163,184,0.4)'
+    bgGradient: 'from-slate-700 to-slate-900', glowColor: 'rgba(148,163,184,0.4)',
+    artEmoji: '📝✍️📜',
+    flavorText: '"Kalem kılıçtan güçlüdür." — Eski bir Katip Atasözü'
   },
   VOWEL_JOKER: {
     id: 'VOWEL_JOKER', icon: '🗣️', name: 'Sesli Harf Jokeri',
-    rarity: 'yaygin', cost: 40,
+    rarity: 'yaygin', cost: 40, maxPerRun: 1,
     effect: { type: 'per_vowel_chips', value: 3 },
     desc: 'Kelimedeki her sesli harf için +3 Taban Puan ekler.',
-    bgGradient: 'from-sky-800 to-blue-950', glowColor: 'rgba(56,189,248,0.4)'
+    bgGradient: 'from-sky-800 to-blue-950', glowColor: 'rgba(56,189,248,0.4)',
+    artEmoji: '🗣️🎵🔊',
+    flavorText: '"A, E, İ, O, U... Sesin özü burada." — Dilbilim Ustası'
   },
   CONSONANT_JOKER: {
     id: 'CONSONANT_JOKER', icon: '🔤', name: 'Ünsüz Jokeri',
-    rarity: 'yaygin', cost: 40,
+    rarity: 'yaygin', cost: 40, maxPerRun: 1,
     effect: { type: 'per_consonant_mult', value: 2 },
     desc: 'Kelimedeki her ünsüz harf için +2 Çarpan ekler.',
-    bgGradient: 'from-teal-800 to-teal-950', glowColor: 'rgba(45,212,191,0.4)'
+    bgGradient: 'from-teal-800 to-teal-950', glowColor: 'rgba(45,212,191,0.4)',
+    artEmoji: '🔤💪🔡',
+    flavorText: '"Sessizler konuşmayı mümkün kılar." — Fonetik Çıraklık Kitabı'
   },
   MERCHANT_JOKER: {
     id: 'MERCHANT_JOKER', icon: '💼', name: 'Tüccar Jokeri',
-    rarity: 'yaygin', cost: 50,
+    rarity: 'yaygin', cost: 50, maxPerRun: 1,
     effect: { type: 'shop_gold_bonus', value: 10 },
     desc: 'Her Çarşı ziyaretinde +10 Altın ile başlarsın.',
-    bgGradient: 'from-amber-800 to-amber-950', glowColor: 'rgba(245,158,11,0.4)'
+    bgGradient: 'from-amber-800 to-amber-950', glowColor: 'rgba(245,158,11,0.4)',
+    artEmoji: '💼🪙🛒',
+    flavorText: '"En iyi yatırım, iyi bir dükkân arkadaşıdır." — Tüccar Mahfili'
   },
   PIGGY_JOKER: {
     id: 'PIGGY_JOKER', icon: '🐷', name: 'Kumbara Jokeri',
-    rarity: 'yaygin', cost: 45,
+    rarity: 'yaygin', cost: 45, maxPerRun: 1,
     effect: { type: 'gold_to_chips', per: 5, value: 1 },
     desc: 'Tur sonu harcamadığın her 5 Altın için +1 Taban Puan birikir.',
-    bgGradient: 'from-pink-800 to-rose-950', glowColor: 'rgba(244,114,182,0.4)'
+    bgGradient: 'from-pink-800 to-rose-950', glowColor: 'rgba(244,114,182,0.4)',
+    artEmoji: '🐷💰🏦',
+    flavorText: '"Biriktirmek de bir sanattır." — Kumbara Filozofu'
   },
   SHORTCUT_JOKER: {
     id: 'SHORTCUT_JOKER', icon: '⚡', name: 'Kestirme Jokeri',
-    rarity: 'yaygin', cost: 35,
+    rarity: 'yaygin', cost: 35, maxPerRun: 1,
     effect: { type: 'short_word_chips', maxLen: 3, value: 20 },
     desc: '3 harfli kelimeler +20 Taban Puan kazanır.',
-    bgGradient: 'from-yellow-700 to-orange-900', glowColor: 'rgba(251,191,36,0.4)'
+    bgGradient: 'from-yellow-700 to-orange-900', glowColor: 'rgba(251,191,36,0.4)',
+    artEmoji: '⚡🏃💨',
+    flavorText: '"En kısa yol, en keskin yoldur." — Yıldırım Hızı Kılavuzu'
   },
   ECHO_JOKER: {
     id: 'ECHO_JOKER', icon: '🔁', name: 'Yankı Jokeri',
-    rarity: 'yaygin', cost: 40,
+    rarity: 'yaygin', cost: 40, maxPerRun: 1,
     effect: { type: 'repeat_word_bonus_pct', value: 50 },
     desc: 'Aynı kelimeyi tekrar oynayınca +50% bonus puan.',
-    bgGradient: 'from-violet-800 to-purple-950', glowColor: 'rgba(167,139,250,0.4)'
+    bgGradient: 'from-violet-800 to-purple-950', glowColor: 'rgba(167,139,250,0.4)',
+    artEmoji: '🔁🎵🌀',
+    flavorText: '"Yankı, en güçlü cevaptır." — Dağ Mağarası Felsefesi'
   },
   LUCKY_CAT_JOKER: {
     id: 'LUCKY_CAT_JOKER', icon: '🍀', name: 'Şans Kedisi',
-    rarity: 'yaygin', cost: 45,
+    rarity: 'yaygin', cost: 45, maxPerRun: 1,
     effect: { type: 'lucky_gold_chance', chance: 20, value: 25 },
     desc: 'Her kelimede %20 şansla +25 Altın düşer.',
-    bgGradient: 'from-emerald-700 to-green-950', glowColor: 'rgba(52,211,153,0.4)'
+    bgGradient: 'from-emerald-700 to-green-950', glowColor: 'rgba(52,211,153,0.4)',
+    artEmoji: '🍀🐱🎰',
+    flavorText: '"Şans, hazırlıklı zihnin önüne geçer." — Bahtsız Bir Kedinin Anısı'
   },
   LIBRARY_JOKER: {
     id: 'LIBRARY_JOKER', icon: '📚', name: 'Kütüphane',
-    rarity: 'yaygin', cost: 50,
+    rarity: 'yaygin', cost: 50, maxPerRun: 1,
     effect: { type: 'hand_size_plus', value: 1, max: 3 },
     desc: 'Her tur başlangıcında el boyutun +1 artar (maks +3).',
-    bgGradient: 'from-indigo-800 to-indigo-950', glowColor: 'rgba(99,102,241,0.4)'
+    bgGradient: 'from-indigo-800 to-indigo-950', glowColor: 'rgba(99,102,241,0.4)',
+    artEmoji: '📚🏛️📖',
+    flavorText: '"Daha fazla harf, daha fazla güç." — Büyük Kütüphane Tüzüğü'
   },
   STEEL_JOKER: {
     id: 'STEEL_JOKER', icon: '🔩', name: 'Çelik Joker',
-    rarity: 'yaygin', cost: 40,
+    rarity: 'yaygin', cost: 40, maxPerRun: 1,
     effect: { type: 'deck_size_chips', per: 1, value: 1 },
     desc: 'Deste boyutu ne kadar büyükse kart başına +1 Taban Puan.',
-    bgGradient: 'from-slate-600 to-slate-900', glowColor: 'rgba(100,116,139,0.5)'
+    bgGradient: 'from-slate-600 to-slate-900', glowColor: 'rgba(100,116,139,0.5)',
+    artEmoji: '🔩⚙️🛡️',
+    flavorText: '"Çelik eğilir ama kırılmaz." — Demirci Destesi'
   },
   RUNNER_JOKER: {
     id: 'RUNNER_JOKER', icon: '🏃', name: 'Koşucu Jokeri',
-    rarity: 'yaygin', cost: 45,
+    rarity: 'yaygin', cost: 45, maxPerRun: 1,
     effect: { type: 'word_restores_discard', max: 3 },
     desc: 'Başarılı her kelime Atma Hakkını +1 yeniler (maks 3).',
-    bgGradient: 'from-orange-700 to-red-900', glowColor: 'rgba(251,146,60,0.4)'
+    bgGradient: 'from-orange-700 to-red-900', glowColor: 'rgba(251,146,60,0.4)',
+    artEmoji: '🏃💨🏅',
+    flavorText: '"Durmak yok, yola devam!" — Sonsuz Koşucu Manifestosu'
   },
   HOARDER_JOKER: {
     id: 'HOARDER_JOKER', icon: '🏠', name: 'İstifçi Jokeri',
-    rarity: 'yaygin', cost: 35,
+    rarity: 'yaygin', cost: 35, maxPerRun: 1,
     effect: { type: 'undeleted_card_chips', per: 1, value: 1 },
     desc: 'Silmediğin her harf kartı +1 Taban Puan bonusu taşır.',
-    bgGradient: 'from-stone-700 to-stone-950', glowColor: 'rgba(168,162,158,0.4)'
+    bgGradient: 'from-stone-700 to-stone-950', glowColor: 'rgba(168,162,158,0.4)',
+    artEmoji: '🏠📦🗄️',
+    flavorText: '"Bir gün lazım olur." — Tarihin Her Devrinde Söylenen Söz'
   },
   GAMBLER_JOKER: {
     id: 'GAMBLER_JOKER', icon: '🎲', name: 'Kumarbaz',
-    rarity: 'yaygin', cost: 40,
+    rarity: 'yaygin', cost: 40, maxPerRun: 1,
     effect: { type: 'discard_gamble_chips', chance: 50, value: 30 },
     desc: 'Atma yaptığında %50 şansla +30 Taban Puan kazanırsın.',
-    bgGradient: 'from-rose-700 to-rose-950', glowColor: 'rgba(251,113,133,0.4)'
+    bgGradient: 'from-rose-700 to-rose-950', glowColor: 'rgba(251,113,133,0.4)',
+    artEmoji: '🎲🎰🃏',
+    flavorText: '"Ya hep ya hiç." — Kumarbazın Felsefesi'
   },
   TWIN_STARS_JOKER: {
     id: 'TWIN_STARS_JOKER', icon: '⭐', name: 'İkiz Yıldız',
-    rarity: 'yaygin', cost: 50,
+    rarity: 'yaygin', cost: 50, maxPerRun: 1,
     effect: { type: 'two_rare_letters_mult', value: 1.3 },
     desc: 'İki farklı nadir harf kullananınca o tur puanı 1.3x olur.',
-    bgGradient: 'from-amber-600 to-yellow-900', glowColor: 'rgba(234,179,8,0.5)'
+    bgGradient: 'from-amber-600 to-yellow-900', glowColor: 'rgba(234,179,8,0.5)',
+    artEmoji: '⭐🌟✨',
+    flavorText: '"İki yıldız bir araya gelince, kader değişir." — Gök Bilimi Dergisi'
   },
   COPYCAT_JOKER: {
     id: 'COPYCAT_JOKER', icon: '🦜', name: 'Papağan',
-    rarity: 'yaygin', cost: 55,
+    rarity: 'yaygin', cost: 55, maxPerRun: 1,
     effect: { type: 'copy_last_joker' },
     desc: 'En son oynanan Joker\'in pasif efektini bu tur kopyalar.',
-    bgGradient: 'from-green-700 to-emerald-950', glowColor: 'rgba(74,222,128,0.4)'
+    bgGradient: 'from-green-700 to-emerald-950', glowColor: 'rgba(74,222,128,0.4)',
+    artEmoji: '🦜🪞🔄',
+    flavorText: '"Taklit, iltifatın en samimi biçimidir." — Papağan Akademisi'
   },
 
   // ══════════════════════════════════════════
@@ -404,108 +439,138 @@ export const PASSIVE_JOKERS = {
 
   PHOENIX_JOKER: {
     id: 'PHOENIX_JOKER', icon: '🔥', name: 'Anka Kuşu',
-    rarity: 'nadir', cost: 65,
+    rarity: 'nadir', cost: 65, maxPerRun: 1,
     effect: { type: 'low_score_mult', threshold_pct: 50, value: 1.5 },
     desc: 'Puan hedefin %50 altındaysa o el skoru 1.5x katlanır.',
-    bgGradient: 'from-orange-600 via-red-700 to-rose-900', glowColor: 'rgba(249,115,22,0.5)'
+    bgGradient: 'from-orange-600 via-red-700 to-rose-900', glowColor: 'rgba(249,115,22,0.5)',
+    artEmoji: '🦅🔥⚡',
+    flavorText: '"Küllerinden doğanı kim durdurabilir?" — Anka Efsanesi'
   },
   SCHOLAR_JOKER: {
     id: 'SCHOLAR_JOKER', icon: '🎓', name: 'Bilge',
-    rarity: 'nadir', cost: 70,
+    rarity: 'nadir', cost: 70, maxPerRun: 1,
     effect: { type: 'long_word_chips_gold', minLen: 7, chips: 50, gold: 2 },
     desc: '7+ harfli kelimeler +50 Taban Puan ve +2 Altın kazandırır.',
-    bgGradient: 'from-blue-700 via-indigo-800 to-purple-950', glowColor: 'rgba(99,102,241,0.5)'
+    bgGradient: 'from-blue-700 via-indigo-800 to-purple-950', glowColor: 'rgba(99,102,241,0.5)',
+    artEmoji: '🎓📜🧠',
+    flavorText: '"Uzun kelimeler, derin bilgelik taşır." — Akademi Söylencesi'
   },
   THIEF_JOKER: {
     id: 'THIEF_JOKER', icon: '🦝', name: 'Hırsız',
-    rarity: 'nadir', cost: 60,
+    rarity: 'nadir', cost: 60, maxPerRun: 1,
     effect: { type: 'discard_accumulate_chips', per_discard: 15 },
     desc: 'Her atmada +15 puan birikir; sonraki kelimeye eklenir.',
-    bgGradient: 'from-slate-600 via-zinc-800 to-stone-950', glowColor: 'rgba(113,113,122,0.5)'
+    bgGradient: 'from-slate-600 via-zinc-800 to-stone-950', glowColor: 'rgba(113,113,122,0.5)',
+    artEmoji: '🦝🎭🌑',
+    flavorText: '"Gecenin karanlığında, puan birikir." — Gece Soygunları Rehberi'
   },
   GLACIER_JOKER: {
     id: 'GLACIER_JOKER', icon: '🧊', name: 'Buzul',
-    rarity: 'nadir', cost: 65,
+    rarity: 'nadir', cost: 65, maxPerRun: 1,
     effect: { type: 'bank_card_chips', per_card: 4 },
     desc: 'Harf Bankasındaki her harf +4 Taban Puan verir.',
-    bgGradient: 'from-cyan-700 via-sky-800 to-slate-950', glowColor: 'rgba(6,182,212,0.5)'
+    bgGradient: 'from-cyan-700 via-sky-800 to-slate-950', glowColor: 'rgba(6,182,212,0.5)',
+    artEmoji: '🧊❄️🏔️',
+    flavorText: '"Soğuk, ama güçlü. Buz her şeyi dondurur." — Kuzey Arşivleri'
   },
   SERPENT_JOKER: {
     id: 'SERPENT_JOKER', icon: '🐍', name: 'Yılan',
-    rarity: 'nadir', cost: 75,
+    rarity: 'nadir', cost: 75, maxPerRun: 1,
     effect: { type: 'same_first_letter_combo_x2' },
     desc: 'Aynı harfle başlayan ardışık kelimeler komboyu 2x hızlandırır.',
-    bgGradient: 'from-green-700 via-emerald-800 to-teal-950', glowColor: 'rgba(16,185,129,0.5)'
+    bgGradient: 'from-green-700 via-emerald-800 to-teal-950', glowColor: 'rgba(16,185,129,0.5)',
+    artEmoji: '🐍🌿💚',
+    flavorText: '"Yılan, sessizce ilerler. Sen de öyle." — Zehirli Dil Öğretisi'
   },
   ECLIPSE_JOKER: {
     id: 'ECLIPSE_JOKER', icon: '🌑', name: 'Tutulma',
-    rarity: 'nadir', cost: 70,
+    rarity: 'nadir', cost: 70, maxPerRun: 1,
     effect: { type: 'score_over_threshold_mult', threshold: 200, mult: 30 },
     desc: 'Skoru hedefi 200 aşınca her kelime +30 Çarpan kazanır.',
-    bgGradient: 'from-slate-900 via-zinc-800 to-neutral-950', glowColor: 'rgba(168,85,247,0.5)'
+    bgGradient: 'from-slate-900 via-zinc-800 to-neutral-950', glowColor: 'rgba(168,85,247,0.5)',
+    artEmoji: '🌑🌒🌓',
+    flavorText: '"Gölge düştüğünde güç patlar." — Ay Gözlemevi Notları'
   },
   MIME_JOKER: {
     id: 'MIME_JOKER', icon: '🤡', name: 'Mim',
-    rarity: 'nadir', cost: 80,
+    rarity: 'nadir', cost: 80, maxPerRun: 1,
     effect: { type: 'retrigger_best_card_mult', value: 2 },
     desc: 'Önceki turda kullandığın en iyi harf kartı bu tur 2x Çarpan verir.',
-    bgGradient: 'from-white/10 via-slate-700 to-slate-900', glowColor: 'rgba(226,232,240,0.4)'
+    bgGradient: 'from-white/10 via-slate-700 to-slate-900', glowColor: 'rgba(226,232,240,0.4)',
+    artEmoji: '🤡🎭🪄',
+    flavorText: '"En iyi gösteri, tekrardır." — Sirk Felsefecileri Birliği'
   },
   BLUEPRINT_JOKER: {
     id: 'BLUEPRINT_JOKER', icon: '📐', name: 'Plan',
-    rarity: 'nadir', cost: 75,
+    rarity: 'nadir', cost: 75, maxPerRun: 1,
     effect: { type: 'copy_neighbor_joker' },
     desc: 'Soldaki Joker\'in efektini bu tur için bir kez daha tekrarlar.',
-    bgGradient: 'from-blue-600 via-sky-700 to-cyan-900', glowColor: 'rgba(14,165,233,0.5)'
+    bgGradient: 'from-blue-600 via-sky-700 to-cyan-900', glowColor: 'rgba(14,165,233,0.5)',
+    artEmoji: '📐📏🗺️',
+    flavorText: '"Her büyük yapı, önce kağıda çizilir." — Mimar\'ın El Kitabı'
   },
   SUPERNOVA_JOKER: {
     id: 'SUPERNOVA_JOKER', icon: '💥', name: 'Süpernova',
-    rarity: 'nadir', cost: 85,
+    rarity: 'nadir', cost: 85, maxPerRun: 1,
     effect: { type: 'total_words_played_chips', per_word: 1 },
     desc: 'Koşu boyunca kaç kelime oynadıysan +1 Taban Puan ekler.',
-    bgGradient: 'from-yellow-500 via-orange-600 to-red-900', glowColor: 'rgba(234,88,12,0.5)'
+    bgGradient: 'from-yellow-500 via-orange-600 to-red-900', glowColor: 'rgba(234,88,12,0.5)',
+    artEmoji: '💥⭐🌌',
+    flavorText: '"Bir yıldız ölürken, evreni aydınlatır." — Kozmos Gözlemleri'
   },
   FIBONACCI_JOKER: {
     id: 'FIBONACCI_JOKER', icon: '🌀', name: 'Fibonacci',
-    rarity: 'nadir', cost: 80,
+    rarity: 'nadir', cost: 80, maxPerRun: 1,
     effect: { type: 'common_letters_chips', letters: ['A','E','İ','K','L','M','R','S','T','N'], chips: 55 },
     desc: 'A,E,İ,K,L,M,R,S,T,N harflerini içeren kelimeler +55 Taban Puan.',
-    bgGradient: 'from-teal-600 via-cyan-700 to-indigo-900', glowColor: 'rgba(20,184,166,0.5)'
+    bgGradient: 'from-teal-600 via-cyan-700 to-indigo-900', glowColor: 'rgba(20,184,166,0.5)',
+    artEmoji: '🌀🔢🐚',
+    flavorText: '"0, 1, 1, 2, 3, 5... Sonsuzluğun şifresi." — Fibonacci\'nin Defteri'
   },
   LOYALTY_JOKER: {
     id: 'LOYALTY_JOKER', icon: '❤️', name: 'Sadakat',
-    rarity: 'nadir', cost: 75,
+    rarity: 'nadir', cost: 75, maxPerRun: 1,
     effect: { type: 'streak_letter_bonus', streak: 3, chips: 15 },
     desc: 'Aynı harfi 3 tur üst üste kullananınca o harf +15 Taban Puan kazanır.',
-    bgGradient: 'from-rose-600 via-red-700 to-rose-950', glowColor: 'rgba(244,63,94,0.5)'
+    bgGradient: 'from-rose-600 via-red-700 to-rose-950', glowColor: 'rgba(244,63,94,0.5)',
+    artEmoji: '❤️🤝💍',
+    flavorText: '"Sadık kal, güçlen." — Büyük Savaşçı Yemini'
   },
   ARCHIVIST_JOKER: {
     id: 'ARCHIVIST_JOKER', icon: '🗂️', name: 'Arşivci',
-    rarity: 'nadir', cost: 90,
+    rarity: 'nadir', cost: 90, maxPerRun: 1,
     effect: { type: 'total_words_chips_x2' },
     desc: 'Bu koşuda toplam oynanan kelime sayısı × 2 = Taban Puan bonusu.',
-    bgGradient: 'from-amber-700 via-yellow-800 to-amber-950', glowColor: 'rgba(217,119,6,0.5)'
+    bgGradient: 'from-amber-700 via-yellow-800 to-amber-950', glowColor: 'rgba(217,119,6,0.5)',
+    artEmoji: '🗂️📁🗃️',
+    flavorText: '"Her kayıt, bir güç kaynağıdır." — Büyük Arşiv Yasaları'
   },
   TWIN_JOKER: {
     id: 'TWIN_JOKER', icon: '👯', name: 'İkiz',
-    rarity: 'nadir', cost: 65,
+    rarity: 'nadir', cost: 65, maxPerRun: 1,
     effect: { type: 'special_card_synergy_chips', per_special: 5 },
     desc: 'Her kullanılan özel kartta diğer özel kartlar +5 Puan kazanır.',
-    bgGradient: 'from-purple-600 via-pink-700 to-rose-950', glowColor: 'rgba(192,38,211,0.5)'
+    bgGradient: 'from-purple-600 via-pink-700 to-rose-950', glowColor: 'rgba(192,38,211,0.5)',
+    artEmoji: '👯🪞💜',
+    flavorText: '"İki olunca, güç katlanır." — İkizler Mitolojisi'
   },
   FOOL_JOKER: {
     id: 'FOOL_JOKER', icon: '🎪', name: 'Soytarı',
-    rarity: 'nadir', cost: 60,
+    rarity: 'nadir', cost: 60, maxPerRun: 1,
     effect: { type: 'random_seal_each_turn' },
     desc: 'Her tur başında rastgele bir Mühür efekti (FOIL/HOLO/POLY) uygular.',
-    bgGradient: 'from-yellow-600 via-orange-700 to-red-900', glowColor: 'rgba(245,158,11,0.5)'
+    bgGradient: 'from-yellow-600 via-orange-700 to-red-900', glowColor: 'rgba(245,158,11,0.5)',
+    artEmoji: '🎪🃏🤹',
+    flavorText: '"Bir soytarı, sarayın en akıllısı olabilir." — Orta Çağ Deyişi'
   },
   SEER_JOKER: {
     id: 'SEER_JOKER', icon: '🔭', name: 'Kahin',
-    rarity: 'nadir', cost: 70,
+    rarity: 'nadir', cost: 70, maxPerRun: 1,
     effect: { type: 'boss_score_reduce_pct', value: 20 },
     desc: 'Bir sonraki Boss\'un skor hedefini %20 azaltır.',
-    bgGradient: 'from-indigo-600 via-purple-700 to-violet-950', glowColor: 'rgba(124,58,237,0.5)'
+    bgGradient: 'from-indigo-600 via-purple-700 to-violet-950', glowColor: 'rgba(124,58,237,0.5)',
+    artEmoji: '🔭🌙🔮',
+    flavorText: '"Geleceği görmek, onu değiştirme gücü verir." — Kahin\'in Vakaları'
   },
 
   // ══════════════════════════════════════════
@@ -514,59 +579,75 @@ export const PASSIVE_JOKERS = {
 
   JOKER_STENCIL: {
     id: 'JOKER_STENCIL', icon: '🖼️', name: 'Şablon',
-    rarity: 'efsanevi', cost: 120,
+    rarity: 'efsanevi', cost: 120, maxPerRun: 1,
     effect: { type: 'joker_slot_fill', slots: 5 },
     desc: 'Joker slotun kaç boş olursa olsun 5 Joker varmış gibi davranır.',
-    bgGradient: 'from-slate-800 via-zinc-700 to-slate-950', glowColor: 'rgba(251,191,36,0.6)'
+    bgGradient: 'from-slate-800 via-zinc-700 to-slate-950', glowColor: 'rgba(251,191,36,0.6)',
+    artEmoji: '🖼️🎨✏️',
+    flavorText: '"Boş tuval, sonsuz olasılık taşır." — Ressam Jokeri\'nin Mirası'
   },
   BARON_JOKER: {
     id: 'BARON_JOKER', icon: '👑', name: 'Baron',
-    rarity: 'efsanevi', cost: 130,
+    rarity: 'efsanevi', cost: 130, maxPerRun: 1,
     effect: { type: 'specific_letter_mult', letter: 'K', mult: 30 },
     desc: 'Eldeki her K harfi için +30 Çarpan ekler.',
-    bgGradient: 'from-yellow-600 via-amber-700 to-yellow-950', glowColor: 'rgba(250,204,21,0.6)'
+    bgGradient: 'from-yellow-600 via-amber-700 to-yellow-950', glowColor: 'rgba(250,204,21,0.6)',
+    artEmoji: '👑🏰⚜️',
+    flavorText: '"Kral harfi K\'dır. Ve K, krallıkları kurar." — Baron\'ın Soykütüğü'
   },
   VAMPIRE_JOKER: {
     id: 'VAMPIRE_JOKER', icon: '🧛', name: 'Vampir',
-    rarity: 'efsanevi', cost: 140,
+    rarity: 'efsanevi', cost: 140, maxPerRun: 1,
     effect: { type: 'absorb_seal_mult', per_seal: 20 },
     desc: 'Oynanan her Mühürlü harf için o Mühür\'ü emer ve +20 Çarpan alır.',
-    bgGradient: 'from-red-900 via-rose-800 to-slate-950', glowColor: 'rgba(239,68,68,0.6)'
+    bgGradient: 'from-red-900 via-rose-800 to-slate-950', glowColor: 'rgba(239,68,68,0.6)',
+    artEmoji: '🧛🩸🌑',
+    flavorText: '"Mühürleri em, güçlen. Hiç bitmez bu açlık." — Karanlık Dönüşüm Kitabı'
   },
   CANIO_JOKER: {
     id: 'CANIO_JOKER', icon: '🎩', name: 'Canio',
-    rarity: 'efsanevi', cost: 150,
+    rarity: 'efsanevi', cost: 150, maxPerRun: 1,
     effect: { type: 'absorb_sold_joker' },
     desc: 'İlk Joker\'ini satınca o Joker\'in efekti kalıcı olarak Canio\'ya aktarılır.',
-    bgGradient: 'from-slate-800 via-purple-900 to-black', glowColor: 'rgba(147,51,234,0.6)'
+    bgGradient: 'from-slate-800 via-purple-900 to-black', glowColor: 'rgba(147,51,234,0.6)',
+    artEmoji: '🎩🎭💀',
+    flavorText: '"Sattığın şey, sana geri döner." — Canio\'nun Trajedisi'
   },
   HOLOGRAM_JOKER: {
     id: 'HOLOGRAM_JOKER', icon: '💠', name: 'Hologram',
-    rarity: 'efsanevi', cost: 125,
+    rarity: 'efsanevi', cost: 125, maxPerRun: 1,
     effect: { type: 'per_card_added_chips', value: 10 },
     desc: 'Desteye her yeni harf eklenince kalıcı +10 Taban Puan kazanır.',
-    bgGradient: 'from-cyan-600 via-blue-700 to-indigo-950', glowColor: 'rgba(6,182,212,0.6)'
+    bgGradient: 'from-cyan-600 via-blue-700 to-indigo-950', glowColor: 'rgba(6,182,212,0.6)',
+    artEmoji: '💠🌐🔷',
+    flavorText: '"Her yeni kart, yeni bir ışık katarı." — Holografik Arşiv'
   },
   GOLDEN_JOKER: {
     id: 'GOLDEN_JOKER', icon: '💰', name: 'Altın Joker',
-    rarity: 'efsanevi', cost: 115,
+    rarity: 'efsanevi', cost: 115, maxPerRun: 1,
     effect: { type: 'per_joker_gold', value: 5 },
     desc: 'Tur sonu elindeki her Joker için +5 Altın kazanırsın.',
-    bgGradient: 'from-yellow-500 via-amber-600 to-yellow-900', glowColor: 'rgba(234,179,8,0.7)'
+    bgGradient: 'from-yellow-500 via-amber-600 to-yellow-900', glowColor: 'rgba(234,179,8,0.7)',
+    artEmoji: '💰🪙🏆',
+    flavorText: '"Altın, altını çeker." — Midas\'ın Defteri'
   },
   OBELISK_JOKER: {
     id: 'OBELISK_JOKER', icon: '🗿', name: 'Dikilitaş',
-    rarity: 'efsanevi', cost: 135,
+    rarity: 'efsanevi', cost: 135, maxPerRun: 1,
     effect: { type: 'non_dominant_letter_mult_stack', value: 1 },
     desc: 'En sık oynadığın harf dışındaki her kelimede +1 Çarpan birikir.',
-    bgGradient: 'from-stone-700 via-zinc-800 to-neutral-950', glowColor: 'rgba(120,113,108,0.6)'
+    bgGradient: 'from-stone-700 via-zinc-800 to-neutral-950', glowColor: 'rgba(120,113,108,0.6)',
+    artEmoji: '🗿🏛️⛩️',
+    flavorText: '"Farklılık, gücün kaynağıdır." — Dikilitaş Yazıtı'
   },
   IDOL_JOKER: {
     id: 'IDOL_JOKER', icon: '🏺', name: 'Put',
-    rarity: 'efsanevi', cost: 145,
+    rarity: 'efsanevi', cost: 145, maxPerRun: 1,
     effect: { type: 'random_idol_letter_2x' },
     desc: 'Her bölgede rastgele 1 harf "idol" olur; o harfi içeren her kelime 2x puan.',
-    bgGradient: 'from-amber-700 via-orange-800 to-red-950', glowColor: 'rgba(245,158,11,0.7)'
+    bgGradient: 'from-amber-700 via-orange-800 to-red-950', glowColor: 'rgba(245,158,11,0.7)',
+    artEmoji: '🏺🔱🌟',
+    flavorText: '"Tanrı harfini bul, dünyayı fethet." — İdol Tapınağı\'nın Sırrı'
   },
 
   // ══════════════════════════════════════════
@@ -576,10 +657,12 @@ export const PASSIVE_JOKERS = {
 
   SOUL_JOKER: {
     id: 'SOUL_JOKER', icon: '✨', name: 'Ruh',
-    rarity: 'efsane_otesi', cost: 200,
+    rarity: 'efsane_otesi', cost: 200, maxPerRun: 1,
     effect: { type: 'all_joker_chips_x2' },
     desc: 'Aktif tüm Jokerler\'in Taban Puan değerlerini 2x katar.',
-    bgGradient: 'from-white/20 via-purple-400/20 to-indigo-900', glowColor: 'rgba(255,255,255,0.8)'
+    bgGradient: 'from-white/20 via-purple-400/20 to-indigo-900', glowColor: 'rgba(255,255,255,0.8)',
+    artEmoji: '✨👻🌌',
+    flavorText: '"Ruh, tüm jokerler\'in özüdür." — Efsanevi Ruh Çağırma Kitabı'
   },
   CHAOS_JOKER: {
     id: 'CHAOS_JOKER', icon: '🌀', name: 'Kaos',
@@ -604,10 +687,12 @@ export const PASSIVE_JOKERS = {
   },
   COSMOS_JOKER: {
     id: 'COSMOS_JOKER', icon: '🌌', name: 'Kozmos',
-    rarity: 'efsane_otesi', cost: 250,
+    rarity: 'efsane_otesi', cost: 250, maxPerRun: 1,
     effect: { type: 'joker_count_squared_chips' },
     desc: 'Aktif Joker sayısının karesi kadar Taban Puan ekler (3→9, 4→16, 5→25).',
-    bgGradient: 'from-indigo-900 via-purple-900 to-blue-950', glowColor: 'rgba(99,102,241,0.8)'
+    bgGradient: 'from-indigo-900 via-purple-900 to-blue-950', glowColor: 'rgba(99,102,241,0.8)',
+    artEmoji: '🌌🪐🌠',
+    flavorText: '"Evren, jokerler\'in sayısıyla genişler." — Kozmos Ansiklopedisi'
   }
 };
 
@@ -659,6 +744,48 @@ export const STARTER_DECKS = [
 
 let nextCardId = 1;
 
+export function createCard(letterOrSpecialKey, upgradeLevel = 0, infusedType = null, seal = null) {
+  const uniqueSuffix = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}_${Math.floor(Math.random() * 1000000)}`;
+
+  if (SPECIAL_CARDS[letterOrSpecialKey]) {
+    const spec = SPECIAL_CARDS[letterOrSpecialKey];
+    return {
+      id: `card_spec_${nextCardId++}_${uniqueSuffix}`,
+      letter: spec.letter,
+      isSpecial: true,
+      specialType: spec.type,
+      name: spec.name,
+      points: 0,
+      upgradeLevel: 0,
+      rarity: spec.rarity,
+      desc: spec.desc,
+      bgGradient: spec.bgGradient,
+      infusedType: infusedType,
+      seal: seal
+    };
+  }
+
+  const upper = letterOrSpecialKey.toUpperCase();
+  const def = LETTER_DEFINITIONS[upper] || { points: 1, rarity: 'normal', desc: 'Harf' };
+
+  const basePoints = def.points;
+  const currentPoints = basePoints + upgradeLevel * 2;
+
+  return {
+    id: `card_ltr_${nextCardId++}_${uniqueSuffix}`,
+    letter: upper,
+    isSpecial: false,
+    name: `${upper} Harfi`,
+    points: currentPoints,
+    basePoints: basePoints,
+    upgradeLevel: upgradeLevel,
+    rarity: def.rarity,
+    desc: def.desc,
+    infusedType: infusedType,
+    seal: seal
+  };
+}
+
 export function getPerkDescription(upgradeLevel) {
   if (upgradeLevel === 1) return '+2 Puan';
   if (upgradeLevel === 2) return '+4 Puan (+3 Bonus if 4+ letters)';
@@ -707,46 +834,7 @@ export const INFUSED_TYPES = {
   }
 };
 
-export function createCard(letterOrSpecialKey, upgradeLevel = 0, infusedType = null, seal = null) {
-  if (SPECIAL_CARDS[letterOrSpecialKey]) {
-    const spec = SPECIAL_CARDS[letterOrSpecialKey];
-    return {
-      id: `card_${nextCardId++}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-      letter: spec.letter,
-      isSpecial: true,
-      specialType: spec.type,
-      name: spec.name,
-      points: 0,
-      upgradeLevel: 0,
-      rarity: spec.rarity,
-      desc: spec.desc,
-      bgGradient: spec.bgGradient,
-      infusedType: infusedType,
-      seal: seal
-    };
-  }
-
-  const upper = letterOrSpecialKey.toUpperCase();
-  const def = LETTER_DEFINITIONS[upper] || { points: 1, rarity: 'normal', desc: 'Harf' };
-
-  const basePoints = def.points;
-  const currentPoints = basePoints + upgradeLevel * 2;
-
-  return {
-    id: `card_${nextCardId++}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-    letter: upper,
-    isSpecial: false,
-    name: `${upper} Harfi`,
-    points: currentPoints,
-    basePoints: basePoints,
-    upgradeLevel: upgradeLevel,
-    rarity: def.rarity,
-    desc: def.desc,
-    infusedType: infusedType,
-    seal: seal
-  };
-}
-
 export function createDeckFromLetterList(letterList = []) {
   return letterList.map(item => createCard(item));
 }
+

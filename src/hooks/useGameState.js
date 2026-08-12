@@ -206,23 +206,32 @@ export function useGameState() {
   };
 
   const fillHandFromDrawPile = useCallback((currentHand, currentDraw, currentDiscard, targetHandSize = 7) => {
-    // Hand limit cap max 9
-    const maxHandCapacity = 9;
+    // Hand limit cap max 7 — oyuncu en fazla 7 taş tutabilir
+    const maxHandCapacity = 7;
     const effectiveTarget = Math.min(targetHandSize, maxHandCapacity);
-    let needed = effectiveTarget - currentHand.length;
-    if (needed <= 0) return { newHand: currentHand, newDraw: currentDraw, newDiscard: currentDiscard };
 
-    let pool = [...currentDraw];
-    let disc = [...currentDiscard];
+    // Dedup currentHand by ID to prevent cloned cards in hand
+    const cleanHand = currentHand.filter((card, idx, arr) => card && arr.findIndex(c => c.id === card.id) === idx);
+
+    let needed = effectiveTarget - cleanHand.length;
+    if (needed <= 0) return { newHand: cleanHand, newDraw: currentDraw, newDiscard: currentDiscard };
+
+    // Filter out cards already present in hand from draw and discard pool
+    const handIds = new Set(cleanHand.map(c => c.id));
+    let pool = (currentDraw || []).filter(c => c && !handIds.has(c.id));
+    let disc = (currentDiscard || []).filter(c => c && !handIds.has(c.id));
 
     if (pool.length < needed && disc.length > 0) {
       pool = shuffleArray([...pool, ...disc]);
       disc = [];
     }
 
+    // Ensure pool has unique cards by ID
+    pool = pool.filter((card, idx, arr) => arr.findIndex(c => c.id === card.id) === idx);
+
     const drawn = pool.slice(0, needed);
     const remainingDraw = pool.slice(needed);
-    const newHand = [...currentHand, ...drawn];
+    const newHand = [...cleanHand, ...drawn];
 
     return { newHand, newDraw: remainingDraw, newDiscard: disc };
   }, []);
@@ -408,6 +417,7 @@ export function useGameState() {
 
   const selectCardFromHand = (card) => {
     if (gameState !== 'PLAYING') return;
+    if (!card || selectedCards.some(c => c.id === card.id)) return; // Prevent duplicate selection
 
     if (card.isSpecial && card.specialType === 'delete') {
       soundEngine.playDeleteSound();
@@ -474,6 +484,7 @@ export function useGameState() {
 
   const bankCardFromHand = (card) => {
     if (gameState !== 'PLAYING') return;
+    if (!card) return;
     if (bankCards.length >= 2) {
       soundEngine.playInvalidWord();
       setFeedbackMessage('⚠️ Harf Bankası dolu! En fazla 2 harf saklanabilir.');
@@ -481,25 +492,27 @@ export function useGameState() {
     }
     soundEngine.playTap();
     setHand(prev => prev.filter(c => c.id !== card.id));
-    setBankCards(prev => [...prev, card]);
+    setBankCards(prev => prev.some(c => c.id === card.id) ? prev : [...prev, card]);
     setFeedbackMessage(`🏦 "${card.letter}" Harf Bankasına kaldırıldı!`);
   };
 
   const unbankCardToHand = (card) => {
     if (gameState !== 'PLAYING') return;
-    if (hand.length >= 9) {
+    if (!card) return;
+    if (hand.length >= 7) {
       soundEngine.playInvalidWord();
-      setFeedbackMessage('⚠️ El dolu! (Maks 9 harf)');
+      setFeedbackMessage('⚠️ El dolu! (Maks 7 taş tutabilirsin)');
       return;
     }
     soundEngine.playTap();
     setBankCards(prev => prev.filter(c => c.id !== card.id));
-    setHand(prev => [...prev, card]);
-    setFeedbackMessage(`" ${card.letter}" Harf Bankasından ele geri alındı.`);
+    setHand(prev => prev.some(c => c.id === card.id) ? prev : [...prev, card]);
+    setFeedbackMessage(`"${card.letter}" Harf Bankasından ele geri alındı.`);
   };
 
   const selectCardFromBank = (card) => {
     if (gameState !== 'PLAYING') return;
+    if (!card || selectedCards.some(c => c.id === card.id)) return;
     soundEngine.playTap();
     setBankCards(prev => prev.filter(c => c.id !== card.id));
     setSelectedCards(prev => [...prev, { ...card, fromBank: true }]);
@@ -509,6 +522,8 @@ export function useGameState() {
     if (gameState !== 'PLAYING') return;
     soundEngine.playDeselect();
     const targetCard = selectedCards[index];
+    if (!targetCard) return;
+
     setSelectedCards(prev => prev.filter((_, i) => i !== index));
 
     const cleanCard = { ...targetCard };
@@ -520,9 +535,9 @@ export function useGameState() {
 
     if (cleanCard.fromBank) {
       delete cleanCard.fromBank;
-      setBankCards(prev => [...prev, cleanCard]);
+      setBankCards(prev => prev.some(c => c.id === cleanCard.id) ? prev : [...prev, cleanCard]);
     } else {
-      setHand(prev => [...prev, cleanCard]);
+      setHand(prev => prev.some(c => c.id === cleanCard.id) ? prev : [...prev, cleanCard]);
     }
   };
 
@@ -537,10 +552,18 @@ export function useGameState() {
     const returnToHand = selectedCards.filter(c => !c.fromBank);
 
     if (returnToBank.length > 0) {
-      setBankCards(prev => [...prev, ...returnToBank]);
+      setBankCards(prev => {
+        const bankIds = new Set(prev.map(c => c.id));
+        const newItems = returnToBank.filter(c => !bankIds.has(c.id));
+        return [...prev, ...newItems];
+      });
     }
     if (returnToHand.length > 0) {
-      setHand(prev => [...prev, ...returnToHand]);
+      setHand(prev => {
+        const handIds = new Set(prev.map(c => c.id));
+        const newItems = returnToHand.filter(c => !handIds.has(c.id));
+        return [...prev, ...newItems];
+      });
     }
     setSelectedCards([]);
   };

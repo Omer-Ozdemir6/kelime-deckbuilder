@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { BookOpen, Sparkles, Shield, Lock, Coins, Award, X, Compass, Layers } from 'lucide-react';
-import { LETTER_DEFINITIONS, SEAL_DEFINITIONS } from '../game/cardData';
+import { LETTER_DEFINITIONS, SEAL_DEFINITIONS, PASSIVE_JOKERS } from '../game/cardData';
 import { RELICS } from '../game/relicData';
 import { REGIONAL_BIOMES } from '../game/mapGenerator';
 import { getDiscoveredCodexItems, isCodexItemDiscovered } from '../game/codexManager';
 
 export function CodexModal({ onClose }) {
-  const [tab, setTab] = useState('LETTERS'); // LETTERS | SEALS | RELICS | BIOMES
+  const [tab, setTab] = useState('LETTERS'); // LETTERS | SEALS | RELICS | BIOMES | JOKERS
   const discoveredSet = getDiscoveredCodexItems();
 
   const letterKeys = Object.keys(LETTER_DEFINITIONS);
@@ -21,6 +21,16 @@ export function CodexModal({ onClose }) {
 
   const biomeList = REGIONAL_BIOMES;
   const discoveredBiomeCount = biomeList.filter(b => discoveredSet.has(b.id)).length;
+
+  const jokerList = Object.values(PASSIVE_JOKERS);
+  const discoveredJokerCount = jokerList.filter(j => discoveredSet.has(j.id)).length;
+
+  const RARITY_LABELS = {
+    yaygin: { label: 'YaygÄ±n', cls: 'text-slate-300 bg-slate-800 border-slate-600' },
+    nadir: { label: 'Nadir', cls: 'text-blue-200 bg-blue-900/60 border-blue-600' },
+    efsanevi: { label: 'Efsanevi', cls: 'text-amber-200 bg-amber-900/60 border-amber-600' },
+    efsane_otesi: { label: 'Efsane Ã–tesi', cls: 'text-purple-200 bg-purple-900/60 border-purple-400' },
+  };
 
   return (
     <div className="fixed inset-0 z-[200] bg-slate-950/95 backdrop-blur-xl flex items-center justify-center p-4 select-none">
@@ -36,8 +46,8 @@ export function CodexModal({ onClose }) {
               <BookOpen size={20} />
             </div>
             <div>
-              <h2 className="text-base font-black text-amber-300 font-cinzel">SÖZLÜK ANSİKLOPEDİSİ</h2>
-              <p className="text-[10px] text-slate-400 font-medium">Oynadıkça ve keşfettikçe kilitleri açılan bilgi koleksiyonu.</p>
+              <h2 className="text-base font-black text-amber-300 font-cinzel">SÃ–ZLÃœK ANSÄ°KLOPEDÄ°SÄ°</h2>
+              <p className="text-[10px] text-slate-400 font-medium">OynadÄ±kÃ§a ve keÅŸfettikÃ§e kilitleri aÃ§Ä±lan bilgi koleksiyonu.</p>
             </div>
           </div>
 
@@ -50,45 +60,60 @@ export function CodexModal({ onClose }) {
         </div>
 
         {/* Category Tabs */}
-        <div className="grid grid-cols-4 gap-1.5 my-2.5">
+        <div className="grid grid-cols-5 gap-1 my-2">
           <button
             onClick={() => setTab('LETTERS')}
-            className={`py-1.5 px-1 rounded-xl border text-[10px] font-bold transition flex flex-col items-center gap-0.5 ${
+            className={`py-1.5 px-1 rounded-xl border text-[9px] font-bold transition flex flex-col items-center gap-0.5 ${
               tab === 'LETTERS' ? 'bg-amber-500/20 border-amber-400 text-amber-300' : 'bg-slate-950 border-slate-800 text-slate-500'
             }`}
           >
-            <span>🔤 HARFLER</span>
-            <span className="text-[8px] opacity-80">({discoveredLetterCount}/{letterKeys.length})</span>
+            <span>ğŸ”¤</span>
+            <span>HARFLER</span>
+            <span className="text-[7px] opacity-70">({discoveredLetterCount}/{letterKeys.length})</span>
           </button>
 
           <button
             onClick={() => setTab('SEALS')}
-            className={`py-1.5 px-1 rounded-xl border text-[10px] font-bold transition flex flex-col items-center gap-0.5 ${
+            className={`py-1.5 px-1 rounded-xl border text-[9px] font-bold transition flex flex-col items-center gap-0.5 ${
               tab === 'SEALS' ? 'bg-pink-500/20 border-pink-400 text-pink-300' : 'bg-slate-950 border-slate-800 text-slate-500'
             }`}
           >
-            <span>🔴 MÜHÜRLER</span>
-            <span className="text-[8px] opacity-80">({discoveredSealCount}/{sealList.length})</span>
+            <span>ğŸ”´</span>
+            <span>MÃœHÃœRLER</span>
+            <span className="text-[7px] opacity-70">({discoveredSealCount}/{sealList.length})</span>
           </button>
 
           <button
             onClick={() => setTab('RELICS')}
-            className={`py-1.5 px-1 rounded-xl border text-[10px] font-bold transition flex flex-col items-center gap-0.5 ${
+            className={`py-1.5 px-1 rounded-xl border text-[9px] font-bold transition flex flex-col items-center gap-0.5 ${
               tab === 'RELICS' ? 'bg-purple-500/20 border-purple-400 text-purple-300' : 'bg-slate-950 border-slate-800 text-slate-500'
             }`}
           >
-            <span>🔮 TILSIMLAR</span>
-            <span className="text-[8px] opacity-80">({discoveredRelicCount}/{relicList.length})</span>
+            <span>ğŸ”®</span>
+            <span>TILSIMLAR</span>
+            <span className="text-[7px] opacity-70">({discoveredRelicCount}/{relicList.length})</span>
           </button>
 
           <button
             onClick={() => setTab('BIOMES')}
-            className={`py-1.5 px-1 rounded-xl border text-[10px] font-bold transition flex flex-col items-center gap-0.5 ${
+            className={`py-1.5 px-1 rounded-xl border text-[9px] font-bold transition flex flex-col items-center gap-0.5 ${
               tab === 'BIOMES' ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300' : 'bg-slate-950 border-slate-800 text-slate-500'
             }`}
           >
-            <span>🏞️ BİYOMLAR</span>
-            <span className="text-[8px] opacity-80">({discoveredBiomeCount}/{biomeList.length})</span>
+            <span>ğŸï¸</span>
+            <span>BÄ°YOMLAR</span>
+            <span className="text-[7px] opacity-70">({discoveredBiomeCount}/{biomeList.length})</span>
+          </button>
+
+          <button
+            onClick={() => setTab('JOKERS')}
+            className={`py-1.5 px-1 rounded-xl border text-[9px] font-bold transition flex flex-col items-center gap-0.5 ${
+              tab === 'JOKERS' ? 'bg-yellow-500/20 border-yellow-400 text-yellow-300' : 'bg-slate-950 border-slate-800 text-slate-500'
+            }`}
+          >
+            <span>ğŸƒ</span>
+            <span>JOKERLER</span>
+            <span className="text-[7px] opacity-70">({discoveredJokerCount}/{jokerList.length})</span>
           </button>
         </div>
 
@@ -108,7 +133,7 @@ export function CodexModal({ onClose }) {
                       className="p-2 rounded-2xl bg-slate-950/40 border border-slate-800 flex flex-col items-center justify-center text-center opacity-40"
                     >
                       <Lock size={14} className="text-slate-600 mb-1" />
-                      <span className="text-[10px] font-black text-slate-600">🔒 ???</span>
+                      <span className="text-[10px] font-black text-slate-600">ğŸ”’ ???</span>
                     </div>
                   );
                 }
@@ -140,8 +165,8 @@ export function CodexModal({ onClose }) {
                     >
                       <Lock size={20} className="text-slate-600" />
                       <div>
-                        <div className="text-xs font-black text-slate-600">🔒 ??? (Gizemli Mühür)</div>
-                        <div className="text-[10px] text-slate-600">Oyunda bu mühürle karşılaştığında bilgisi açılır.</div>
+                        <div className="text-xs font-black text-slate-600">ğŸ”’ ??? (Gizemli MÃ¼hÃ¼r)</div>
+                        <div className="text-[10px] text-slate-600">Oyunda bu mÃ¼hÃ¼rle karÅŸÄ±laÅŸtÄ±ÄŸÄ±nda bilgisi aÃ§Ä±lÄ±r.</div>
                       </div>
                     </div>
                   );
@@ -177,8 +202,8 @@ export function CodexModal({ onClose }) {
                     >
                       <Lock size={20} className="text-slate-600" />
                       <div>
-                        <div className="text-xs font-black text-slate-600">🔒 ??? (Gizemli Tılsım)</div>
-                        <div className="text-[10px] text-slate-600">Çarşıda veya savaşta edindiğinde bilgisi buraya eklenir.</div>
+                        <div className="text-xs font-black text-slate-600">ğŸ”’ ??? (Gizemli TÄ±lsÄ±m)</div>
+                        <div className="text-[10px] text-slate-600">Ã‡arÅŸÄ±da veya savaÅŸta edindiÄŸinde bilgisi buraya eklenir.</div>
                       </div>
                     </div>
                   );
@@ -214,8 +239,8 @@ export function CodexModal({ onClose }) {
                     >
                       <Lock size={20} className="text-slate-600" />
                       <div>
-                        <div className="text-xs font-black text-slate-600">🔒 ??? (Keşfedilmemiş Biyom)</div>
-                        <div className="text-[10px] text-slate-600">Bu bölgeye ulaştığında zindan ve boss bilgileri açılır.</div>
+                        <div className="text-xs font-black text-slate-600">ğŸ”’ ??? (KeÅŸfedilmemiÅŸ Biyom)</div>
+                        <div className="text-[10px] text-slate-600">Bu bÃ¶lgeye ulaÅŸtÄ±ÄŸÄ±nda zindan ve boss bilgileri aÃ§Ä±lÄ±r.</div>
                       </div>
                     </div>
                   );
@@ -230,6 +255,62 @@ export function CodexModal({ onClose }) {
                     <div>
                       <div className={`text-xs font-black ${b.accentColor}`}>{b.name}</div>
                       <div className="text-[10px] text-slate-300 font-bold mt-0.5">{b.modifier.name}: {b.modifier.desc}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* JOKERS */}
+          {tab === 'JOKERS' && (
+            <div className="flex flex-col gap-2">
+              <p className="text-[10px] text-slate-500 text-center mb-1">
+                DÃ¼kkÃ¢ndan joker satÄ±n alÄ±nca Codex'te aÃ§Ä±lÄ±r.
+              </p>
+              {jokerList.map((joker) => {
+                const isUnlocked = isCodexItemDiscovered(joker.id);
+                const rarityInfo = RARITY_LABELS[joker.rarity] || RARITY_LABELS.yaygin;
+
+                if (!isUnlocked) {
+                  return (
+                    <div
+                      key={joker.id}
+                      className="p-3 rounded-2xl bg-slate-950/40 border border-slate-800 flex items-center gap-3 opacity-40"
+                    >
+                      <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-center">
+                        <Lock size={16} className="text-slate-600" />
+                      </div>
+                      <div>
+                        <div className="text-xs font-black text-slate-600">ğŸ”’ ??? (Gizemli Joker)</div>
+                        <div className="text-[10px] text-slate-600">DÃ¼kkÃ¢ndan satÄ±n alÄ±ndÄ±ÄŸÄ±nda bilgisi aÃ§Ä±lÄ±r.</div>
+                      </div>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div
+                    key={joker.id}
+                    className={`p-3 rounded-2xl bg-gradient-to-r ${joker.bgGradient} border border-white/10 flex items-start gap-3`}
+                    style={{ boxShadow: `0 0 12px ${joker.glowColor}` }}
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-black/30 border border-white/10 flex flex-col items-center justify-center shrink-0">
+                      <span className="text-lg">{joker.icon}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-xs font-black text-white">{joker.name}</span>
+                        <span className={`px-1.5 py-0.5 rounded-lg border text-[8px] font-black ${rarityInfo.cls}`}>
+                          {rarityInfo.label}
+                        </span>
+                      </div>
+                      <div className="text-[10px] text-slate-200 mt-0.5 leading-snug">{joker.desc}</div>
+                      {joker.flavorText && (
+                        <div className="text-[9px] text-slate-400 italic mt-1 leading-snug border-t border-white/10 pt-1">
+                          {joker.flavorText}
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
@@ -251,3 +332,4 @@ export function CodexModal({ onClose }) {
     </div>
   );
 }
+

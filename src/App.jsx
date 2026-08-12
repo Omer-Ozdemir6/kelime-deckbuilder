@@ -261,12 +261,10 @@ export default function App() {
           gold={gold}
           fullDeck={fullDeck}
           activeRelicKeys={activeRelicKeys}
-          wordTypeLevels={gameStateObj.wordTypeLevels}
+          activeJokerIds={gameStateObj.activeRelicKeys || []}
           onBuyCard={handleShopBuyCard}
-          onUpgradeCardPerk={handleShopUpgradePerk}
+          onBuyPassiveJoker={handleShopBuyRelic}
           onRemoveCard={handleShopRemoveCard}
-          onBuyRelic={handleShopBuyRelic}
-          onUpgradeWordTypeLevel={gameStateObj.upgradeWordTypeLevel}
           onLeaveShop={handleLeaveShop}
         />
       )}

@@ -1,439 +1,462 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, ArrowUpCircle, Trash2, Sparkles, Check, Coins, X, BookOpen, ShieldCheck, RefreshCw, Package, Award, ArrowRight, Tag } from 'lucide-react';
-import { LETTER_DEFINITIONS, SPECIAL_CARDS, SEAL_DEFINITIONS, getRarityDetails, getPerkDescription } from '../game/cardData';
-import { RELICS } from '../game/relicData';
+import { ShoppingBag, RefreshCw, Coins, X, ArrowRight, Trash2, Sparkles, Package, HelpCircle, Lock } from 'lucide-react';
+import { LETTER_DEFINITIONS, SPECIAL_CARDS, getRarityDetails, PASSIVE_JOKERS, ALL_PASSIVE_JOKER_KEYS, PASSIVE_JOKERS_BY_RARITY, MAX_ACTIVE_JOKERS } from '../game/cardData';
 import { soundEngine } from '../game/audioEngine';
+import { discoverCodexItem } from '../game/codexManager';
+
+// Rarity renk eşleştirmesi
+const RARITY_STYLES = {
+  yaygin: { border: 'border-slate-500/60', badge: 'bg-slate-800 text-slate-300', label: 'Yaygın', glow: 'rgba(100,116,139,0.3)' },
+  nadir: { border: 'border-blue-400/60', badge: 'bg-blue-900/80 text-blue-200', label: 'Nadir', glow: 'rgba(96,165,250,0.3)' },
+  efsanevi: { border: 'border-amber-400/60', badge: 'bg-amber-900/80 text-amber-200', label: 'Efsanevi', glow: 'rgba(251,191,36,0.4)' },
+  efsane_otesi: { border: 'border-purple-400/60', badge: 'bg-purple-900/80 text-purple-200', label: 'Efsane Ötesi', glow: 'rgba(167,139,250,0.5)' },
+  nadir_harf: { border: 'border-purple-400/60', badge: 'bg-purple-900/80 text-purple-200', label: 'Nadir', glow: 'rgba(192,38,211,0.3)' },
+  cok_nadir: { border: 'border-amber-400/60', badge: 'bg-amber-900/80 text-amber-200', label: 'Çok Nadir', glow: 'rgba(245,158,11,0.4)' },
+  normal: { border: 'border-slate-700/60', badge: 'bg-slate-900 text-slate-400', label: 'Normal', glow: 'rgba(71,85,105,0.2)' },
+};
+
+// Rastgele joker listesi oluştur (tekrar eden olmasın, aktif jokerler hariç tut)
+function generateShopJokers(activeJokerIds = [], count = 2) {
+  const allKeys = ALL_PASSIVE_JOKER_KEYS;
+  // Zaten satın alınmış olanları çıkar
+  const available = allKeys.filter(k => !activeJokerIds.includes(k));
+  const shuffled = [...available].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, count).map(k => PASSIVE_JOKERS[k]);
+}
+
+// Rastgele harf + özel kart listesi oluştur
+function generateShopCards(count = 4) {
+  const letterKeys = Object.keys(LETTER_DEFINITIONS);
+  const specialKeys = ['JOKER', 'MIRROR', 'GOLDEN', 'DOUBLE', 'ASH'];
+  const combined = [...letterKeys.map(l => ({ type: 'letter', key: l })), ...specialKeys.map(s => ({ type: 'special', key: s }))];
+  const shuffled = [...combined].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, count).map((item, i) => {
+    if (item.type === 'special') {
+      const spec = SPECIAL_CARDS[item.key];
+      return {
+        id: `offer_${Date.now()}_${i}`,
+        type: 'special',
+        key: item.key,
+        name: spec.name,
+        cost: spec.cost,
+        rarity: spec.rarity || 'nadir',
+        icon: spec.letter,
+        desc: spec.desc,
+        bgGradient: spec.bgGradient
+      };
+    } else {
+      const def = LETTER_DEFINITIONS[item.key];
+      const rarityMap = { normal: 8, nadir: 15, cok_nadir: 22 };
+      return {
+        id: `offer_${Date.now()}_${i}`,
+        type: 'letter',
+        key: item.key,
+        name: `${item.key} Harfi`,
+        cost: rarityMap[def.rarity] || 10,
+        rarity: def.rarity,
+        icon: item.key,
+        desc: def.desc,
+        points: def.points
+      };
+    }
+  });
+}
+
+// Joker Kartı bileşeni (??? veya açık)
+function JokerCard({ joker, isOwned, canAfford, onBuy }) {
+  const [isRevealed, setIsRevealed] = useState(false);
+  const rarityStyle = RARITY_STYLES[joker.rarity] || RARITY_STYLES.nadir;
+  const alreadyOwned = isOwned;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={`relative rounded-2xl border-2 ${rarityStyle.border} overflow-hidden flex flex-col cursor-pointer group`}
+      style={{
+        background: `linear-gradient(135deg, #0f172a 0%, #1e293b 100%)`,
+        boxShadow: isRevealed ? `0 0 20px ${rarityStyle.glow}` : 'none',
+      }}
+      onClick={() => { if (!isRevealed) { soundEngine.playTap(); setIsRevealed(true); } }}
+    >
+      {/* Price tag */}
+      <div className="absolute top-1.5 left-1.5 z-10 flex items-center gap-0.5 bg-amber-400 text-slate-950 px-1.5 py-0.5 rounded-lg text-[10px] font-black shadow-md">
+        <Coins size={9} />
+        <span>${joker.cost}</span>
+      </div>
+
+      {/* Rarity badge */}
+      <div className={`absolute top-1.5 right-1.5 z-10 px-1.5 py-0.5 rounded-lg text-[9px] font-black ${rarityStyle.badge}`}>
+        {rarityStyle.label}
+      </div>
+
+      {/* Card face */}
+      <div className="p-3 pt-8 flex flex-col items-center text-center flex-1 gap-1.5">
+        <AnimatePresence mode="wait">
+          {!isRevealed ? (
+            <motion.div
+              key="mystery"
+              initial={{ opacity: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              className="flex flex-col items-center gap-1"
+            >
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-b from-purple-900 to-slate-900 border border-purple-600/40 flex items-center justify-center shadow-lg">
+                <span className="text-2xl font-black text-purple-300">???</span>
+              </div>
+              <span className="text-[10px] text-slate-500 font-bold">Tıkla &amp; Keşfet</span>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="revealed"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="flex flex-col items-center gap-1"
+            >
+              <div
+                className={`w-14 h-14 rounded-2xl bg-gradient-to-b ${joker.bgGradient} flex flex-col items-center justify-center shadow-lg border border-white/10`}
+              >
+                <span className="text-xl">{joker.icon}</span>
+                <span className="text-[8px] text-white/60 font-bold mt-0.5">{joker.artEmoji?.split('')[0]}</span>
+              </div>
+              <span className="text-xs font-black text-slate-100">{joker.name}</span>
+              <span className="text-[9px] text-slate-400 leading-tight px-1">{joker.desc}</span>
+              {joker.flavorText && (
+                <span className="text-[8px] text-slate-600 italic leading-tight px-1 mt-0.5 text-center">
+                  {joker.flavorText}
+                </span>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Buy button */}
+      <div className="p-2 pt-0">
+        {alreadyOwned ? (
+          <div className="w-full py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-500 text-[10px] font-black text-center">
+            ZATEN SAHİP
+          </div>
+        ) : !isRevealed ? (
+          <div className="w-full py-1.5 rounded-xl bg-purple-900/60 border border-purple-600/40 text-purple-300 text-[10px] font-black text-center">
+            👁 Keşfet
+          </div>
+        ) : (
+          <button
+            onClick={(e) => { e.stopPropagation(); if (canAfford) { discoverCodexItem(joker.id); onBuy(joker); } }}
+            disabled={!canAfford}
+            className={`w-full py-1.5 rounded-xl text-[10px] font-black transition active:scale-95 cursor-pointer flex items-center justify-center gap-1 ${
+              canAfford
+                ? 'bg-amber-400 hover:bg-amber-300 text-slate-950 shadow-md'
+                : 'bg-slate-900 text-slate-600 cursor-not-allowed border border-slate-800'
+            }`}
+          >
+            <Coins size={10} />
+            <span>${joker.cost} SATIN AL</span>
+          </button>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
+// Harf/Özel Kart bileşeni
+function CardSlot({ offer, isSold, canAfford, onBuy }) {
+  const rarityKey = offer.rarity === 'cok_nadir' ? 'cok_nadir' : offer.rarity === 'nadir' ? 'nadir_harf' : 'normal';
+  const rarityStyle = RARITY_STYLES[rarityKey] || RARITY_STYLES.normal;
+
+  return (
+    <div
+      className={`relative rounded-2xl border overflow-hidden flex flex-col transition-all ${
+        isSold
+          ? 'opacity-40 border-slate-800'
+          : `${rarityStyle.border} hover:scale-[1.02]`
+      }`}
+      style={{
+        background: offer.bgGradient
+          ? `linear-gradient(135deg, #0f172a, #1e293b)`
+          : 'linear-gradient(135deg, #0f172a, #1e293b)',
+        boxShadow: !isSold ? `0 0 12px ${rarityStyle.glow}` : 'none'
+      }}
+    >
+      {/* Price tag */}
+      {!isSold && (
+        <div className="absolute top-1.5 left-1.5 z-10 flex items-center gap-0.5 bg-amber-400 text-slate-950 px-1.5 py-0.5 rounded-lg text-[10px] font-black shadow-md">
+          <Coins size={9} />
+          <span>${offer.cost}</span>
+        </div>
+      )}
+
+      {/* Card body */}
+      <div className="p-2 pt-7 flex flex-col items-center text-center gap-1 flex-1">
+        {offer.type === 'special' ? (
+          <div className={`w-11 h-14 rounded-xl bg-gradient-to-b ${offer.bgGradient || 'from-purple-900 to-slate-900'} flex items-center justify-center border border-white/10 shadow-md`}>
+            <span className="text-xl">{offer.icon}</span>
+          </div>
+        ) : (
+          <div className="w-11 h-14 rounded-xl bg-gradient-to-b from-amber-900/60 to-slate-900 border border-amber-500/40 flex flex-col items-center justify-center shadow-md">
+            <span className="text-xl font-extrabold text-amber-200">{offer.icon}</span>
+            <span className="text-[9px] font-bold text-amber-400/70">+{offer.points}p</span>
+          </div>
+        )}
+        <span className="text-[10px] font-black text-slate-200 leading-tight">{offer.name}</span>
+      </div>
+
+      {/* Buy / Sold button */}
+      <div className="p-1.5 pt-0">
+        {isSold ? (
+          <div className="w-full py-1 rounded-xl bg-slate-900 text-slate-600 text-[9px] font-black text-center">SATILDI</div>
+        ) : (
+          <button
+            onClick={() => { if (canAfford) onBuy(offer); }}
+            disabled={!canAfford}
+            className={`w-full py-1 rounded-xl text-[9px] font-black transition active:scale-95 cursor-pointer flex items-center justify-center gap-0.5 ${
+              canAfford
+                ? 'bg-amber-400 hover:bg-amber-300 text-slate-950'
+                : 'bg-slate-900 text-slate-600 cursor-not-allowed'
+            }`}
+          >
+            <Coins size={9} />
+            SATIN AL
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export function ShopScreen({
   gold,
   fullDeck = [],
   activeRelicKeys = [],
-  wordTypeLevels = {},
+  activeJokerIds = [],
   onBuyCard,
-  onUpgradeCardPerk,
+  onBuyPassiveJoker,
   onRemoveCard,
-  onBuyRelic,
-  onUpgradeWordTypeLevel,
   onLeaveShop
 }) {
   const [rerollCost, setRerollCost] = useState(5);
-  const [activeBoosterPack, setActiveBoosterPack] = useState(null);
-  const [showDeckRemoveModal, setShowDeckRemoveModal] = useState(false);
-  const [soldItemIds, setSoldItemIds] = useState([]);
+  const [soldCardIds, setSoldCardIds] = useState([]);
+  const [soldJokerIds, setSoldJokerIds] = useState([]);
+  const [showRemoveDeck, setShowRemoveDeck] = useState(false);
 
-  // Shelf 1: Main Shop Offers (4 Main Slots)
-  const [shopLetterOffers, setShopLetterOffers] = useState([
-    { id: 'offer_1', key: 'Ş', cost: 15, rarity: 'nadir', label: 'Ş Harfi' },
-    { id: 'offer_2', key: 'Ğ', cost: 20, rarity: 'nadir', label: 'Ğ Harfi' },
-    { id: 'offer_3', key: 'JOKER', cost: 35, isSpecial: true, label: 'Joker Kartı 🃏' },
-    { id: 'offer_4', key: 'GOLDEN', cost: 25, isSpecial: true, label: 'Altın Harf 💰' }
-  ]);
+  // Shop offers — yenileme yapılınca değişir
+  const [cardOffers, setCardOffers] = useState(() => generateShopCards(4));
+  const [jokerOffers, setJokerOffers] = useState(() => generateShopJokers(activeJokerIds, 2));
 
-  // Shelf 2: Booster Packs (2 Slots)
-  const boosterPacks = [
-    {
-      id: 'PACK_RARE',
-      name: '🎁 Nadir Harf Paketi',
-      cost: 15,
-      icon: '💎',
-      desc: '3 Nadir Türkçe harften 1 tanesini seç.',
-      options: ['Ş', 'Ğ', 'Ç']
-    },
-    {
-      id: 'PACK_JOKER',
-      name: '🎁 Joker & Özel Paket',
-      cost: 25,
-      icon: '🃏',
-      desc: '3 Özel kart seçeneğinden 1 tanesini kap.',
-      options: ['JOKER', 'MIRROR', 'ASH']
-    }
-  ];
+  // Joker slotu dolu mu?
+  const currentJokerCount = activeJokerIds.length;
+  const jokerSlotsLeft = MAX_ACTIVE_JOKERS - currentJokerCount;
 
-  // Shelf 3: Vouchers (1 Active Voucher per Ante)
-  const [activeVoucher, setActiveVoucher] = useState({
-    id: 'VOUCHER_DISCOUNT',
-    name: '📜 Çarşı İndirimi',
-    cost: 10,
-    icon: '🏷️',
-    desc: 'Tüm dükkân ürünlerinde %25 indirim sağlar.'
-  });
-
-  const handleRerollClick = () => {
+  const handleReroll = () => {
     if (gold >= rerollCost) {
       soundEngine.playTap();
-      // Generate 4 fresh random main shop offers
-      const allKeys = ['B', 'C', 'D', 'F', 'G', 'H', 'J', 'P', 'V', 'Z', 'Ş', 'Ğ', 'Ç', 'Ö', 'Ü', 'JOKER', 'MIRROR', 'GOLDEN'];
-      const shuffled = [...allKeys].sort(() => 0.5 - Math.random()).slice(0, 4);
-      const newOffers = shuffled.map((key, i) => {
-        const isSpec = key === 'JOKER' || key === 'MIRROR' || key === 'GOLDEN';
-        const cost = isSpec ? 30 : (['Ş', 'Ğ', 'Ç', 'Z', 'J'].includes(key) ? 20 : 12);
-        return {
-          id: `offer_reroll_${Date.now()}_${i}`,
-          key,
-          cost,
-          isSpecial: isSpec,
-          label: isSpec ? `${key} Kartı` : `${key} Harfi`
-        };
-      });
-
-      setShopLetterOffers(newOffers);
-      setSoldItemIds([]);
-      setRerollCost(prev => prev + 1); // Balatro incremental reroll cost ($5, $6, $7...)
+      setCardOffers(generateShopCards(4));
+      setJokerOffers(generateShopJokers([...activeJokerIds, ...soldJokerIds], 2));
+      setSoldCardIds([]);
+      setRerollCost(prev => prev + 1);
     }
   };
 
-  const handleBuyMainOffer = (offer) => {
-    if (gold >= offer.cost && !soldItemIds.includes(offer.id)) {
+  const handleBuyCard = (offer) => {
+    if (gold >= offer.cost && !soldCardIds.includes(offer.id)) {
       soundEngine.playUpgradeSound();
-      if (onBuyCard) {
-        onBuyCard(offer.key, offer.cost);
-      }
-      setSoldItemIds(prev => [...prev, offer.id]);
+      if (onBuyCard) onBuyCard(offer.key, offer.cost);
+      setSoldCardIds(prev => [...prev, offer.id]);
     }
   };
 
-  const handleOpenPack = (pack) => {
-    if (gold >= pack.cost && !soldItemIds.includes(pack.id)) {
+  const handleBuyJoker = (joker) => {
+    if (gold >= joker.cost && !soldJokerIds.includes(joker.id) && jokerSlotsLeft > 0) {
       soundEngine.playVictory();
-      setActiveBoosterPack(pack);
-    }
-  };
-
-  const handleSelectPackOption = (key) => {
-    if (activeBoosterPack && onBuyCard) {
-      soundEngine.playUpgradeSound();
-      onBuyCard(key, activeBoosterPack.cost);
-      setSoldItemIds(prev => [...prev, activeBoosterPack.id]);
-      setActiveBoosterPack(null);
-    }
-  };
-
-  const handleBuyVoucher = () => {
-    if (gold >= activeVoucher.cost && !soldItemIds.includes(activeVoucher.id)) {
-      soundEngine.playUpgradeSound();
-      if (onUpgradeWordTypeLevel) {
-        onUpgradeWordTypeLevel('VOUCHER');
-      }
-      setSoldItemIds(prev => [...prev, activeVoucher.id]);
+      if (onBuyPassiveJoker) onBuyPassiveJoker(joker.id, joker.cost);
+      setSoldJokerIds(prev => [...prev, joker.id]);
     }
   };
 
   return (
-    <div className="flex-1 flex flex-col justify-between p-3 sm:p-4 bg-gradient-to-b from-slate-950 via-[#0a0f1d] to-slate-950 text-slate-100 overflow-y-auto relative select-none">
-      {/* 1. BALATRO SHOP HEADER */}
-      <div className="flex items-center justify-between border-b border-slate-800/80 pb-2.5 shrink-0 z-10 bg-slate-950/90 backdrop-blur-md px-2 py-1 rounded-2xl">
-        <div className="flex items-center gap-2">
-          <div className="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-400/50 flex items-center justify-center text-amber-300 shadow-md">
-            <ShoppingBag size={20} />
+    <div className="flex-1 flex flex-col bg-gradient-to-b from-slate-950 via-[#080c1a] to-slate-950 text-slate-100 overflow-hidden select-none relative">
+
+      {/* ── HEADER ── */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800/80 shrink-0 bg-slate-950/95 backdrop-blur-md">
+        <div className="flex items-center gap-2.5">
+          <div className="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-400/50 flex items-center justify-center text-amber-300">
+            <ShoppingBag size={18} />
           </div>
           <div>
-            <h2 className="text-base sm:text-lg font-black text-amber-300 font-cinzel tracking-wide flex items-center gap-1.5">
-              DÜKKÂN (SHOP)
-            </h2>
-            <p className="text-[11px] text-slate-400 font-medium">
-              🎴 Deste Büyüklüğü: <strong className="text-amber-300 font-black">{fullDeck.length} Kart</strong>
-            </p>
+            <h2 className="text-sm font-black text-amber-300 font-cinzel tracking-wider">DÜKKÂN</h2>
+            <p className="text-[9px] text-slate-500 font-semibold">Koşunu Güçlendir!</p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 bg-amber-950/80 border border-amber-500/40 px-3 py-1.5 rounded-2xl text-xs font-black text-amber-300 shadow-md">
-            <Coins size={14} className="text-amber-400 fill-amber-400" />
-            <span>{gold}</span>
+          {/* Deste boyutu */}
+          <div className="flex items-center gap-1 bg-slate-900 border border-slate-700 px-2 py-1 rounded-xl text-[10px] font-black text-slate-300">
+            🎴 {fullDeck.length}
           </div>
-
+          {/* Altın */}
+          <div className="flex items-center gap-1 bg-amber-950/80 border border-amber-500/40 px-2.5 py-1 rounded-xl text-xs font-black text-amber-300">
+            <Coins size={13} className="text-amber-400 fill-amber-400" />
+            <span>${gold}</span>
+          </div>
           <button
             onClick={onLeaveShop}
-            className="p-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 transition active:scale-95 cursor-pointer"
-            title="Dükkândan Çık"
+            className="p-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-700 transition cursor-pointer"
           >
-            <X size={18} />
+            <X size={16} />
           </button>
         </div>
       </div>
 
-      {/* 2. SHELF 1: MAIN SHOP ITEMS (KARTLAR & HARFLER) */}
-      <div className="my-2 p-3 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-inner space-y-2">
-        <div className="flex items-center justify-between text-xs font-black text-amber-300 border-b border-slate-800 pb-1">
-          <span className="flex items-center gap-1">
-            <Sparkles size={13} className="text-amber-400" />
-            1. RAF: KARTLAR & HARFLER (MAIN SHOP SLOTS)
-          </span>
-          <span className="text-[10px] text-slate-500 font-mono">4 SLOT</span>
+      {/* ── MAIN SHOP BODY ── */}
+      <div className="flex-1 overflow-y-auto p-3 space-y-3">
+
+        {/* ── SECTION 1: JOKERLER ── */}
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-purple-300 text-[10px] font-black">
+              <Sparkles size={11} className="text-purple-400" />
+              <span>JOKERLER</span>
+              <span className="text-slate-600 font-normal">— {MAX_ACTIVE_JOKERS - jokerSlotsLeft}/{MAX_ACTIVE_JOKERS} dolu</span>
+            </div>
+            {/* Joker slot göstergesi */}
+            <div className="flex items-center gap-1">
+              {Array.from({ length: MAX_ACTIVE_JOKERS }).map((_, i) => (
+                <div
+                  key={i}
+                  className={`w-4 h-4 rounded-md border ${
+                    i < currentJokerCount
+                      ? 'bg-purple-500/40 border-purple-400/60'
+                      : 'bg-slate-900 border-slate-700'
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            {jokerOffers.map((joker) => (
+              <JokerCard
+                key={joker.id}
+                joker={joker}
+                isOwned={soldJokerIds.includes(joker.id) || activeJokerIds.includes(joker.id)}
+                canAfford={gold >= joker.cost && jokerSlotsLeft > 0 && !soldJokerIds.includes(joker.id)}
+                onBuy={handleBuyJoker}
+              />
+            ))}
+          </div>
+
+          {jokerSlotsLeft === 0 && (
+            <div className="flex items-center gap-1.5 text-[10px] text-amber-400 font-bold bg-amber-950/30 border border-amber-800/40 rounded-xl px-2 py-1.5">
+              <Lock size={11} />
+              <span>Joker slotu dolu! (Maks {MAX_ACTIVE_JOKERS})</span>
+            </div>
+          )}
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {shopLetterOffers.map((offer) => {
-            const isSold = soldItemIds.includes(offer.id);
-            const canAfford = gold >= offer.cost && !isSold;
+        {/* ── SECTION 2: HARFLER & ÖZEL KARTLAR ── */}
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-1.5 text-amber-300 text-[10px] font-black">
+            <Package size={11} className="text-amber-400" />
+            <span>HARFLER &amp; ÖZEL KARTLAR</span>
+          </div>
 
-            return (
-              <div
+          <div className="grid grid-cols-4 gap-2">
+            {cardOffers.map((offer) => (
+              <CardSlot
                 key={offer.id}
-                className={`p-2.5 rounded-2xl border flex flex-col justify-between items-center text-center transition shadow-lg relative overflow-hidden ${
-                  isSold
-                    ? 'bg-slate-950/50 border-slate-900 opacity-50'
-                    : canAfford
-                    ? 'bg-slate-950/90 border-amber-500/60 hover:border-amber-400'
-                    : 'bg-slate-950/70 border-slate-800 opacity-70'
-                }`}
-              >
-                {/* Tile Icon / Glyph */}
-                <div className={`w-12 h-16 rounded-xl flex flex-col items-center justify-center my-1 ${
-                  offer.isSpecial ? 'tile-bevel-purple text-purple-200' : 'tile-bevel-amber text-amber-200'
-                }`}>
-                  <span className="text-xl font-extrabold">{offer.key}</span>
-                </div>
-
-                <span className="text-xs font-bold text-slate-200 mb-1">{offer.label}</span>
-
-                {/* Price & Buy Button */}
-                {isSold ? (
-                  <span className="w-full py-1 rounded-xl bg-slate-900 text-slate-600 text-xs font-black uppercase">
-                    SATILDI
-                  </span>
-                ) : (
-                  <button
-                    onClick={() => handleBuyMainOffer(offer)}
-                    disabled={!canAfford}
-                    className={`w-full py-1.5 px-2 rounded-xl text-xs font-black transition active:scale-95 flex items-center justify-center gap-1 cursor-pointer ${
-                      canAfford
-                        ? 'bg-amber-400 hover:bg-amber-300 text-slate-950 shadow-md'
-                        : 'bg-slate-900 text-slate-600 cursor-not-allowed'
-                    }`}
-                  >
-                    <Coins size={12} />
-                    <span>${offer.cost}</span>
-                  </button>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* 3. SHELF 2: BOOSTER PACKS (BOOSTER PAKETLERİ) */}
-      <div className="my-2 p-3 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-inner space-y-2">
-        <div className="flex items-center justify-between text-xs font-black text-purple-300 border-b border-slate-800 pb-1">
-          <span className="flex items-center gap-1">
-            <Package size={13} className="text-purple-400" />
-            2. RAF: BOOSTER PAKETLERİ (BOOSTER PACKS)
-          </span>
-          <span className="text-[10px] text-slate-500 font-mono">2 PAKET</span>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {boosterPacks.map((pack) => {
-            const isSold = soldItemIds.includes(pack.id);
-            const canAfford = gold >= pack.cost && !isSold;
-
-            return (
-              <div
-                key={pack.id}
-                className={`p-3 rounded-2xl border flex items-center justify-between gap-2 transition shadow-lg ${
-                  isSold
-                    ? 'bg-slate-950/50 border-slate-900 opacity-50'
-                    : canAfford
-                    ? 'bg-purple-950/40 border-purple-500/60 hover:border-purple-400'
-                    : 'bg-slate-950/70 border-slate-800 opacity-70'
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <span className="text-2xl">{pack.icon}</span>
-                  <div className="text-left">
-                    <h4 className="text-xs font-black text-purple-300">{pack.name}</h4>
-                    <p className="text-[10px] text-slate-400 leading-tight">{pack.desc}</p>
-                  </div>
-                </div>
-
-                {isSold ? (
-                  <span className="px-3 py-1 rounded-xl bg-slate-900 text-slate-600 text-xs font-black">
-                    AÇILDI
-                  </span>
-                ) : (
-                  <button
-                    onClick={() => handleOpenPack(pack)}
-                    disabled={!canAfford}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-black transition active:scale-95 flex items-center gap-1 shrink-0 cursor-pointer ${
-                      canAfford
-                        ? 'bg-purple-500 hover:bg-purple-400 text-slate-950 shadow-md'
-                        : 'bg-slate-900 text-slate-600 cursor-not-allowed'
-                    }`}
-                  >
-                    <Coins size={12} />
-                    <span>${pack.cost}</span>
-                  </button>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* 4. SHELF 3: VOUCHERS & DESTE İNCELTME (EFSUNLAR & KART SİLME) */}
-      <div className="my-2 p-3 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-inner space-y-2">
-        <div className="flex items-center justify-between text-xs font-black text-cyan-300 border-b border-slate-800 pb-1">
-          <span className="flex items-center gap-1">
-            <Award size={13} className="text-cyan-400" />
-            3. RAF: EFSUNLAR & DESTE İNCELTME (VOUCHERS & REMOVAL)
-          </span>
-          <span className="text-[10px] text-slate-500 font-mono">1 EFSUN + 1 SİLME</span>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {/* Active Voucher Slot */}
-          <div className="p-3 rounded-2xl bg-cyan-950/30 border border-cyan-500/50 flex items-center justify-between gap-2 shadow-lg">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">{activeVoucher.icon}</span>
-              <div className="text-left">
-                <h4 className="text-xs font-black text-cyan-300">{activeVoucher.name}</h4>
-                <p className="text-[10px] text-slate-400 leading-tight">{activeVoucher.desc}</p>
-              </div>
-            </div>
-
-            {soldItemIds.includes(activeVoucher.id) ? (
-              <span className="px-3 py-1 rounded-xl bg-slate-900 text-slate-600 text-xs font-black">
-                ALINDI
-              </span>
-            ) : (
-              <button
-                onClick={handleBuyVoucher}
-                disabled={gold < activeVoucher.cost}
-                className={`px-3 py-1.5 rounded-xl text-xs font-black transition active:scale-95 flex items-center gap-1 shrink-0 cursor-pointer ${
-                  gold >= activeVoucher.cost
-                    ? 'bg-cyan-400 hover:bg-cyan-300 text-slate-950 shadow-md'
-                    : 'bg-slate-900 text-slate-600 cursor-not-allowed'
-                }`}
-              >
-                <Coins size={12} />
-                <span>${activeVoucher.cost}</span>
-              </button>
-            )}
+                offer={offer}
+                isSold={soldCardIds.includes(offer.id)}
+                canAfford={gold >= offer.cost && !soldCardIds.includes(offer.id)}
+                onBuy={handleBuyCard}
+              />
+            ))}
           </div>
+        </div>
 
-          {/* Deck Thinning Slot (Harf Sil) */}
-          <div className="p-3 rounded-2xl bg-rose-950/30 border border-rose-500/50 flex items-center justify-between gap-2 shadow-lg">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">🗑️</span>
-              <div className="text-left">
-                <h4 className="text-xs font-black text-rose-300">Harf Sil / Deste İncelt</h4>
-                <p className="text-[10px] text-slate-400 leading-tight">Desteden zayıf 1 kartı yok et ($15).</p>
-              </div>
+        {/* ── SECTION 3: DESTE İNCELTME ── */}
+        <div
+          onClick={() => setShowRemoveDeck(true)}
+          className="flex items-center justify-between p-2.5 rounded-2xl bg-rose-950/20 border border-rose-800/40 cursor-pointer hover:border-rose-500/60 transition group"
+        >
+          <div className="flex items-center gap-2">
+            <Trash2 size={14} className="text-rose-400 group-hover:text-rose-300 transition" />
+            <div>
+              <p className="text-xs font-black text-rose-300">Deste İncelt</p>
+              <p className="text-[9px] text-slate-500">Desteden 1 harf yok et</p>
             </div>
-
-            <button
-              onClick={() => setShowDeckRemoveModal(true)}
-              disabled={gold < 15}
-              className={`px-3 py-1.5 rounded-xl text-xs font-black transition active:scale-95 flex items-center gap-1 shrink-0 cursor-pointer ${
-                gold >= 15
-                  ? 'bg-rose-500 hover:bg-rose-400 text-white shadow-md'
-                  : 'bg-slate-900 text-slate-600 cursor-not-allowed'
-              }`}
-            >
-              <Coins size={12} />
-              <span>$15</span>
-            </button>
+          </div>
+          <div className="flex items-center gap-1 bg-rose-900/50 border border-rose-700/50 px-2 py-1 rounded-xl text-[10px] font-black text-rose-300">
+            <Coins size={10} />
+            $15
           </div>
         </div>
       </div>
 
-      {/* 5. BALATRO BOTTOM CONTROLS BAR (REROLL & NEXT ROUND) */}
-      <div className="mt-3 pt-2.5 border-t border-slate-800 flex items-center justify-between gap-2 shrink-0">
-        {/* Reroll Button ($5, $6, $7...) */}
+      {/* ── BOTTOM CONTROLS ── */}
+      <div className="shrink-0 px-3 py-3 border-t border-slate-800/80 flex items-center gap-2 bg-slate-950/95">
+        {/* Reroll */}
         <button
-          onClick={handleRerollClick}
+          onClick={handleReroll}
           disabled={gold < rerollCost}
-          className={`py-3 px-4 rounded-2xl font-black text-xs tracking-wide flex items-center justify-center gap-1.5 transition active:scale-95 shadow-xl cursor-pointer ${
+          className={`py-3 px-4 rounded-2xl font-black text-xs flex items-center gap-1.5 transition active:scale-95 cursor-pointer ${
             gold >= rerollCost
-              ? 'bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 shadow-amber-950/50'
+              ? 'bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 shadow-md shadow-amber-950/30'
               : 'bg-slate-900 border border-slate-800 text-slate-600 cursor-not-allowed'
           }`}
         >
-          <RefreshCw size={15} />
+          <RefreshCw size={14} />
           <span>YENİLE (${rerollCost})</span>
         </button>
 
-        {/* Next Round / Leave Shop Primary Button */}
-        <button
+        {/* Next Round */}
+        <motion.button
+          whileTap={{ scale: 0.97 }}
           onClick={onLeaveShop}
-          className="flex-1 py-3 px-4 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs sm:text-sm tracking-wide flex items-center justify-center gap-2 transition active:scale-95 shadow-xl shadow-emerald-950/50 border border-emerald-300 cursor-pointer"
+          className="flex-1 py-3 px-4 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-sm tracking-wide flex items-center justify-center gap-2 transition shadow-xl shadow-emerald-950/40 border border-emerald-300/60 cursor-pointer"
         >
           <span>SONRAKİ SINAVA GEÇ</span>
           <ArrowRight size={16} />
-        </button>
+        </motion.button>
       </div>
 
-      {/* INTERACTIVE BOOSTER PACK PICK MODAL */}
+      {/* ── DECK REMOVE MODAL ── */}
       <AnimatePresence>
-        {activeBoosterPack && (
+        {showRemoveDeck && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md">
             <motion.div
               initial={{ scale: 0.85, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.85, opacity: 0 }}
-              className="w-full max-w-sm bg-gradient-to-b from-purple-950 via-slate-900 to-slate-950 border-2 border-purple-500/80 rounded-3xl p-5 shadow-2xl flex flex-col items-center text-center text-slate-100"
+              className="w-full max-w-md bg-gradient-to-b from-rose-950 via-slate-900 to-slate-950 border-2 border-rose-500/80 rounded-3xl p-5 shadow-2xl flex flex-col items-center text-center"
             >
-              <span className="text-4xl mb-2">{activeBoosterPack.icon}</span>
-              <h3 className="text-lg font-black text-purple-300 font-cinzel">{activeBoosterPack.name}</h3>
-              <p className="text-xs text-slate-400 mb-4">{activeBoosterPack.desc}</p>
+              <h3 className="text-lg font-black text-rose-300 font-cinzel mb-1">🗑️ DESTE İNCELT</h3>
+              <p className="text-xs text-slate-400 mb-4">Yok etmek istediğin 1 harfi seç ($15):</p>
 
-              <div className="grid grid-cols-3 gap-2 w-full mb-4">
-                {activeBoosterPack.options.map((key) => (
-                  <button
-                    key={key}
-                    onClick={() => handleSelectPackOption(key)}
-                    className="h-20 rounded-2xl tile-bevel-amber flex flex-col items-center justify-center gap-1 hover:scale-105 transition cursor-pointer shadow-lg"
-                  >
-                    <span className="text-2xl font-extrabold text-amber-200">{key}</span>
-                    <span className="text-[9px] font-bold text-amber-300">SEÇ</span>
-                  </button>
-                ))}
-              </div>
-
-              <button
-                onClick={() => setActiveBoosterPack(null)}
-                className="py-2 px-4 rounded-xl bg-slate-800 text-slate-300 text-xs font-bold hover:bg-slate-700"
-              >
-                İptal Et
-              </button>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* DECK REMOVAL SELECTION MODAL */}
-      <AnimatePresence>
-        {showDeckRemoveModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md">
-            <motion.div
-              initial={{ scale: 0.85, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.85, opacity: 0 }}
-              className="w-full max-w-md bg-gradient-to-b from-rose-950 via-slate-900 to-slate-950 border-2 border-rose-500/80 rounded-3xl p-5 shadow-2xl flex flex-col items-center text-center text-slate-100"
-            >
-              <h3 className="text-lg font-black text-rose-300 font-cinzel mb-1">🗑️ DESTE İNCELT (HARF SİL)</h3>
-              <p className="text-xs text-slate-400 mb-4">Desteden kalıcı olarak yok etmek istediğin 1 harfi seç ($15):</p>
-
-              <div className="grid grid-cols-4 gap-2 w-full max-h-56 overflow-y-auto mb-4 p-1">
-                {fullDeck.map((card) => (
+              <div className="grid grid-cols-4 gap-2 w-full max-h-52 overflow-y-auto mb-4 p-1">
+                {fullDeck.filter(c => !c.isSpecial).map((card) => (
                   <button
                     key={card.id}
+                    disabled={gold < 15}
                     onClick={() => {
                       if (onRemoveCard) onRemoveCard(card.id, 15);
-                      setShowDeckRemoveModal(false);
+                      setShowRemoveDeck(false);
                     }}
-                    className="h-16 rounded-xl tile-bevel-slate flex flex-col items-center justify-center gap-0.5 hover:border-rose-500 transition cursor-pointer"
+                    className={`h-14 rounded-xl flex flex-col items-center justify-center gap-0.5 transition cursor-pointer border ${
+                      gold >= 15
+                        ? 'bg-slate-900 border-slate-700 hover:border-rose-500 hover:bg-rose-950/30'
+                        : 'bg-slate-950/50 border-slate-800 opacity-50 cursor-not-allowed'
+                    }`}
                   >
-                    <span className="text-lg font-extrabold text-slate-200">{card.letter}</span>
+                    <span className="text-base font-extrabold text-slate-200">{card.letter}</span>
                     <span className="text-[9px] text-rose-400 font-bold">YOK ET</span>
                   </button>
                 ))}
               </div>
 
               <button
-                onClick={() => setShowDeckRemoveModal(false)}
-                className="py-2 px-4 rounded-xl bg-slate-800 text-slate-300 text-xs font-bold hover:bg-slate-700"
+                onClick={() => setShowRemoveDeck(false)}
+                className="py-2 px-4 rounded-xl bg-slate-800 text-slate-300 text-xs font-bold hover:bg-slate-700 cursor-pointer"
               >
                 Vazgeç
               </button>
