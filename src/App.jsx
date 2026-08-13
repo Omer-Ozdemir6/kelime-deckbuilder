@@ -24,6 +24,7 @@ import { CharacterSelectModal, HERO_CHARACTERS } from './components/CharacterSel
 import { StakesSelectModal, STAKES_DEFINITIONS } from './components/StakesSelectModal';
 import { JokerSelectorModal } from './components/JokerSelectorModal';
 import { ChallengeSelectModal } from './components/ChallengeSelectModal';
+import { AchievementToast } from './components/AchievementToast';
 import { useGameState } from './hooks/useGameState';
 import { checkMetaUnlocks } from './game/metaUnlocks';
 
