@@ -1,4 +1,5 @@
 import { isWordValid } from '../data/turkishWords';
+import { PASSIVE_JOKERS } from './cardData';
 
 /**
  * Length Bonus Table:
@@ -205,7 +206,8 @@ export function calculateWordScore(
   activeRelicKeys = [],
   isFirstWordInStage = false,
   boardSlotModifiers = {},
-  wordTypeLevels = {}
+  wordCategoryLevels = {},
+  unselectedCardsInHand = []
 ) {
   if (!selectedCards || selectedCards.length === 0) {
     return {
@@ -313,13 +315,17 @@ export function calculateWordScore(
         cardSum += cardPts * slotLetterMult;
       }
 
-      // Seal Bonuses (Foil, Holographic, Polychrome, Emerald, Lightning, Crown)
+      // Seal Bonuses (Foil, Holographic, Polychrome, Emerald, Lightning, Crown, Glass, Steel, Stone)
       if (card.seal === 'FOIL') {
         sealBonusChips += 30;
       } else if (card.seal === 'HOLOGRAPHIC') {
         sealBonusMult += 15;
       } else if (card.seal === 'POLYCHROME') {
         polychromeMultiplier *= 1.5;
+      } else if (card.seal === 'GLASS') {
+        polychromeMultiplier *= 2.0;
+      } else if (card.seal === 'STONE') {
+        sealBonusChips += 50;
       } else if (card.seal === 'EMERALD_SEAL') {
         slotBonusGold += 15;
       } else if (card.seal === 'LIGHTNING_SEAL') {
@@ -339,6 +345,21 @@ export function calculateWordScore(
       }
     }
   });
+
+  // Calculate Steel Tiles multiplier from unselected cards held in hand!
+  unselectedCardsInHand.forEach(c => {
+    if (c.seal === 'STEEL') {
+      polychromeMultiplier *= 1.5;
+    }
+  });
+
+  // Calculate Planet Word Category Level Bonuses (3, 4, 5, 6, 7+ letters)
+  const wordLenKey = Math.min(7, wordStr.length);
+  const planetCat = wordCategoryLevels && wordCategoryLevels[wordLenKey];
+  if (planetCat) {
+    sealBonusChips += (planetCat.chips || 0);
+    sealBonusMult += (planetCat.mult || 0);
+  }
 
   const upperWord = wordStr.toUpperCase().trim();
   const lengthBonus = getLengthBonus(upperWord.length);
@@ -483,28 +504,90 @@ export function calculateWordScore(
   const comboIncrement = (hasSeriKatip ? 2 : 1) + (archetype.comboBonus || 0) + perkComboBoost + infusedComboBoost + slotComboBoost + comboBoostFromChain;
   const nextCombo = currentCombo + comboIncrement;
 
-  // Efsun Kitapları Word Type Level Bonuses
+  // Efsun Kitapları & Gezegen Taşları Word Category Level Bonuses
   let wordTypeChips = 0;
   let wordTypeMult = 0;
 
-  if (upperWord.length === 3 && wordTypeLevels.SHORT_3) {
-    wordTypeChips += (wordTypeLevels.SHORT_3.level - 1) * 15;
-    wordTypeMult += (wordTypeLevels.SHORT_3.level - 1) * 3;
-  } else if (upperWord.length === 4 && wordTypeLevels.MEDIUM_4) {
-    wordTypeChips += (wordTypeLevels.MEDIUM_4.level - 1) * 15;
-    wordTypeMult += (wordTypeLevels.MEDIUM_4.level - 1) * 3;
-  } else if (upperWord.length >= 5 && wordTypeLevels.LONG_5) {
-    wordTypeChips += (wordTypeLevels.LONG_5.level - 1) * 20;
-    wordTypeMult += (wordTypeLevels.LONG_5.level - 1) * 4;
+  const wordLen = upperWord.length;
+  const lenKey = Math.min(7, Math.max(3, wordLen));
+  const catLevel = (wordCategoryLevels && wordCategoryLevels[lenKey]) || null;
+  if (catLevel) {
+    wordTypeChips += (catLevel.chips || 0) * (catLevel.level || 1);
+    wordTypeMult += (catLevel.mult || 0) * (catLevel.level || 1);
   }
 
+  // DYNAMIC PASSIVE JOKERS ENGINE EVALUATION
+  let passiveChips = 0;
+  let passiveMult = 0;
+  let passiveGold = 0;
+
+  activeRelicKeys.forEach(key => {
+    const joker = PASSIVE_JOKERS[key];
+    if (!joker || !joker.effect) return;
+    const eff = joker.effect;
+
+    if (eff.type === 'per_word_chips') passiveChips += (eff.value || 4);
+    else if (eff.type === 'per_vowel_chips') {
+      const vowels = ['A', 'E', 'I', 'İ', 'O', 'Ö', 'U', 'Ü'];
+      const vCount = [...upperWord].filter(c => vowels.includes(c)).length;
+      passiveChips += vCount * (eff.value || 3);
+    } else if (eff.type === 'per_consonant_mult') {
+      const vowels = ['A', 'E', 'I', 'İ', 'O', 'Ö', 'U', 'Ü'];
+      const cCount = [...upperWord].filter(c => !vowels.includes(c)).length;
+      passiveMult += cCount * (eff.value || 2);
+    } else if (eff.type === 'short_word_chips' && upperWord.length <= (eff.maxLen || 3)) {
+      passiveChips += (eff.value || 20);
+    } else if (eff.type === 'long_word_chips_gold' && upperWord.length >= (eff.minLen || 7)) {
+      passiveChips += (eff.chips || 50);
+      passiveGold += (eff.gold || 2);
+    } else if (eff.type === 'rare_letter_gold_chips') {
+      const rareLetters = ['Ş', 'Ğ', 'Ç', 'Ö', 'Ü', 'Z'];
+      const rCount = [...upperWord].filter(c => rareLetters.includes(c)).length;
+      if (rCount > 0) {
+        passiveChips += rCount * (eff.chips || 20);
+        passiveGold += rCount * (eff.gold || 15);
+      }
+    } else if (eff.type === 'long_word_dragon_mult' && upperWord.length >= (eff.minLen || 6)) {
+      relicScoreMultiplier *= (eff.mult || 1.8);
+    } else if (eff.type === 'same_first_last_letter_chips') {
+      if (upperWord.length >= 2 && upperWord[0] === upperWord[upperWord.length - 1]) {
+        passiveChips += (eff.chips || 35);
+        passiveMult += (eff.mult || 10);
+      }
+    } else if (eff.type === 'bank_card_mult_boost' && isBankUsed) {
+      relicScoreMultiplier *= (eff.per_bank_card || 1.2);
+    } else if (eff.type === 'vowel_trio_bonus') {
+      const vowels = ['A', 'E', 'I', 'İ', 'O', 'Ö', 'U', 'Ü'];
+      const vCount = [...upperWord].filter(c => vowels.includes(c)).length;
+      if (vCount === 3) {
+        passiveChips += (eff.chips || 45);
+        passiveMult += (eff.mult || 15);
+      }
+    } else if (eff.type === 'alternating_vowels_chips') {
+      passiveChips += (eff.chips || 30);
+    } else if (eff.type === 'risk_reward_bomber') {
+      passiveChips += (eff.chips || 100);
+      passiveMult += (eff.mult || 30);
+    } else if (eff.type === 'risk_reward_vampire') {
+      relicScoreMultiplier *= (eff.mult || 2.5);
+    } else if (eff.type === 'risk_reward_shackle') {
+      relicScoreMultiplier *= (eff.mult || 3.0);
+    } else if (eff.type === 'risk_reward_blind') {
+      passiveChips += (eff.chips || 150);
+    } else if (eff.type === 'risk_reward_overload') {
+      passiveChips += upperWord.length * (eff.per_letter_chips || 20);
+    } else if (eff.type === 'risk_reward_tyrant') {
+      passiveMult += (eff.small_deck_mult || 60);
+    }
+  });
+
   // Total Score Calculation (Balatro Chips x Mult Engine)
-  const totalChips = cardSum + lengthBonus + chainBonus + sealBonusChips + wordTypeChips;
-  const effectiveComboMult = (currentCombo + sealBonusMult + wordTypeMult) * doubleMultiplier * relicScoreMultiplier * polychromeMultiplier;
+  const totalChips = cardSum + lengthBonus + chainBonus + sealBonusChips + wordTypeChips + passiveChips;
+  const effectiveComboMult = (currentCombo + sealBonusMult + wordTypeMult + passiveMult) * doubleMultiplier * relicScoreMultiplier * polychromeMultiplier;
   const totalScore = Math.floor(totalChips * effectiveComboMult * archetype.bonusMultiplier);
 
   // Rebalanced Gold Earned
-  let totalGoldEarned = archetype.gold + (chainType === 'EXTEND' ? 3 : chainType === 'TRANSFORM' ? 1 : 0) + infusedBonusGold + slotBonusGold;
+  let totalGoldEarned = archetype.gold + (chainType === 'EXTEND' ? 3 : chainType === 'TRANSFORM' ? 1 : 0) + infusedBonusGold + slotBonusGold + passiveGold;
   if (activeRelicKeys.includes('ALTIN_SOZLUK') && upperWord.length >= 5) {
     totalGoldEarned += 2;
   }

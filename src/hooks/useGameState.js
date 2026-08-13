@@ -8,6 +8,7 @@ import { RELICS } from '../game/relicData';
 import { getWordMeaning } from '../services/dictionaryService';
 import { discoverCodexItem } from '../game/codexManager';
 import { checkNewAchievements } from '../game/achievementsData';
+import { INITIAL_WORD_LEVELS } from '../game/planetData';
 
 export function getStageTargetScore(stage) {
   if (stage === 1) return 50;
@@ -64,12 +65,60 @@ export function useGameState() {
   const [lastPlayedWord, setLastPlayedWord] = useState('');
   const [playedWordsThisStage, setPlayedWordsThisStage] = useState([]);
   const [isFirstWordInStage, setIsFirstWordInStage] = useState(true);
+  const [wordCategoryLevels, setWordCategoryLevels] = useState(INITIAL_WORD_LEVELS);
 
   // Active Boss Rule & Bonus Objective State
   const [activeBossRule, setActiveBossRule] = useState(null);
   const [activeBonusObjective, setActiveBonusObjective] = useState(null);
   const [isBonusCompleted, setIsBonusCompleted] = useState(false);
   const [campBonusPoints, setCampBonusPoints] = useState(0);
+
+  // Live Run Stats for Real-Time Achievement Evaluation
+  const [runStats, setRunStats] = useState({
+    maxWordLength: 0,
+    maxCombo: 1,
+    maxSingleWordScore: 0,
+    totalGoldEarned: 20,
+    maxStage: 1,
+    totalWordsPlayed: 0,
+    challengeScore: 0,
+    triviaWins: 0,
+    activeJokersCount: 0
+  });
+
+  const triggerAchievementCheck = useCallback((statsUpdate = {}) => {
+    setRunStats(prev => {
+      const updated = {
+        ...prev,
+        ...statsUpdate,
+        maxWordLength: Math.max(prev.maxWordLength, statsUpdate.maxWordLength || 0),
+        maxCombo: Math.max(prev.maxCombo, statsUpdate.maxCombo || 1),
+        maxSingleWordScore: Math.max(prev.maxSingleWordScore, statsUpdate.maxSingleWordScore || 0),
+        totalGoldEarned: Math.max(prev.totalGoldEarned, statsUpdate.totalGoldEarned || prev.totalGoldEarned),
+        maxStage: Math.max(prev.maxStage, statsUpdate.maxStage || prev.maxStage),
+        totalWordsPlayed: prev.totalWordsPlayed + (statsUpdate.playedWordIncrement || 0),
+        triviaWins: prev.triviaWins + (statsUpdate.triviaWinsIncrement || 0),
+        activeJokersCount: statsUpdate.activeJokersCount !== undefined ? statsUpdate.activeJokersCount : prev.activeJokersCount
+      };
+
+      const newlyUnlocked = checkNewAchievements(updated);
+      if (newlyUnlocked.length > 0) {
+        soundEngine.playVictory();
+        try { confetti({ particleCount: 85, spread: 90, origin: { y: 0.5 } }); } catch(e) {}
+        newlyUnlocked.forEach(ach => {
+          discoverCodexItem(ach.rewardName);
+          setRunUnlockedAchievements(p => [...p, ach]);
+          setGoalNotice({
+            category: '🏆 YENİ BAŞARIM KAZANILDI!',
+            title: ach.title,
+            description: `${ach.unlockedDesc} - Ödül: ${ach.rewardName}`,
+            rewardGold: 25
+          });
+        });
+      }
+      return updated;
+    });
+  }, []);
 
   // Deck collections
   const [fullDeck, setFullDeck] = useState([]);
@@ -345,7 +394,10 @@ export function useGameState() {
       setFeedbackMessage(`☕ Kamp Bonusu Devrede! +${campBonusPoints} Puan ile başladın!`);
       setCampBonusPoints(0);
     }
-    setTargetScore(targetBlind.targetScore);
+    const safeScoreTarget = (targetBlind && typeof targetBlind.targetScore === 'number' && !isNaN(targetBlind.targetScore))
+      ? targetBlind.targetScore
+      : getStageTargetScore(currentKademe || 1);
+    setTargetScore(safeScoreTarget);
     setHandsLeft(maxHands);
     setDiscardsLeft(baseDiscards);
     setCombo(1);
@@ -713,6 +765,17 @@ export function useGameState() {
     const newGold = gold + earnedGold;
     const playCost = activeBossRule?.doublePlayCost ? 2 : 1;
     const nextHands = Math.max(0, handsLeft - playCost);
+
+    // REAL-TIME ACHIEVEMENT CHECK TRIGGER
+    triggerAchievementCheck({
+      maxWordLength: breakdown.word.length,
+      maxCombo: breakdown.newCombo,
+      maxSingleWordScore: breakdown.score,
+      playedWordIncrement: 1,
+      totalGoldEarned: newGold,
+      activeJokersCount: activeRelicKeys.length,
+      maxStage: currentKademe
+    });
     const nextCombo = breakdown.newCombo;
 
     setCurrentScore(newScore);
@@ -844,7 +907,32 @@ export function useGameState() {
     setHand(refilled.newHand);
     setDrawPile(refilled.newDraw);
     setDiscardPile(refilled.newDiscard);
-    setFeedbackMessage(`El yenilendi! (Kalan: ${nextDiscards})`);
+
+    // Purple Seal Trigger: Free Efsun card on discard
+    const discardedCards = hand.filter(c => !selectedCards.includes(c));
+    const hasPurpleSeal = discardedCards.some(c => c.seal === 'PURPLE_SEAL' || c.isPurpleSeal);
+    if (hasPurpleSeal) {
+      const efsunKeys = ['GOLDEN', 'MIRROR', 'DOUBLE', 'ASH'];
+      const pickedKey = efsunKeys[Math.floor(Math.random() * efsunKeys.length)];
+      const bonusCard = createCard(pickedKey);
+      setFullDeck(prev => [...prev, bonusCard]);
+      soundEngine.playUpgradeSound();
+      setFeedbackMessage(`🟣 Mor Mühür Tetiklendi: Bedava ${bonusCard.name} kazandın!`);
+    } else {
+      setFeedbackMessage(`El yenilendi! (Kalan: ${nextDiscards})`);
+    }
+  };
+
+  const handleSellPassiveJoker = (jokerId) => {
+    setActiveRelicKeys(prev => prev.filter(id => id !== jokerId));
+    setGold(prev => prev + 15);
+    soundEngine.playCoins();
+    setFeedbackMessage(`💵 Pasif Joker $15 Altına satıldı!`);
+  };
+
+  const handleReorderPassiveJokers = (newOrder) => {
+    setActiveRelicKeys(newOrder);
+    soundEngine.playTap();
   };
 
   // Stage Draft Reward & Blind Progression
@@ -1154,11 +1242,30 @@ export function useGameState() {
     selectedDeckId,
     currentWordMeaning,
     isMeaningModalOpen,
+    handleBuyPlanetCard: (planetCard) => {
+      if (gold < planetCard.cost) return false;
+      setGold(prev => prev - planetCard.cost);
+      soundEngine.playPurchase();
+      const len = planetCard.targetLength;
+      setWordCategoryLevels(prev => {
+        const current = prev[len] || { level: 1, chips: 0, mult: 0 };
+        return {
+          ...prev,
+          [len]: {
+            level: current.level + 1,
+            chips: current.chips + planetCard.baseChipsBonus,
+            mult: current.mult + planetCard.baseMultBonus
+          }
+        };
+      });
+      return true;
+    },
     goalNotice,
     activeBiome,
     activeFloorModifier,
     boardSlotModifiers,
     wordTypeLevels,
+    wordCategoryLevels,
 
     currentKademe,
     kademeData,
@@ -1190,6 +1297,8 @@ export function useGameState() {
     handleShopUpgradePerk,
     handleShopRemoveCard,
     handleShopBuyRelic,
+    handleSellPassiveJoker,
+    handleReorderPassiveJokers,
     handleLeaveShop,
     handleResolveEvent,
     handleResolveTrivia,

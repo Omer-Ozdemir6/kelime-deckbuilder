@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Shield, Sparkles, Wand2, Swords, Feather, ChevronRight, X, Check, Lock, Crown } from 'lucide-react';
+import { Wand2, ChevronRight, X, Check, Lock } from 'lucide-react';
 import { soundEngine } from '../game/audioEngine';
 import { getUnlockedHeroes } from '../game/codexManager';
 
@@ -78,8 +78,12 @@ export function CharacterSelectModal({ onSelectCharacter, onBack }) {
             <Wand2 size={22} />
           </div>
           <div>
-            <h2 className="text-base font-black text-amber-300 font-cinzel">KARAKTERİNİ SEÇ (ADIM 1/2)</h2>
-            <p className="text-[11px] text-slate-400 font-medium">Başarımlar kazandıkça efsanevi yeni sınıflar açılır.</p>
+            <h2 className="text-base font-black text-amber-300 font-cinzel">
+              KAHRAMAN SINIFINI SEÇ
+            </h2>
+            <p className="text-[11px] text-slate-400 font-medium">
+              Başarımlar kazandıkça efsanevi yeni sınıfların kilitleri açılır.
+            </p>
           </div>
         </div>
 
@@ -91,7 +95,7 @@ export function CharacterSelectModal({ onSelectCharacter, onBack }) {
         </button>
       </div>
 
-      {/* Character Choice Cards */}
+      {/* HERO CHARACTERS GRID */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 my-4">
         {HERO_CHARACTERS.map((hero) => {
           const isUnlocked = unlockedHeroes.has(hero.id);
@@ -155,20 +159,20 @@ export function CharacterSelectModal({ onSelectCharacter, onBack }) {
         })}
       </div>
 
-      {/* Bottom Confirm Action */}
+      {/* Bottom Confirm Action Button */}
       <div className="pt-3 border-t border-slate-800">
         <button
           disabled={!isSelectedUnlocked}
           onClick={handleConfirm}
           className={`w-full py-4 px-6 rounded-2xl transition flex items-center justify-center gap-2 shadow-2xl text-sm tracking-wide border cursor-pointer ${
-            isSelectedUnlocked
-              ? 'bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black border-amber-300 shadow-amber-500/30 animate-pulse-glow'
-              : 'bg-slate-900 border-slate-800 text-slate-500 cursor-not-allowed'
+            !isSelectedUnlocked
+              ? 'bg-slate-900 border-slate-800 text-slate-500 cursor-not-allowed'
+              : 'bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black border-amber-300 shadow-amber-500/30 animate-pulse-glow'
           }`}
         >
           {isSelectedUnlocked ? (
             <>
-              <span>{selectedHero.name} İLE DEVAM ET — ZORLUK MÜHRÜNE GEÇ</span>
+              <span>ZORLUK MÜHÜRÜNE GEÇ</span>
               <ChevronRight size={18} />
             </>
           ) : (

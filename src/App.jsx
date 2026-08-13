@@ -23,7 +23,7 @@ import { SplashScreen } from './components/SplashScreen';
 import { CharacterSelectModal, HERO_CHARACTERS } from './components/CharacterSelectModal';
 import { StakesSelectModal, STAKES_DEFINITIONS } from './components/StakesSelectModal';
 import { JokerSelectorModal } from './components/JokerSelectorModal';
-import { AchievementToast } from './components/AchievementToast';
+import { ChallengeSelectModal } from './components/ChallengeSelectModal';
 import { useGameState } from './hooks/useGameState';
 import { checkMetaUnlocks } from './game/metaUnlocks';
 
@@ -34,6 +34,7 @@ export default function App() {
   const [selectedRelicKey, setSelectedRelicKey] = useState(null);
   const [isCodexOpen, setIsCodexOpen] = useState(false);
   const [isWheelOpen, setIsWheelOpen] = useState(false);
+  const [isChallengeSelectOpen, setIsChallengeSelectOpen] = useState(false);
   const [runMetaUnlocks, setRunMetaUnlocks] = useState([]);
 
   const [selectedHero, setSelectedHero] = useState(HERO_CHARACTERS[0]);
@@ -140,7 +141,7 @@ export default function App() {
         onClose={clearGoalNotice}
       />
 
-      {/* 1. MAIN MENU SCREEN */}
+      {/* 1. START MENU */}
       {gameState === 'START_MENU' && !isSplashActive && (
         <StartMenuModal
           highScore={highScore}
@@ -152,6 +153,19 @@ export default function App() {
           onStartRun={handleStartGameFlow}
           onResumeRun={() => setGameState('MAP')}
           onOpenCodex={() => setIsCodexOpen(true)}
+          onOpenChallengeSelect={() => setIsChallengeSelectOpen(true)}
+        />
+      )}
+
+      {/* CHALLENGE RUNS SELECTION MODAL */}
+      {isChallengeSelectOpen && (
+        <ChallengeSelectModal
+          onSelectChallenge={(challenge) => {
+            setIsChallengeSelectOpen(false);
+            if (gameStateObj.startChallengeRun) gameStateObj.startChallengeRun(challenge);
+            setGameState('MAP');
+          }}
+          onClose={() => setIsChallengeSelectOpen(false)}
         />
       )}
 
@@ -262,6 +276,9 @@ export default function App() {
       {selectedRelicKey && (
         <RelicTooltipModal
           relicKey={selectedRelicKey}
+          activeRelicKeys={activeRelicKeys || []}
+          onSell={gameStateObj.handleSellPassiveJoker}
+          onReorder={gameStateObj.handleReorderPassiveJokers}
           onClose={() => setSelectedRelicKey(null)}
         />
       )}
@@ -273,8 +290,10 @@ export default function App() {
           fullDeck={fullDeck}
           activeRelicKeys={activeRelicKeys}
           activeJokerIds={gameStateObj.activeRelicKeys || []}
+          wordCategoryLevels={gameStateObj.wordCategoryLevels}
           onBuyCard={handleShopBuyCard}
           onBuyPassiveJoker={handleShopBuyRelic}
+          onBuyPlanetCard={gameStateObj.handleBuyPlanetCard}
           onRemoveCard={handleShopRemoveCard}
           onLeaveShop={handleLeaveShop}
         />
@@ -340,6 +359,7 @@ export default function App() {
           totalRunWords={playedWordsThisStage.length}
           runAchievements={gameStateObj.runUnlockedAchievements}
           runMetaUnlocks={runMetaUnlocks}
+          onStartNewRun={() => gameStateObj.startNewRun()}
           onReturnToMainMenu={() => setGameState('START_MENU')}
         />
       )}

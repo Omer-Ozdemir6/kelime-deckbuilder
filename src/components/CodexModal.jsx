@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { BookOpen, Sparkles, Shield, Lock, Coins, Award, X, Compass, Layers } from 'lucide-react';
-import { LETTER_DEFINITIONS, SEAL_DEFINITIONS, PASSIVE_JOKERS } from '../game/cardData';
+import { BookOpen, Sparkles, Shield, Lock, Coins, Award, X, Compass, Layers, Zap } from 'lucide-react';
+import { LETTER_DEFINITIONS, SEAL_DEFINITIONS, PASSIVE_JOKERS, SPECIAL_CARDS } from '../game/cardData';
 import { RELICS } from '../game/relicData';
 import { REGIONAL_BIOMES } from '../game/mapGenerator';
 import { getDiscoveredCodexItems, isCodexItemDiscovered } from '../game/codexManager';
 
 export function CodexModal({ onClose }) {
-  const [tab, setTab] = useState('LETTERS'); // LETTERS | SEALS | RELICS | BIOMES | JOKERS
+  const [tab, setTab] = useState('LETTERS'); // LETTERS | SEALS | SPECIAL | RELICS | BIOMES | JOKERS
   const discoveredSet = getDiscoveredCodexItems();
 
   const letterKeys = Object.keys(LETTER_DEFINITIONS);
@@ -15,6 +15,9 @@ export function CodexModal({ onClose }) {
 
   const sealList = Object.values(SEAL_DEFINITIONS);
   const discoveredSealCount = sealList.filter(s => discoveredSet.has(s.id)).length;
+
+  const specialList = Object.values(SPECIAL_CARDS);
+  const discoveredSpecialCount = specialList.filter(s => discoveredSet.has(s.id) || discoveredSet.has(s.key) || discoveredSet.has(s.name)).length;
 
   const relicList = Object.values(RELICS);
   const discoveredRelicCount = relicList.filter(r => discoveredSet.has(r.id)).length;
@@ -30,6 +33,8 @@ export function CodexModal({ onClose }) {
     nadir: { label: 'Nadir', cls: 'text-blue-200 bg-blue-900/60 border-blue-600' },
     efsanevi: { label: 'Efsanevi', cls: 'text-amber-200 bg-amber-900/60 border-amber-600' },
     efsane_otesi: { label: 'Efsane Ötesi', cls: 'text-purple-200 bg-purple-900/60 border-purple-400' },
+    cok_nadir: { label: 'Çok Nadir', cls: 'text-amber-200 bg-amber-900/60 border-amber-600' },
+    normal: { label: 'Normal', cls: 'text-slate-400 bg-slate-900 border-slate-700' }
   };
 
   return (
@@ -40,7 +45,7 @@ export function CodexModal({ onClose }) {
         className="w-full max-w-lg sm:max-w-4xl md:max-w-5xl h-[88vh] sm:h-[90vh] bg-slate-900 border-2 border-amber-500/60 rounded-2xl sm:rounded-3xl p-3 sm:p-6 shadow-2xl flex flex-col justify-between relative overflow-hidden"
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-2">
+        <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-2 shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-amber-500/20 border border-amber-400 flex items-center justify-center text-amber-300 shadow-md">
               <BookOpen className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -63,60 +68,71 @@ export function CodexModal({ onClose }) {
           </button>
         </div>
 
-        {/* Category Tabs */}
-        <div className="grid grid-cols-5 gap-1.5 sm:gap-3 my-2">
+        {/* Category Tabs Bar */}
+        <div className="grid grid-cols-6 gap-1 sm:gap-2 my-2 shrink-0">
           <button
             onClick={() => setTab('LETTERS')}
-            className={`py-1.5 sm:py-2.5 px-1 sm:px-3 rounded-xl border text-[9px] sm:text-xs font-bold transition flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 cursor-pointer ${
+            className={`py-1.5 sm:py-2 px-1 rounded-xl border text-[9px] sm:text-xs font-bold transition flex flex-col sm:flex-row items-center justify-center gap-1 cursor-pointer ${
               tab === 'LETTERS' ? 'bg-amber-500/20 border-amber-400 text-amber-300 shadow-md' : 'bg-slate-950 border-slate-800 text-slate-500 hover:text-slate-300'
             }`}
           >
-            <span className="text-sm sm:text-base">🔤</span>
+            <span>🔤</span>
             <span>HARFLER</span>
             <span className="text-[7px] sm:text-[10px] opacity-70">({discoveredLetterCount}/{letterKeys.length})</span>
           </button>
 
           <button
             onClick={() => setTab('SEALS')}
-            className={`py-1.5 sm:py-2.5 px-1 sm:px-3 rounded-xl border text-[9px] sm:text-xs font-bold transition flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 cursor-pointer ${
+            className={`py-1.5 sm:py-2 px-1 rounded-xl border text-[9px] sm:text-xs font-bold transition flex flex-col sm:flex-row items-center justify-center gap-1 cursor-pointer ${
               tab === 'SEALS' ? 'bg-pink-500/20 border-pink-400 text-pink-300 shadow-md' : 'bg-slate-950 border-slate-800 text-slate-500 hover:text-slate-300'
             }`}
           >
-            <span className="text-sm sm:text-base">🔴</span>
+            <span>🔴</span>
             <span>MÜHÜRLER</span>
             <span className="text-[7px] sm:text-[10px] opacity-70">({discoveredSealCount}/{sealList.length})</span>
           </button>
 
           <button
+            onClick={() => setTab('SPECIAL')}
+            className={`py-1.5 sm:py-2 px-1 rounded-xl border text-[9px] sm:text-xs font-bold transition flex flex-col sm:flex-row items-center justify-center gap-1 cursor-pointer ${
+              tab === 'SPECIAL' ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300 shadow-md' : 'bg-slate-950 border-slate-800 text-slate-500 hover:text-slate-300'
+            }`}
+          >
+            <span>🃏</span>
+            <span>ÖZEL TAŞLAR</span>
+            <span className="text-[7px] sm:text-[10px] opacity-70">({discoveredSpecialCount}/{specialList.length})</span>
+          </button>
+
+          <button
             onClick={() => setTab('RELICS')}
-            className={`py-1.5 sm:py-2.5 px-1 sm:px-3 rounded-xl border text-[9px] sm:text-xs font-bold transition flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 cursor-pointer ${
+            className={`py-1.5 sm:py-2 px-1 rounded-xl border text-[9px] sm:text-xs font-bold transition flex flex-col sm:flex-row items-center justify-center gap-1 cursor-pointer ${
               tab === 'RELICS' ? 'bg-purple-500/20 border-purple-400 text-purple-300 shadow-md' : 'bg-slate-950 border-slate-800 text-slate-500 hover:text-slate-300'
             }`}
           >
-            <span className="text-sm sm:text-base">🔮</span>
+            <span>🔮</span>
             <span>TILSIMLAR</span>
             <span className="text-[7px] sm:text-[10px] opacity-70">({discoveredRelicCount}/{relicList.length})</span>
           </button>
 
           <button
             onClick={() => setTab('BIOMES')}
-            className={`py-1.5 sm:py-2.5 px-1 sm:px-3 rounded-xl border text-[9px] sm:text-xs font-bold transition flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 cursor-pointer ${
-              tab === 'BIOMES' ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300 shadow-md' : 'bg-slate-950 border-slate-800 text-slate-500 hover:text-slate-300'
+            className={`py-1.5 sm:py-2 px-1 rounded-xl border text-[9px] sm:text-xs font-bold transition flex flex-col sm:flex-row items-center justify-center gap-1 cursor-pointer ${
+              tab === 'BIOMES' ? 'bg-teal-500/20 border-teal-400 text-teal-300 shadow-md' : 'bg-slate-950 border-slate-800 text-slate-500 hover:text-slate-300'
             }`}
           >
-            <span className="text-sm sm:text-base">🏞️</span>
+            <span>🏞️</span>
             <span>BİYOMLAR</span>
             <span className="text-[7px] sm:text-[10px] opacity-70">({discoveredBiomeCount}/{biomeList.length})</span>
           </button>
 
           <button
             onClick={() => setTab('JOKERS')}
-            className={`py-1.5 sm:py-2.5 px-1 sm:px-3 rounded-xl border text-[9px] sm:text-xs font-bold transition flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 cursor-pointer ${
+            className={`py-1.5 sm:py-2 px-1 rounded-xl border text-[9px] sm:text-xs font-bold transition flex flex-col sm:flex-row items-center justify-center gap-1 cursor-pointer ${
               tab === 'JOKERS' ? 'bg-yellow-500/20 border-yellow-400 text-yellow-300 shadow-md' : 'bg-slate-950 border-slate-800 text-slate-500 hover:text-slate-300'
             }`}
           >
-            <span className="text-sm sm:text-base">🃏</span>
-            <span>JOKERLER</span>
+            <span>🟣</span>
+            <span>PASİF JOKER</span>
             <span className="text-[7px] sm:text-[10px] opacity-70">({discoveredJokerCount}/{jokerList.length})</span>
           </button>
         </div>
@@ -185,6 +201,56 @@ export function CodexModal({ onClose }) {
                     <div>
                       <div className="text-xs sm:text-sm font-black">{seal.name}</div>
                       <div className="text-[10px] sm:text-xs opacity-90 mt-0.5">{seal.desc}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* SPECIAL HAND TILES */}
+          {tab === 'SPECIAL' && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+              {specialList.map((spec) => {
+                const isUnlocked = isCodexItemDiscovered(spec.id) || isCodexItemDiscovered(spec.name) || isCodexItemDiscovered(spec.letter);
+
+                if (!isUnlocked) {
+                  return (
+                    <div
+                      key={spec.id}
+                      className="p-3 sm:p-4 rounded-2xl bg-slate-950/40 border border-slate-800 flex items-center gap-3 opacity-40"
+                    >
+                      <Lock size={20} className="text-slate-600 shrink-0" />
+                      <div>
+                        <div className="text-xs sm:text-sm font-black text-slate-600">🔒 ??? (Özel Joker Taşı)</div>
+                        <div className="text-[10px] sm:text-xs text-slate-600">Çarşıdan aldığında veya eline geldiğinde bilgisi açılır.</div>
+                      </div>
+                    </div>
+                  );
+                }
+
+                const rarityInfo = RARITY_LABELS[spec.rarity] || RARITY_LABELS.nadir;
+
+                return (
+                  <div
+                    key={spec.id}
+                    className={`p-3 sm:p-4 rounded-2xl bg-gradient-to-r ${spec.bgGradient || 'from-slate-900 to-slate-950'} border border-cyan-500/40 flex items-start gap-3 shadow-lg`}
+                  >
+                    <div className="w-11 h-11 rounded-xl bg-black/40 border border-white/20 flex flex-col items-center justify-center shrink-0">
+                      <span className="text-xl">{spec.letter}</span>
+                      {spec.points > 0 && <span className="text-[8px] font-bold text-amber-300">+{spec.points}p</span>}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-xs sm:text-sm font-black text-white">{spec.name}</span>
+                        <span className={`px-1.5 py-0.5 rounded-lg border text-[8px] sm:text-[10px] font-black ${rarityInfo.cls}`}>
+                          {rarityInfo.label}
+                        </span>
+                      </div>
+                      <div className="text-[10px] sm:text-xs text-slate-200 mt-0.5 leading-snug">{spec.desc}</div>
+                      <span className="text-[8px] font-bold text-cyan-300 bg-cyan-950 px-1.5 py-0.5 rounded inline-block mt-1">
+                        🎴 Elde Oynanan Joker Taş
+                      </span>
                     </div>
                   </div>
                 );
@@ -270,7 +336,7 @@ export function CodexModal({ onClose }) {
           {tab === 'JOKERS' && (
             <div className="flex flex-col gap-2">
               <p className="text-[10px] sm:text-xs text-slate-500 text-center mb-1">
-                Dükkândan joker satın alınınca Codex'te açılır.
+                Dükkândan pasif joker satın alınınca Codex'te kilit açılır.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                 {jokerList.map((joker) => {
@@ -287,7 +353,7 @@ export function CodexModal({ onClose }) {
                           <Lock size={16} className="text-slate-600" />
                         </div>
                         <div>
-                          <div className="text-xs sm:text-sm font-black text-slate-600">🔒 ??? (Gizemli Joker)</div>
+                          <div className="text-xs sm:text-sm font-black text-slate-600">🔒 ??? (Gizemli Pasif Joker)</div>
                           <div className="text-[10px] sm:text-xs text-slate-600">Dükkândan satın alındığında bilgisi açılır.</div>
                         </div>
                       </div>

@@ -1,70 +1,118 @@
 import React from 'react';
-import { Sparkles, X, Shield, Zap } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Coins, ArrowLeft, ArrowRight, Trash2, X, Sparkles } from 'lucide-react';
 import { RELICS } from '../game/relicData';
+import { PASSIVE_JOKERS } from '../game/cardData';
+import { soundEngine } from '../game/audioEngine';
 
-export function RelicTooltipModal({ relicKey, onClose }) {
+export function RelicTooltipModal({
+  relicKey,
+  activeRelicKeys = [],
+  onSell,
+  onReorder,
+  onClose
+}) {
   if (!relicKey) return null;
-  const relic = RELICS[relicKey];
-  if (!relic) return null;
+  const item = PASSIVE_JOKERS[relicKey] || RELICS[relicKey];
+  if (!item) return null;
+
+  const currentIndex = activeRelicKeys.indexOf(relicKey);
+  const canMoveLeft = currentIndex > 0;
+  const canMoveRight = currentIndex !== -1 && currentIndex < activeRelicKeys.length - 1;
+
+  const handleMoveLeft = () => {
+    if (!canMoveLeft || !onReorder) return;
+    const newOrder = [...activeRelicKeys];
+    const temp = newOrder[currentIndex - 1];
+    newOrder[currentIndex - 1] = newOrder[currentIndex];
+    newOrder[currentIndex] = temp;
+    onReorder(newOrder);
+  };
+
+  const handleMoveRight = () => {
+    if (!canMoveRight || !onReorder) return;
+    const newOrder = [...activeRelicKeys];
+    const temp = newOrder[currentIndex + 1];
+    newOrder[currentIndex + 1] = newOrder[currentIndex];
+    newOrder[currentIndex] = temp;
+    onReorder(newOrder);
+  };
+
+  const handleSellJoker = () => {
+    if (onSell) {
+      onSell(relicKey);
+      onClose();
+    }
+  };
 
   return (
-    <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in"
-      onClick={onClose}
-    >
-      <div 
-        className="relative w-full max-w-sm bg-gradient-to-b from-purple-950 via-slate-900 to-slate-950 border-2 border-purple-400/80 rounded-3xl p-5 shadow-[0_0_40px_rgba(168,85,247,0.3)] text-slate-100 space-y-4 transform transition-all scale-100"
-        onClick={(e) => e.stopPropagation()}
+    <div className="fixed inset-0 z-[300] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 select-none">
+      <motion.div
+        initial={{ scale: 0.85, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.85, opacity: 0 }}
+        className="w-full max-w-sm bg-gradient-to-b from-purple-950 via-[#0a1124] to-slate-950 border-2 border-purple-400 rounded-3xl p-5 shadow-2xl text-center space-y-4 relative"
       >
-        {/* Top Header Badge */}
-        <div className="flex items-center justify-between border-b border-purple-900/60 pb-3">
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-1 bg-purple-500/20 text-purple-300 border border-purple-400/40 rounded-full text-xs font-black tracking-wider flex items-center gap-1.5">
-              <Sparkles size={12} className="text-purple-400" /> KUTSAL EMANET (RELIC)
-            </span>
-          </div>
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 p-1.5 rounded-full bg-slate-900 text-slate-400 hover:text-white border border-slate-700 cursor-pointer"
+        >
+          <X size={16} />
+        </button>
 
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition"
-            title="Kapat"
-          >
-            <X size={16} />
-          </button>
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-b from-purple-900 to-slate-900 border border-purple-400 flex items-center justify-center text-4xl shadow-xl mx-auto">
+          {item.icon || '🃏'}
         </div>
 
-        {/* Relic Icon & Title */}
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-purple-900/40 border border-purple-400/60 text-3xl flex items-center justify-center shadow-lg shadow-purple-950/80 shrink-0">
-            {relic.icon}
-          </div>
-          <div className="space-y-0.5">
-            <h3 className="text-lg font-black text-purple-200 tracking-wide font-cinzel">{relic.name}</h3>
-            <span className="text-[11px] font-bold text-amber-400 bg-amber-950/60 px-2 py-0.5 rounded border border-amber-700/50">
-              Pasif Etki Aktif
-            </span>
-          </div>
-        </div>
-
-        {/* Description Box */}
-        <div className="bg-slate-950/80 border border-purple-900/50 rounded-2xl p-4 space-y-2">
-          <div className="flex items-center gap-1.5 text-xs font-bold text-purple-400 uppercase tracking-wider">
-            <Zap size={14} />
-            <span>Özel Güç Açıklaması</span>
-          </div>
-          <p className="text-sm text-slate-200 leading-relaxed font-medium">
-            {relic.description}
+        <div>
+          <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-purple-950 text-purple-300 border border-purple-500/50">
+            PASİF JOKER İNCELEME
+          </span>
+          <h3 className="text-lg font-black text-amber-300 font-cinzel mt-1">{item.name}</h3>
+          <p className="text-xs text-slate-300 font-medium leading-relaxed bg-slate-950/80 p-3 rounded-2xl border border-slate-800 mt-2">
+            {item.desc || item.description || 'Aktif pasif yetenek.'}
           </p>
         </div>
 
-        {/* Action Button */}
-        <button
-          onClick={onClose}
-          className="w-full py-3 bg-purple-600 hover:bg-purple-500 text-white font-extrabold text-xs rounded-2xl transition shadow-lg shadow-purple-600/30"
-        >
-          Tamam
-        </button>
-      </div>
+        {/* Action Controls: Sell & Reorder */}
+        <div className="pt-2 border-t border-purple-900/60 space-y-2">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleMoveLeft}
+              disabled={!canMoveLeft}
+              className={`flex-1 py-2 px-2 rounded-xl text-xs font-black transition flex items-center justify-center gap-1 cursor-pointer border ${
+                canMoveLeft
+                  ? 'bg-purple-900 hover:bg-purple-800 text-purple-200 border-purple-500/60'
+                  : 'bg-slate-900 text-slate-600 border-slate-800 cursor-not-allowed'
+              }`}
+            >
+              <ArrowLeft size={14} />
+              <span>SOLA TAŞI</span>
+            </button>
+
+            <button
+              onClick={handleMoveRight}
+              disabled={!canMoveRight}
+              className={`flex-1 py-2 px-2 rounded-xl text-xs font-black transition flex items-center justify-center gap-1 cursor-pointer border ${
+                canMoveRight
+                  ? 'bg-purple-900 hover:bg-purple-800 text-purple-200 border-purple-500/60'
+                  : 'bg-slate-900 text-slate-600 border-slate-800 cursor-not-allowed'
+              }`}
+            >
+              <span>SAĞA TAŞI</span>
+              <ArrowRight size={14} />
+            </button>
+          </div>
+
+          <button
+            onClick={handleSellJoker}
+            className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-xs transition flex items-center justify-center gap-1.5 shadow-lg border border-amber-300 cursor-pointer active:scale-95"
+          >
+            <Coins size={14} />
+            <span>💵 PASİF JOKERİ SAT (+$15 ALTIN)</span>
+          </button>
+        </div>
+      </motion.div>
     </div>
   );
 }

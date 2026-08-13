@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Layers, Flame, RotateCcw, Star, Coins, Home, Target, Sparkles } from 'lucide-react';
 import { getBossStageRule } from '../hooks/useGameState';
 import { RELICS } from '../game/relicData';
+import { PASSIVE_JOKERS } from '../game/cardData';
 
 export function HeaderBar({
   stage,
@@ -37,7 +38,9 @@ export function HeaderBar({
     prevHandsRef.current = handsLeft;
   }, [handsLeft]);
 
-  const progressPercent = Math.min(100, Math.floor((currentScore / targetScore) * 100));
+  const safeTargetScore = (targetScore && !isNaN(targetScore) && Number(targetScore) > 0) ? Number(targetScore) : 100;
+  const rawPercent = Math.floor((currentScore / safeTargetScore) * 100);
+  const progressPercent = Math.min(100, Math.max(0, isNaN(rawPercent) || !isFinite(rawPercent) ? 0 : rawPercent));
   const bossRule = getBossStageRule(stage);
 
   // Biome-driven accent glow
@@ -132,27 +135,33 @@ export function HeaderBar({
         </div>
       </div>
 
-      {/* Active Relics Badges (if any) */}
-      {activeRelicKeys.length > 0 && (
-        <div className="flex items-center gap-1.5 overflow-x-auto py-0.5 scrollbar-none">
-          <span className="text-[10px] uppercase font-black text-purple-400 tracking-wider shrink-0 flex items-center gap-1">
-            <span>✨</span> Emanetler:
+      {/* Active Passive Jokers & Relics Bar (Balatro-style Slots) */}
+      {activeRelicKeys && activeRelicKeys.length > 0 ? (
+        <div className="flex items-center gap-1.5 overflow-x-auto py-1 px-2 scrollbar-none bg-purple-950/40 border border-purple-800/60 rounded-2xl shadow-inner">
+          <span className="text-[10px] uppercase font-black text-purple-300 tracking-wider shrink-0 flex items-center gap-1">
+            <Sparkles size={12} className="text-purple-400 animate-pulse" />
+            <span>PASİF JOKERLER ({activeRelicKeys.length}/5):</span>
           </span>
           {activeRelicKeys.map(key => {
-            const relic = RELICS[key];
-            if (!relic) return null;
+            const item = PASSIVE_JOKERS[key] || RELICS[key];
+            if (!item) return null;
             return (
               <button
                 key={key}
                 onClick={() => onOpenRelicTooltip && onOpenRelicTooltip(key)}
-                className="px-2 py-0.5 rounded-lg bg-purple-950/90 hover:bg-purple-900 border border-purple-500/50 hover:border-purple-400 text-purple-200 text-[10px] font-bold shrink-0 flex items-center gap-1 shadow-sm transition cursor-pointer active:scale-95"
-                title={`${relic.name} detaylarını gör`}
+                className="px-2.5 py-1 rounded-xl bg-gradient-to-b from-purple-900 via-indigo-950 to-slate-950 hover:from-purple-800 border-2 border-purple-400/70 hover:border-purple-300 text-purple-100 text-[11px] font-black shrink-0 flex items-center gap-1.5 shadow-lg transition cursor-pointer active:scale-95 group"
+                title={`${item.name}: ${item.desc || item.description}`}
               >
-                <span>{relic.icon}</span>
-                <span>{relic.name}</span>
+                <span className="text-sm group-hover:scale-125 transition-transform">{item.icon}</span>
+                <span className="truncate max-w-[110px]">{item.name}</span>
               </button>
             );
           })}
+        </div>
+      ) : (
+        <div className="flex items-center gap-1.5 py-1 px-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80 text-[10px] text-slate-500 font-semibold italic">
+          <Sparkles size={11} className="text-purple-400 shrink-0" />
+          <span>Pasif Joker Slotu Boş (Dükkândan yeni jokerler alabilirsiniz)</span>
         </div>
       )}
 
@@ -181,7 +190,7 @@ export function HeaderBar({
           </span>
           <div className="flex items-baseline gap-1.5">
             <span className="text-base font-black text-emerald-300 tracking-wider font-mono">{currentScore}</span>
-            <span className="text-slate-400 text-xs font-bold">/ {targetScore}</span>
+            <span className="text-slate-400 text-xs font-bold">/ {safeTargetScore}</span>
             <span className="text-[10px] font-black text-cyan-300 bg-cyan-950/80 px-2 py-0.5 rounded-full border border-cyan-500/40 ml-1">
               {progressPercent}%
             </span>

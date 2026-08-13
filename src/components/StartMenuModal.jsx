@@ -16,7 +16,8 @@ export function StartMenuModal({
   onUnlockDeck,
   onStartRun,
   onResumeRun,
-  onOpenCodex
+  onOpenCodex,
+  onOpenChallengeSelect
 }) {
   const [activeModal, setActiveModal] = useState(null); // null | 'DECKS' | 'COLLECTION' | 'SETTINGS'
   const [soundEnabled, setSoundEnabled] = useState(!soundEngine.isMuted());
@@ -122,6 +123,20 @@ export function StartMenuModal({
           <Play size={22} className="fill-slate-950" />
           <span>YENİ RUN BAŞLAT</span>
         </motion.button>
+
+        {/* 2B. ÖZEL MEYDAN OKUMA MODLARI (CHALLENGE RUNS) */}
+        <button
+          onClick={() => { if (onOpenChallengeSelect) onOpenChallengeSelect(); }}
+          className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-purple-900/90 via-slate-900 to-indigo-950/90 hover:from-purple-800 hover:to-indigo-900 border border-purple-500/50 text-purple-200 font-bold text-xs transition flex items-center justify-between shadow-md active:scale-95 cursor-pointer"
+        >
+          <div className="flex items-center gap-2 font-extrabold">
+            <Trophy size={16} className="text-purple-400" />
+            <span>⚔️ ÖZEL MEYDAN OKUMA MODLARI</span>
+          </div>
+          <span className="text-[10px] font-black text-purple-300 bg-slate-950 px-2.5 py-0.5 rounded-lg border border-purple-500/50">
+            CHALLENGE 🎯
+          </span>
+        </button>
 
         {/* 3. ANSİKLOPEDİ & KOLEKSİYON MÜZESİ */}
         <button

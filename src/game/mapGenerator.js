@@ -125,14 +125,21 @@ export const TAG_DEFINITIONS = [
 ];
 
 export const KADEME_BOSS_RULES = [
-  { title: 'Söz Ustası', desc: '4 harften kısa kelimeler kabul edilmez!', minWordLength: 4 },
-  { title: 'Kırık Alfabe', desc: 'En az 4 harfli kelimeler oynanmalı!', minWordLength: 4 },
-  { title: 'Dar Sözlük', desc: 'En az 4 harfli kelimeler kabul edilir!', minWordLength: 4 },
-  { title: 'Kozmik Mühür', desc: 'En az 5 harfli kelimeler oynamalısın!', minWordLength: 5 },
-  { title: 'Sessiz Katip', desc: 'En az 4 harfli kelimeler oyna!', minWordLength: 4 },
-  { title: 'Gölge Şair', desc: 'En az 5 harfli kelimeler kabul edilir!', minWordLength: 5 },
-  { title: 'Alevli Mühür', desc: 'En az 4 harfli kelimeler oynamalısın!', minWordLength: 4 },
-  { title: 'Kadim Kelime Mimarı', desc: 'Final Boss! En az 5 harfli kelimeler oyna!', minWordLength: 5 }
+  { id: 'BOSS_MIN_LEN_4', title: '📜 Söz Ustası (Min 4 Harf)', desc: '4 harften kısa kelimeler kabul edilmez!', minWordLength: 4 },
+  { id: 'BOSS_MIN_LEN_5', title: '🗿 Kadim Mühür (Min 5 Harf)', desc: 'En az 5 harfli kelimeler oynanmalı!', minWordLength: 5 },
+  { id: 'BOSS_WATER', title: '🌊 Su Mühürü (Pahalı Iskarta)', desc: 'Iskarta (Yenileme) yapmak $2 Altın harcar!', minWordLength: 3, discardCost: 2 },
+  { id: 'BOSS_FLINT', title: '🔥 Çakmak Mühürü (Yarı Puan)', desc: 'Tüm kelimelerin taban puanı yarı yarıya düşer!', minWordLength: 3, halfChips: true },
+  { id: 'BOSS_EYE', title: '👁️ Göz Mühürü (Uzunluk Tekrarı Yok)', desc: 'Aynı harf uzunluğunda kelime 2 kez üst üste oynanamaz!', minWordLength: 3, noSameLengthRepeat: true },
+  { id: 'BOSS_ARM', title: '🦾 Karakalem (Rozetler İptal)', desc: 'Harflerin yükseltme seviyeleri (+1, +2, +3) devre dışı kalır!', minWordLength: 3, disableCardUpgrades: true },
+  { id: 'BOSS_OX', title: '🐂 Öküz Mühürü (Riskli Harf)', desc: 'İçinde "E" veya "A" geçen kelime oynanırsa Altınınız 0 olur!', minWordLength: 3, zeroGoldLetter: 'E' },
+  { id: 'BOSS_NEEDLE', title: '🗡️ İğne Mühürü (Tek Hamle)', desc: 'Sadece 1 kelime oynama hakkınız vardır!', minWordLength: 3, maxHands: 1 },
+  { id: 'BOSS_TOOTH', title: '🦷 Diş Mühürü (Kelime Başı $1)', desc: 'Oynanan her kelime $1 Altın harcar!', minWordLength: 3, costPerWord: 1 },
+  { id: 'BOSS_PLANT', title: '🌿 Sarmaşık (Sesliler Sessiz)', desc: 'Sesli harfler puan ve çarpan vermez!', minWordLength: 3, silentVowels: true },
+  { id: 'BOSS_SERPENT', title: '🐍 Yılan Mühürü (Çekim Kısıtı)', desc: 'Tur başında elinize sadece 3 yeni harf çekilir!', minWordLength: 3, drawLimit: 3 },
+  { id: 'BOSS_MARK', title: '🎭 Maske Mühürü (Gizli Harfler)', desc: 'Elinizdeki bazı harfler kapalı/gizli çekilir!', minWordLength: 3, faceDownCards: true },
+  { id: 'BOSS_PILLAR', title: '🏛️ Sütun Mühürü (Geçmiş Kartlar)', desc: 'Daha önce bu kademede oynanmış kartlar puan kazandırmaz!', minWordLength: 3 },
+  { id: 'BOSS_AMULET', title: '🔮 Tılsım Mühürü (Kombo Sıfırlama)', desc: 'Her tur başında Kombo Çarpanınız x1\'e sıfırlanır!', minWordLength: 3 },
+  { id: 'BOSS_FINAL', title: '👑 Kadim Kelime Mimarı (Final Boss)', desc: 'Final Boss! En az 5 harfli kelimeler kabul edilir!', minWordLength: 5 }
 ];
 
 export function generateKademe(kademeNumber = 1) {
@@ -146,8 +153,9 @@ export function generateKademe(kademeNumber = 1) {
   const smallTag = shuffledTags[0];
   const bigTag = shuffledTags[1];
 
-  const bossRuleIndex = (kademeNumber - 1) % KADEME_BOSS_RULES.length;
-  const bossRuleDef = KADEME_BOSS_RULES[bossRuleIndex];
+  // Pick a fresh random Boss Blind rule for this Kademe
+  const randomBossRule = KADEME_BOSS_RULES[Math.floor(Math.random() * (KADEME_BOSS_RULES.length - 1))];
+  const bossRuleDef = kademeNumber >= 10 ? KADEME_BOSS_RULES[KADEME_BOSS_RULES.length - 1] : randomBossRule;
 
   // Procedurally roll surprise stop:
   // 35% Event, 25% Trivia, 20% Challenge, 10% Treasure, 10% None
@@ -182,6 +190,7 @@ export function generateKademe(kademeNumber = 1) {
       type: 'EVENT',
       title: 'Gizemli Olay',
       icon: '❓',
+      targetScore: smallTarget,
       desc: 'Terk edilmiş bir harf masası veya kadim bir yazıt buldun. Karar ver!',
       canSkip: false,
       status: 'LOCKED'
@@ -193,6 +202,7 @@ export function generateKademe(kademeNumber = 1) {
       type: 'TRIVIA',
       title: 'Kelime Bilmecesi',
       icon: '💡',
+      targetScore: smallTarget,
       desc: 'Bir bilge sana kelime bilmecesi sordu. Çöz ve ödülü kap!',
       canSkip: false,
       status: 'LOCKED'
@@ -204,6 +214,7 @@ export function generateKademe(kademeNumber = 1) {
       type: 'CHALLENGE',
       title: '⚡ Süreli Harf Challenge',
       icon: '⚡',
+      targetScore: smallTarget,
       desc: '30 saniye boyunca kilitli kare bulmacalarını hızlıca doldur ve dev ödülü kap!',
       canSkip: false,
       status: 'LOCKED'
@@ -215,6 +226,7 @@ export function generateKademe(kademeNumber = 1) {
       type: 'TREASURE',
       title: 'Kilitli Hazine',
       icon: '💰',
+      targetScore: smallTarget,
       desc: 'Çalıların arasına saklanmış kilitli bir sandık buldun!',
       canSkip: false,
       status: 'LOCKED'
