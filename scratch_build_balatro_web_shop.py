@@ -1,4 +1,96 @@
-import React, { useState } from 'react';
+import os
+
+web_dir = r"c:\Users\omr_k\Projects\kelime-deckbuilder\src"
+comp_dir = os.path.join(web_dir, "components")
+
+# -------------------------------------------------------------
+# 1. BalatroBackground.jsx (Hypnotic Trippy Liquid Swirl Canvas)
+# -------------------------------------------------------------
+bg_jsx = '''import React, { useEffect, useRef } from 'react';
+
+export function BalatroBackground() {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let animationFrameId;
+    let time = 0;
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    const render = () => {
+      time += 0.015;
+      const w = canvas.width;
+      const h = canvas.height;
+      const cx = w / 2;
+      const cy = h / 2;
+
+      // Dark background
+      ctx.fillStyle = '#0a050d';
+      ctx.fillRect(0, 0, w, h);
+
+      // Draw rotating trippy spiral waves
+      const numRings = 8;
+      for (let i = numRings; i >= 1; i--) {
+        const radius = i * 110 + Math.sin(time + i) * 20;
+        const angle = time * 0.4 * (i % 2 === 0 ? 1 : -1);
+
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(angle);
+
+        const grad = ctx.createRadialGradient(0, 0, radius * 0.2, 0, 0, radius);
+        if (i % 2 === 0) {
+          grad.addColorStop(0, 'rgba(180, 25, 45, 0.45)');
+          grad.addColorStop(0.5, 'rgba(130, 15, 35, 0.25)');
+          grad.addColorStop(1, 'rgba(10, 5, 13, 0)');
+        } else {
+          grad.addColorStop(0, 'rgba(25, 85, 160, 0.4)');
+          grad.addColorStop(0.5, 'rgba(15, 55, 120, 0.2)');
+          grad.addColorStop(1, 'rgba(10, 5, 13, 0)');
+        }
+
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, radius * 1.3, radius * 0.8, angle, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      animationFrameId = requestAnimationFrame(render);
+    };
+
+    render();
+
+    return () => {
+      window.removeEventListener('resize', resize);
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="fixed inset-0 z-0 pointer-events-none w-full h-full"
+    />
+  );
+}
+'''
+
+with open(os.path.join(comp_dir, "BalatroBackground.jsx"), "w", encoding="utf-8") as f:
+    f.write(bg_jsx)
+
+# -------------------------------------------------------------
+# 2. Authentic Balatro ShopScreen.jsx (Matching User Screenshot 100%)
+# -------------------------------------------------------------
+shop_jsx = '''import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Coins, ArrowRight, RefreshCw, Sparkles, Tag, ShieldCheck, Layers } from 'lucide-react';
 import { soundEngine } from '../game/audioEngine';
@@ -245,3 +337,9 @@ export function ShopScreen({
     </div>
   );
 }
+'''
+
+with open(os.path.join(comp_dir, "ShopScreen.jsx"), "w", encoding="utf-8") as f:
+    f.write(shop_jsx)
+
+print("BalatroBackground.jsx created & ShopScreen.jsx updated to match screenshot!")

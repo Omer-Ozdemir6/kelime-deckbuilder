@@ -1,4 +1,9 @@
-import React, { useRef, useEffect } from 'react';
+import os
+
+web_dir = r"c:\Users\omr_k\Projects\kelime-deckbuilder\src\components"
+map_path = os.path.join(web_dir, "MapScreen.jsx")
+
+map_jsx = '''import React, { useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Coins, Home, FastForward, Play, Lock, CheckCircle2, ShieldAlert, Tag, ChevronLeft, ChevronRight, ShoppingBag, Award, Compass } from 'lucide-react';
 import { generateKademe } from '../game/mapGenerator';
@@ -92,7 +97,7 @@ export function MapScreen({
         </div>
 
         {/* ── 2. NEON CONNECTOR STEPPER LINE ── */}
-        <div className="my-3 px-4 py-2.5 rounded-3xl bg-slate-950/80 border border-slate-800 shadow-2xl backdrop-blur-md flex items-center justify-between gap-2 z-20 overflow-x-auto scrollbar-none w-full max-w-5xl mx-auto">
+        <div className="my-3 px-4 py-2.5 rounded-3xl bg-slate-950/80 border border-slate-800 shadow-2xl backdrop-blur-md flex items-center justify-between gap-2 z-20 overflow-x-auto scrollbar-none">
           {blinds.map((blind, idx) => {
             const isCurrent = idx === currentBlindIndex && blind.status !== 'COMPLETED' && blind.status !== 'SKIPPED';
             const isDone = blind.status === 'COMPLETED';
@@ -133,7 +138,7 @@ export function MapScreen({
             <ChevronLeft size={24} />
           </button>
 
-          <div ref={carouselRef} className="flex-1 h-full flex items-center justify-start sm:justify-center snap-x snap-mandatory gap-4 sm:gap-6 py-2 px-4 overflow-x-auto scrollbar-none w-full max-w-6xl mx-auto">
+          <div ref={carouselRef} className="flex-1 h-full flex items-center snap-x snap-mandatory gap-4 py-2 px-2 overflow-x-auto scrollbar-none">
             {blinds.map((blind, idx) => {
               const isCurrent = idx === currentBlindIndex && blind.status !== 'COMPLETED' && blind.status !== 'SKIPPED';
               const isDone = blind.status === 'COMPLETED';
@@ -166,7 +171,7 @@ export function MapScreen({
                   ref={isCurrent ? activeCardRef : null}
                   whileHover={isCurrent ? { scale: 1.04, y: -6 } : {}}
                   transition={{ duration: 0.2 }}
-                  className={`w-[260px] sm:w-[280px] min-h-[380px] h-auto snap-center shrink-0 rounded-3xl p-4 sm:p-5 flex flex-col justify-between border backdrop-blur-xl relative overflow-hidden shadow-2xl ${cardStyle}`}
+                  className={`w-[270px] sm:w-[290px] h-[340px] snap-center shrink-0 rounded-3xl p-4 flex flex-col justify-between border backdrop-blur-xl relative overflow-hidden shadow-2xl ${cardStyle}`}
                 >
                   {/* CARD HEADER */}
                   <div className="flex flex-col gap-2">
@@ -307,7 +312,7 @@ export function MapScreen({
 
         {/* ── 4. ACTIVE TAGS TRAY ── */}
         {activeTags.length > 0 && (
-          <div className="mt-3 p-3 rounded-3xl bg-slate-950/90 border border-purple-800/60 backdrop-blur-md flex items-center justify-center gap-2 overflow-x-auto z-20 shrink-0 shadow-2xl w-full max-w-4xl mx-auto">
+          <div className="mt-3 p-3 rounded-3xl bg-slate-950/90 border border-purple-800/60 backdrop-blur-md flex items-center gap-2 overflow-x-auto z-20 shrink-0 shadow-2xl">
             <div className="flex items-center gap-1 text-xs font-black text-purple-300 shrink-0">
               <Award size={16} className="text-purple-400" />
               <span>KAZANILAN ETİKETLER:</span>
@@ -330,3 +335,9 @@ export function MapScreen({
     </AnimatePresence>
   );
 }
+'''
+
+with open(map_path, "w", encoding="utf-8") as f:
+    f.write(map_jsx)
+
+print("MapScreen.jsx upgraded to AAA Balatro Neon 3D Map Screen!")

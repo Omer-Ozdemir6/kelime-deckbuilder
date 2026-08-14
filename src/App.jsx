@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { VerticalMobileContainer } from './components/VerticalMobileContainer';
+import { BalatroBackground } from './components/BalatroBackground';
 import { HeaderBar } from './components/HeaderBar';
 import { WordPlayArea } from './components/WordPlayArea';
 import { HandCardRack } from './components/HandCardRack';
@@ -124,6 +125,7 @@ export default function App() {
 
   return (
     <VerticalMobileContainer activeBiome={activeBiome}>
+      <BalatroBackground stage={stage || gameStateObj.currentKademe || 1} />
       {/* REAL-TIME UNLOCKED ACHIEVEMENT POPUP TOAST */}
       {gameStateObj.activeAchievementToast && (
         <AchievementToast
@@ -211,6 +213,7 @@ export default function App() {
             handsLeft={handsLeft}
             discardsLeft={discardsLeft}
             combo={combo}
+            comboTimeLeft={gameStateObj.comboTimeLeft}
             gold={gold}
             lives={gameStateObj.lives}
             activeRelicKeys={activeRelicKeys}
@@ -229,6 +232,7 @@ export default function App() {
             lastPlayedWord={lastPlayedWord}
             playedWordsThisStage={playedWordsThisStage}
             combo={combo}
+            comboTimeLeft={gameStateObj.comboTimeLeft}
             activeRelicKeys={activeRelicKeys}
             boardSlotModifiers={gameStateObj.boardSlotModifiers}
             onUnselectCard={unselectCard}

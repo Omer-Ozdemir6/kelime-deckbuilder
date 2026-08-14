@@ -62,10 +62,12 @@ export function useGameState() {
   const [handsLeft, setHandsLeft] = useState(6);
   const [discardsLeft, setDiscardsLeft] = useState(3);
   const [combo, setCombo] = useState(1);
+  const [comboTimeLeft, setComboTimeLeft] = useState(10);
   const [lastPlayedWord, setLastPlayedWord] = useState('');
   const [playedWordsThisStage, setPlayedWordsThisStage] = useState([]);
   const [isFirstWordInStage, setIsFirstWordInStage] = useState(true);
   const [wordCategoryLevels, setWordCategoryLevels] = useState(INITIAL_WORD_LEVELS);
+
 
   // Active Boss Rule & Bonus Objective State
   const [activeBossRule, setActiveBossRule] = useState(null);
@@ -156,6 +158,27 @@ export function useGameState() {
 
   // UI State
   const [gameState, setGameState] = useState('START_MENU'); // START_MENU | MAP | PLAYING | SHOP | EVENT | STAGE_VICTORY_SUMMARY | DRAFT_REWARD | GAME_OVER
+
+  // Combo Decay Timer Effect (Decreases combo if player doesn't make a move within 10s)
+  useEffect(() => {
+    let interval;
+    if (gameState === 'PLAYING' && combo > 1) {
+      interval = setInterval(() => {
+        setComboTimeLeft(prev => {
+          if (prev <= 1) {
+            soundEngine.playDeselect();
+            setCombo(c => Math.max(1, c - 1));
+            setFeedbackMessage('⚠️ Zaman doldu! Kombo düştü.');
+            return 10;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else {
+      setComboTimeLeft(10);
+    }
+    return () => clearInterval(interval);
+  }, [gameState, combo]);
   const [lastScoreBreakdown, setLastScoreBreakdown] = useState(null);
   const [lastStageVictoryStats, setLastStageVictoryStats] = useState(null);
   const [feedbackMessage, setFeedbackMessage] = useState(null);
@@ -401,6 +424,7 @@ export function useGameState() {
     setHandsLeft(maxHands);
     setDiscardsLeft(baseDiscards);
     setCombo(1);
+    setComboTimeLeft(10);
     setLastPlayedWord('');
     setPlayedWordsThisStage([]);
     setIsFirstWordInStage(true);
@@ -668,6 +692,7 @@ export function useGameState() {
     if (!breakdown.isValid) {
       soundEngine.playInvalidWord();
       setCombo(1);
+    setComboTimeLeft(10);
       const playCost = activeBossRule?.doublePlayCost ? 2 : 1;
       const nextHands = Math.max(0, handsLeft - playCost);
       setHandsLeft(nextHands);
@@ -782,6 +807,7 @@ export function useGameState() {
     setGold(newGold);
     setHandsLeft(nextHands);
     setCombo(nextCombo);
+    setComboTimeLeft(10);
     setLastPlayedWord(breakdown.word);
 
     // Fetch TDK Word Meaning asynchronously
@@ -1222,6 +1248,7 @@ export function useGameState() {
     handsLeft,
     discardsLeft,
     combo,
+    comboTimeLeft,
     lastPlayedWord,
     playedWordsThisStage,
     activeBossRule,

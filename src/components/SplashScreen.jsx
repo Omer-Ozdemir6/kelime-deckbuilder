@@ -58,22 +58,9 @@ export function SplashScreen({ onStart }) {
   return (
     <div
       onClick={handleStartClick}
-      className="absolute inset-0 z-[500] w-full h-full bg-slate-950 flex flex-col items-center justify-between p-4 sm:p-6 select-none cursor-pointer overflow-hidden"
+      className="absolute inset-0 z-[500] w-full h-full bg-transparent flex flex-col items-center justify-between p-4 sm:p-6 select-none cursor-pointer overflow-hidden"
     >
-      {/* BACKGROUND IMAGE WITH BLURRED BACKDROP & FULL MOBILE FIT */}
-      <div className="absolute inset-0 z-0 overflow-hidden bg-slate-950">
-        <img
-          src="/1.png"
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover filter blur-xl opacity-40 scale-110 pointer-events-none"
-        />
-        <img
-          src="/1.png"
-          alt="Kelime Destesi Arka Planı"
-          className="w-full h-full object-contain sm:object-cover object-center filter brightness-105 contrast-110 relative z-10"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-slate-950/60 z-20 pointer-events-none" />
-      </div>
+
 
       {/* TOP TAGLINE BADGE */}
       <motion.div

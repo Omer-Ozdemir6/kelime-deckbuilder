@@ -209,7 +209,12 @@ export function calculateWordScore(
   wordCategoryLevels = {},
   unselectedCardsInHand = []
 ) {
-  if (!selectedCards || selectedCards.length === 0) {
+  const safeSelectedCards = Array.isArray(selectedCards) ? selectedCards : [];
+  const safePlayedWords = Array.isArray(playedWordsThisStage) ? playedWordsThisStage : [];
+  const safeRelicKeys = Array.isArray(activeRelicKeys) ? activeRelicKeys : [];
+  const safeHandCards = Array.isArray(unselectedCardsInHand) ? unselectedCardsInHand : [];
+
+  if (!safeSelectedCards || safeSelectedCards.length === 0) {
     return {
       isValid: false,
       word: '',
@@ -243,7 +248,7 @@ export function calculateWordScore(
   let isBankUsed = false;
   const activeSlotEffects = [];
 
-  const hasKeskinKalem = activeRelicKeys.includes('KESKIN_KALEM');
+  const hasKeskinKalem = safeRelicKeys.includes('KESKIN_KALEM');
 
   selectedCards.forEach((card, idx) => {
     if (card.fromBank) {
@@ -347,8 +352,9 @@ export function calculateWordScore(
   });
 
   // Calculate Steel Tiles multiplier from unselected cards held in hand!
-  unselectedCardsInHand.forEach(c => {
-    if (c.seal === 'STEEL') {
+  const safeHand = Array.isArray(unselectedCardsInHand) ? unselectedCardsInHand : [];
+  safeHand.forEach(c => {
+    if (c && c.seal === 'STEEL') {
       polychromeMultiplier *= 1.5;
     }
   });
@@ -385,7 +391,7 @@ export function calculateWordScore(
   }
 
   // Prevent duplicate words in the same stage
-  if (playedWordsThisStage.includes(upperWord)) {
+  if (safePlayedWords.includes(upperWord)) {
     return {
       isValid: false,
       word: wordStr,
@@ -457,37 +463,37 @@ export function calculateWordScore(
 
   // Relic Multipliers & Synergy
   let relicScoreMultiplier = 1.0;
-  if (activeRelicKeys.includes('UZUN_SOZ') && upperWord.length >= 5) {
+  if (safeRelicKeys.includes('UZUN_SOZ') && upperWord.length >= 5) {
     relicScoreMultiplier += 0.25; // +25%
   }
-  if (activeRelicKeys.includes('KISA_SOZ') && (upperWord.length === 3 || upperWord.length === 4)) {
+  if (safeRelicKeys.includes('KISA_SOZ') && (upperWord.length === 3 || upperWord.length === 4)) {
     relicScoreMultiplier += 0.20; // +20%
   }
   const rareLetters = ['Ş', 'Ğ', 'Ç', 'Ö', 'Ü', 'Z'];
   const containsRare = rareLetters.some(char => upperWord.includes(char));
-  if (activeRelicKeys.includes('NADIR_MUHUR') && containsRare) {
+  if (safeRelicKeys.includes('NADIR_MUHUR') && containsRare) {
     relicScoreMultiplier += 0.30; // +30%
   }
-  if (activeRelicKeys.includes('MUREKKEP') && isFirstWordInStage) {
+  if (safeRelicKeys.includes('MUREKKEP') && isFirstWordInStage) {
     relicScoreMultiplier *= 2.0; // 2x on first word
   }
-  if (activeRelicKeys.includes('ZINCIR_USTASI') && chainType !== 'NONE') {
+  if (safeRelicKeys.includes('ZINCIR_USTASI') && chainType !== 'NONE') {
     relicScoreMultiplier += 0.30; // +30% on Zincir
   }
-  if (activeRelicKeys.includes('BANKACI') && isBankUsed) {
+  if (safeRelicKeys.includes('BANKACI') && isBankUsed) {
     relicScoreMultiplier += 0.40; // +40% on Bank Use
   }
-  if (activeRelicKeys.includes('CIFT_HARF') && hasDuplicateLetters) {
+  if (safeRelicKeys.includes('CIFT_HARF') && hasDuplicateLetters) {
     relicScoreMultiplier += 0.25; // +25% on Double Letters
   }
   // Üç Sesli Mührü: 3 different vowels
   const vowels = ['A', 'E', 'I', 'İ', 'O', 'Ö', 'U', 'Ü'];
   const uniqueVowels = new Set([...upperWord].filter(c => vowels.includes(c)));
-  if (activeRelicKeys.includes('UC_SESLI') && uniqueVowels.size >= 3) {
+  if (safeRelicKeys.includes('UC_SESLI') && uniqueVowels.size >= 3) {
     relicScoreMultiplier += 0.35; // +35% on 3 Vowels
   }
   // Son Harf Tılsımı: 2x final letter points
-  if (activeRelicKeys.includes('SON_HARF') && selectedCards.length > 0) {
+  if (safeRelicKeys.includes('SON_HARF') && selectedCards.length > 0) {
     const lastCard = selectedCards[selectedCards.length - 1];
     if (lastCard && !lastCard.isSpecial) {
       cardSum += (lastCard.points || 1);
@@ -499,7 +505,7 @@ export function calculateWordScore(
   if (chainType === 'TRANSFORM') relicScoreMultiplier += 0.15; // +15%
 
   // Combo progression
-  const hasSeriKatip = activeRelicKeys.includes('SERI_KATIP');
+  const hasSeriKatip = safeRelicKeys.includes('SERI_KATIP');
   const comboBoostFromChain = chainType !== 'NONE' ? 1 : 0;
   const comboIncrement = (hasSeriKatip ? 2 : 1) + (archetype.comboBonus || 0) + perkComboBoost + infusedComboBoost + slotComboBoost + comboBoostFromChain;
   const nextCombo = currentCombo + comboIncrement;
@@ -588,7 +594,7 @@ export function calculateWordScore(
 
   // Rebalanced Gold Earned
   let totalGoldEarned = archetype.gold + (chainType === 'EXTEND' ? 3 : chainType === 'TRANSFORM' ? 1 : 0) + infusedBonusGold + slotBonusGold + passiveGold;
-  if (activeRelicKeys.includes('ALTIN_SOZLUK') && upperWord.length >= 5) {
+  if (safeRelicKeys.includes('ALTIN_SOZLUK') && upperWord.length >= 5) {
     totalGoldEarned += 2;
   }
 

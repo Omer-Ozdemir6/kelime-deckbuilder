@@ -1,4 +1,13 @@
-import React, { useState } from 'react';
+import os
+
+web_dir = r"c:\Users\omr_k\Projects\kelime-deckbuilder\src\components"
+rack_path = os.path.join(web_dir, "HandCardRack.jsx")
+play_path = os.path.join(web_dir, "WordPlayArea.jsx")
+
+# -------------------------------------------------------------
+# 1. Upgrade HandCardRack.jsx to Balatro-Style Glossy Playing Cards
+# -------------------------------------------------------------
+rack_jsx = '''import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Landmark, ArrowDownLeft, Sparkles, X, Check } from 'lucide-react';
@@ -232,3 +241,30 @@ export function HandCardRack({
     </div>
   );
 }
+'''
+
+with open(rack_path, "w", encoding="utf-8") as f:
+    f.write(rack_jsx)
+
+# -------------------------------------------------------------
+# 2. Upgrade WordPlayArea.jsx to Transparent Felt Table with Neon Slots
+# -------------------------------------------------------------
+with open(play_path, "r", encoding="utf-8") as f:
+    play_code = f.read()
+
+# Make root container bg-transparent
+play_code = play_code.replace(
+    'className="flex-1 flex flex-col items-center justify-between p-3 relative overflow-hidden dark-felt-table"',
+    'className="flex-1 flex flex-col items-center justify-between p-3 relative overflow-hidden bg-transparent z-10"'
+)
+
+# Enhance 7 Slots Frame with Neon Gold Glow
+play_code = play_code.replace(
+    'className="w-full min-h-[85px] p-2 bg-slate-950/90 backdrop-blur-xl gold-glow-border rounded-2xl shadow-2xl flex items-center justify-center gap-1 sm:gap-1.5 transition-all relative overflow-hidden"',
+    'className="w-full min-h-[90px] p-2.5 bg-slate-950/80 backdrop-blur-xl border-2 border-amber-400/80 rounded-3xl shadow-[0_0_35px_rgba(245,158,11,0.35)] flex items-center justify-center gap-1.5 sm:gap-2 transition-all relative overflow-hidden"'
+)
+
+with open(play_path, "w", encoding="utf-8") as f:
+    f.write(play_code)
+
+print("HandCardRack.jsx & WordPlayArea.jsx upgraded to AAA Balatro Battle Arena!")

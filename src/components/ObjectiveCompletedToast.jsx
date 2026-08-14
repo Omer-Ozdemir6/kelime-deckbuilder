@@ -17,7 +17,7 @@ export function ObjectiveCompletedToast({ goalNotice, onClose }) {
 
   return (
     <AnimatePresence>
-      <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-full max-w-sm px-3 pointer-events-auto">
+      <div className="fixed top-16 sm:top-20 left-1/2 -translate-x-1/2 z-[200] w-full max-w-md px-3 pointer-events-auto">
         <motion.div
           initial={{ opacity: 0, y: -80, scale: 0.9 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}

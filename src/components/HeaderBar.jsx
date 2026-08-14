@@ -12,6 +12,7 @@ export function HeaderBar({
   handsLeft,
   discardsLeft,
   combo = 1,
+  comboTimeLeft = 10,
   gold = 20,
   lives = 3,
   activeRelicKeys = [],
@@ -86,25 +87,34 @@ export function HeaderBar({
                 /* Tier 1: Ember Flame (Combo x2 - x3) */
                 <div className="px-3 py-1 rounded-2xl bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-slate-950 font-black text-xs flex items-center gap-1.5 shadow-[0_0_15px_rgba(245,158,11,0.6)] border-2 border-amber-300 animate-pulse">
                   <Flame size={14} className="fill-slate-950 text-slate-950" />
-                  <span>KOMBO ×{combo}</span>
+                                    <span>KOMBO ×{combo}</span>
+                  <span className={`ml-1 font-mono text-[10px] px-1.5 py-0.5 rounded-full border ${comboTimeLeft <= 3 ? 'bg-rose-950 text-rose-300 border-rose-500 animate-ping' : 'bg-slate-900/80 text-slate-900 border-slate-700'}`}>
+                    ⏱️ {comboTimeLeft}s
+                  </span>
                 </div>
               ) : combo <= 5 ? (
                 /* Tier 2: Aggressive Red/Orange Fire (Combo x4 - x5) */
                 <div className="px-3.5 py-1.5 rounded-2xl bg-gradient-to-r from-red-600 via-orange-500 to-amber-400 text-slate-950 font-black text-xs sm:text-sm flex items-center gap-1.5 shadow-[0_0_25px_rgba(249,115,22,0.9)] border-2 border-yellow-300 ring-2 ring-orange-400/80 animate-bounce">
                   <Flame size={16} className="fill-slate-950 text-amber-200 animate-pulse" />
-                  <span className="tracking-wide uppercase font-extrabold">🔥 ATEŞ FIRTINASI ×{combo}</span>
+                  <span className="tracking-wide uppercase font-extrabold">🔥 ATEŞ FIRTINASI ×{combo}</span> <span className={`ml-1 font-mono text-[11px] px-2 py-0.5 rounded-full border shadow ${comboTimeLeft <= 3 ? 'bg-rose-600 text-white border-rose-400 animate-bounce font-black' : 'bg-slate-950/80 text-amber-300 border-amber-500/60 font-bold'}`}>
+                    ⏱️ {comboTimeLeft}s
+                  </span>
                 </div>
               ) : combo <= 7 ? (
                 /* Tier 3: Volcanic Crimson Inferno (Combo x6 - x7) */
                 <div className="px-4 py-1.5 rounded-2xl bg-gradient-to-r from-rose-600 via-red-600 to-orange-500 text-white font-black text-xs sm:text-sm flex items-center gap-2 shadow-[0_0_35px_rgba(244,63,94,0.95)] border-2 border-amber-300 ring-4 ring-rose-500/70 animate-bounce">
                   <Flame size={18} className="fill-amber-300 text-amber-300 animate-pulse" />
-                  <span className="tracking-widest uppercase font-black">🌋 VOLKANİK ÖFKE ×{combo}</span>
+                  <span className="tracking-widest uppercase font-black">🌋 VOLKANİK ÖFKE ×{combo}</span> <span className={`ml-1 font-mono text-[11px] px-2 py-0.5 rounded-full border shadow ${comboTimeLeft <= 3 ? 'bg-rose-600 text-white border-rose-400 animate-bounce font-black' : 'bg-slate-950/80 text-amber-300 border-amber-500/60 font-bold'}`}>
+                    ⏱️ {comboTimeLeft}s
+                  </span>
                 </div>
               ) : (
                 /* Tier 4: Cosmic Supernova Blue Fire (Combo x8+) */
                 <div className="px-4 py-1.5 rounded-2xl bg-gradient-to-r from-cyan-400 via-indigo-600 to-purple-700 text-white font-black text-xs sm:text-sm flex items-center gap-2 shadow-[0_0_40px_rgba(34,211,238,0.95)] border-2 border-cyan-200 ring-4 ring-cyan-400/80 animate-pulse">
                   <Sparkles size={18} className="fill-cyan-200 text-cyan-200 animate-spin" />
-                  <span className="tracking-widest uppercase font-black text-cyan-200">🌌 SUPERNOVA ×{combo}</span>
+                  <span className="tracking-widest uppercase font-black text-cyan-200">🌌 SUPERNOVA ×{combo}</span> <span className={`ml-1 font-mono text-[11px] px-2 py-0.5 rounded-full border shadow ${comboTimeLeft <= 3 ? 'bg-rose-600 text-white border-rose-400 animate-bounce font-black' : 'bg-slate-950/80 text-amber-300 border-amber-500/60 font-bold'}`}>
+                    ⏱️ {comboTimeLeft}s
+                  </span>
                 </div>
               )}
             </div>

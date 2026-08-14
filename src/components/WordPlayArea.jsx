@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, RefreshCw, Sparkles, CheckCircle2, AlertCircle, BookOpen, X, History, SkipForward } from 'lucide-react';
 import { calculateWordScore } from '../game/wordEngine';
+import confetti from 'canvas-confetti';
 import { getRarityDetails } from '../game/cardData';
 
 const SLOT_MOD_CONFIG = {
@@ -30,6 +31,34 @@ export function WordPlayArea({
 }) {
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   // Real-time projected score calculation
+    const [floatingScore, setFloatingScore] = useState(null);
+  const [screenShake, setScreenShake] = useState(false);
+
+  const handlePlayWordWithVFX = () => {
+    if (selectedCards.length < 2) return;
+    
+    // Trigger confetti spark burst from center
+    try {
+      confetti({
+        particleCount: 45,
+        spread: 80,
+        origin: { y: 0.6 }
+      });
+    } catch(e) {}
+
+    // Trigger Screen Shake
+    setScreenShake(true);
+    setTimeout(() => setScreenShake(false), 400);
+
+    // Trigger Floating Score Popup
+    if (scoreBreakdown && scoreBreakdown.isValid) {
+      setFloatingScore(`+${scoreBreakdown.score} PUAN!`);
+      setTimeout(() => setFloatingScore(null), 1200);
+    }
+
+    if (onPlayWord) onPlayWord();
+  };
+
   const scoreBreakdown = calculateWordScore(selectedCards, lastPlayedWord, combo, playedWordsThisStage, activeRelicKeys, false, boardSlotModifiers);
 
   const [visibleFeedback, setVisibleFeedback] = useState(feedbackMessage);
@@ -44,7 +73,7 @@ export function WordPlayArea({
   }, [feedbackMessage]);
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-between p-3 relative overflow-hidden dark-felt-table">
+    <div className="flex-1 flex flex-col items-center justify-between p-3 relative overflow-hidden bg-transparent z-10">
       {/* Played Words History Bar & Modal Toggle */}
       <div className="w-full flex items-center justify-between gap-2 px-1 mb-1">
         {playedWordsThisStage.length > 0 ? (
@@ -136,10 +165,25 @@ export function WordPlayArea({
         )}
       </AnimatePresence>
 
+            {/* FLOATING SCORE POPUP ANIMATION */}
+      <AnimatePresence>
+        {floatingScore && (
+          <motion.div
+            initial={{ scale: 0.5, opacity: 0, y: 20 }}
+            animate={{ scale: [1, 1.3, 1.1], opacity: 1, y: -40 }}
+            exit={{ opacity: 0, y: -70 }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-none px-6 py-2.5 rounded-3xl bg-amber-400 text-slate-950 font-black text-2xl sm:text-3xl tracking-widest font-cinzel shadow-[0_0_50px_rgba(245,158,11,0.9)] border-2 border-yellow-200"
+          >
+            {floatingScore}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Word Rack Area (Tile Tray Container) */}
       <div className="w-full flex-1 flex flex-col items-center justify-center my-1.5 min-h-[140px] relative">
         {/* Selected Tiles Rack: 7 Fixed Board Slots */}
-        <div className="w-full min-h-[85px] p-2 bg-slate-950/90 backdrop-blur-xl gold-glow-border rounded-2xl shadow-2xl flex items-center justify-center gap-1 sm:gap-1.5 transition-all relative overflow-hidden">
+        <div className="w-full min-h-[90px] p-2.5 bg-slate-950/80 backdrop-blur-xl border-2 border-amber-400/80 rounded-3xl shadow-[0_0_35px_rgba(245,158,11,0.35)] flex items-center justify-center gap-1.5 sm:gap-2 transition-all relative overflow-hidden">
           {[0, 1, 2, 3, 4, 5, 6].map((slotIdx) => {
             const card = selectedCards[slotIdx];
             const slotMod = boardSlotModifiers[slotIdx];
@@ -313,7 +357,7 @@ export function WordPlayArea({
         )}
 
         <button
-          onClick={onPlayWord}
+          onClick={handlePlayWordWithVFX}
           disabled={selectedCards.length < 2}
           className={`${onPassTurn ? 'col-span-3' : 'col-span-4'} font-black py-3.5 px-3 rounded-2xl transition flex items-center justify-center gap-2 shadow-2xl active:scale-95 text-xs sm:text-sm tracking-wide border cursor-pointer ${
             selectedCards.length >= 2
