@@ -1,0 +1,61 @@
+import os
+
+godot_dir = r"C:\Users\omr_k\Projects\Godot\kelime-deckbuilder"
+main_gd_path = os.path.join(godot_dir, "scenes", "Main.gd")
+
+code = '''extends Control
+
+@onready var view_container = $ViewContainer
+@onready var header_bar = get_node_or_null("HeaderBar")
+
+var current_view_node: Node = null
+
+func _ready():
+	if header_bar:
+		header_bar.visible = false
+	GameManager.connect("state_changed", Callable(self, "_on_state_changed"))
+	_on_state_changed(GameManager.current_state)
+
+func _on_state_changed(new_state):
+	if current_view_node:
+		current_view_node.queue_free()
+		current_view_node = null
+		
+	if header_bar:
+		header_bar.visible = false
+		
+	var scene_path = ""
+	match new_state:
+		GameManager.State.MAIN_MENU:
+			scene_path = "res://scenes/ui/MainMenu.tscn"
+		GameManager.State.CHARACTER_SELECT:
+			scene_path = "res://scenes/ui/CharacterSelect.tscn"
+		GameManager.State.STAKES_SELECT:
+			scene_path = "res://scenes/ui/StakesSelect.tscn"
+		GameManager.State.MAP:
+			scene_path = "res://scenes/ui/MapScreen.tscn"
+		GameManager.State.COMBAT:
+			scene_path = "res://scenes/ui/WordPlayArea.tscn"
+		GameManager.State.SHOP:
+			scene_path = "res://scenes/ui/ShopScreen.tscn"
+		GameManager.State.CAMP:
+			scene_path = "res://scenes/ui/CampScreen.tscn"
+		GameManager.State.EVENT:
+			scene_path = "res://scenes/ui/EventScreen.tscn"
+		GameManager.State.TRIVIA:
+			scene_path = "res://scenes/ui/TriviaScreen.tscn"
+		GameManager.State.DRAFT:
+			scene_path = "res://scenes/ui/DraftRewardModal.tscn"
+		GameManager.State.VICTORY, GameManager.State.GAME_OVER:
+			scene_path = "res://scenes/ui/MainMenu.tscn"
+
+	if scene_path != "" and ResourceLoader.exists(scene_path):
+		var scn = load(scene_path)
+		current_view_node = scn.instantiate()
+		view_container.add_child(current_view_node)
+'''
+
+with open(main_gd_path, "w", encoding="utf-8") as f:
+    f.write(code)
+
+print("Header bar completely hidden/removed from all screens!")

@@ -32,162 +32,119 @@ export function StartMenuModal({
   };
 
   return (
-    <div
-      className="absolute inset-0 z-50 flex flex-col justify-between p-5 backdrop-blur-xl overflow-y-auto"
-      style={{ background: 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(120,53,15,0.25) 0%, transparent 60%), linear-gradient(180deg, #050714 0%, #0a0a1a 55%, #050714 100%)' }}
-    >
-      {/* Animated background grid, consistent with StakesSelectModal */}
-      <div
-        className="absolute inset-0 opacity-[0.07] pointer-events-none"
-        style={{
-          backgroundImage: 'linear-gradient(rgba(245,158,11,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.4) 1px, transparent 1px)',
-          backgroundSize: '36px 36px'
-        }}
-      />
-
-      {/* Background Ambient Glow Orbs */}
-      <div className="absolute top-10 left-1/2 -translate-x-1/2 w-72 h-72 rounded-full bg-amber-500/10 blur-[100px] pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-64 h-64 rounded-full bg-purple-600/10 blur-[110px] pointer-events-none" />
-      <div className="absolute bottom-0 right-0 w-64 h-64 rounded-full bg-cyan-500/10 blur-[110px] pointer-events-none" />
-
-      {/* Floating suit particles */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-        {['♠', '♥', '♦', '♣', '🂡'].map((p, i) => (
-          <motion.span
-            key={i}
-            className="absolute text-3xl opacity-[0.06] select-none"
-            style={{ left: `${8 + i * 20}%`, top: `${10 + (i % 3) * 28}%` }}
-            animate={{ y: [0, -16, 0], rotate: [0, 10, -10, 0] }}
-            transition={{ duration: 6 + i * 1.2, repeat: Infinity, ease: 'easeInOut', delay: i * 0.6 }}
-          >
-            {p}
-          </motion.span>
-        ))}
+    <div className="absolute inset-0 z-50 w-full h-full flex flex-col justify-between p-4 sm:p-6 select-none overflow-y-auto bg-slate-950">
+      {/* BACKGROUND IMAGE WITH BLURRED BACKDROP & FULL MOBILE FIT */}
+      <div className="absolute inset-0 z-0 overflow-hidden bg-slate-950">
+        <img
+          src="/3.png"
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover filter blur-xl opacity-40 scale-110 pointer-events-none"
+        />
+        <img
+          src="/3.png"
+          alt="Kelime Destesi Ana Menü Arka Planı"
+          className="w-full h-full object-contain sm:object-cover object-center filter brightness-105 contrast-110 relative z-10"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-slate-950/60 z-20 pointer-events-none" />
       </div>
 
-      {/* Top Logo & Title */}
-      <div className="flex flex-col items-center text-center mt-3 relative z-10">
-        <motion.div
-          className="w-18 h-18 rounded-3xl bg-gradient-to-tr from-amber-500 via-yellow-400 to-amber-600 flex items-center justify-center text-3xl font-black text-slate-950 shadow-2xl shadow-amber-500/40 mb-3 border-2 border-yellow-200 animate-pulse-glow"
-          animate={{ rotate: [0, -4, 4, 0] }}
-          transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-        >
-          🃏
-        </motion.div>
-
-        <h1 className="text-4xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 font-cinzel drop-shadow-[0_0_25px_rgba(245,158,11,0.35)]">
-          KELİME DESTESİ
-        </h1>
-        <p className="text-xs text-amber-200/80 font-bold mt-1 tracking-widest uppercase">
-          Türkçe Harf Roguelite Deckbuilder
-        </p>
-
-        {/* Dictionary Badge */}
-        <div className="mt-2 px-3 py-1 bg-amber-500/10 border border-amber-500/30 rounded-full text-[10px] font-black text-amber-300 flex items-center gap-1.5 shadow-sm">
-          <span>📖</span>
-          <span>{getDictionarySize().toLocaleString('tr-TR')} RESMİ TDK KELİME DAHİL</span>
-        </div>
-
-        {/* Stats Row */}
-        <div className="flex items-center justify-center gap-2.5 mt-4 flex-wrap">
-          <div className="flex items-center gap-1.5 bg-slate-900/90 border border-emerald-500/40 px-3.5 py-1.5 rounded-2xl text-xs font-black text-emerald-400 shadow-md">
-            <Trophy size={14} className="text-emerald-400" />
-            <span>En Yüksek Skor: {highScore}</span>
+      {/* TOP BAR: MASKOT, DICTIONARY & STATS & SETTINGS */}
+      <div className="flex items-center justify-between z-10 w-full">
+        <div className="flex items-center gap-2.5 bg-slate-950/80 border border-amber-500/40 px-3.5 py-1.5 rounded-2xl backdrop-blur-md shadow-2xl">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-b from-purple-900 to-slate-900 border border-amber-400 p-0.5 shadow-md overflow-hidden shrink-0">
+            <img src="/mascot.png" alt="Bilge Baykuş" className="w-full h-full object-cover scale-110" />
           </div>
-          <div className="flex items-center gap-1.5 bg-slate-900/90 border border-amber-500/40 px-3.5 py-1.5 rounded-2xl text-xs font-black text-amber-300 shadow-md">
-            <Award size={14} className="text-amber-300" />
-            <span>Başarımlar: {unlockedAchievementCount}/{ACHIEVEMENTS.length}</span>
+          <div>
+            <div className="text-[10px] font-black text-amber-400 tracking-wider uppercase">SÖZ REHBERİ BİLGE BAYKUŞ</div>
+            <div className="text-xs font-bold text-slate-200">"Hoş Geldin Şair! Hazırsan Desteni Seç!"</div>
           </div>
         </div>
-      </div>
 
-      {/* Main Menu Action Buttons */}
-      <div className="w-full max-w-sm mx-auto flex flex-col gap-3 my-4 relative z-10">
-        {/* 1. DEVAM ET (If run in progress) */}
-        {hasActiveRun && (
-          <button
-            onClick={onResumeRun}
-            className="w-full py-4 px-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-slate-950 font-black text-sm transition flex items-center justify-center gap-2 shadow-xl shadow-emerald-950/50 active:scale-95 border border-emerald-400/50 cursor-pointer"
-          >
-            <RotateCcw size={18} />
-            <span>DEVAM ET (KALDIĞIN YERDEN)</span>
-          </button>
-        )}
-
-        {/* 2. YENİ RUN BAŞLAT */}
-        <motion.button
-          onClick={() => onStartRun(selectedDeckId)}
-          whileTap={{ scale: 0.97 }}
-          className="w-full py-4.5 px-6 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-base transition flex items-center justify-center gap-2 shadow-2xl shadow-amber-500/30 tracking-wider border border-amber-300 animate-pulse-glow cursor-pointer"
-        >
-          <Play size={22} className="fill-slate-950" />
-          <span>YENİ RUN BAŞLAT</span>
-        </motion.button>
-
-        {/* 2B. ÖZEL MEYDAN OKUMA MODLARI (CHALLENGE RUNS) */}
-        <button
-          onClick={() => { if (onOpenChallengeSelect) onOpenChallengeSelect(); }}
-          className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-purple-900/90 via-slate-900 to-indigo-950/90 hover:from-purple-800 hover:to-indigo-900 border border-purple-500/50 text-purple-200 font-bold text-xs transition flex items-center justify-between shadow-md active:scale-95 cursor-pointer"
-        >
-          <div className="flex items-center gap-2 font-extrabold">
-            <Trophy size={16} className="text-purple-400" />
-            <span>⚔️ ÖZEL MEYDAN OKUMA MODLARI</span>
+        <div className="flex items-center gap-2">
+          <div className="hidden sm:flex items-center gap-2 bg-slate-950/80 border border-amber-500/30 px-3 py-1 rounded-2xl text-[10px] font-black text-amber-300 backdrop-blur-md shadow-sm">
+            <span>📖</span>
+            <span>{getDictionarySize().toLocaleString('tr-TR')} RESMİ TDK KELİME DAHİL</span>
           </div>
-          <span className="text-[10px] font-black text-purple-300 bg-slate-950 px-2.5 py-0.5 rounded-lg border border-purple-500/50">
-            CHALLENGE 🎯
-          </span>
-        </button>
-
-        {/* 3. ANSİKLOPEDİ & KOLEKSİYON MÜZESİ */}
-        <button
-          onClick={() => { if (onOpenCodex) onOpenCodex(); else setActiveModal('COLLECTION'); }}
-          className="w-full py-3.5 px-4 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-slate-200 font-bold text-xs transition flex items-center justify-between shadow-md active:scale-95 cursor-pointer"
-        >
-          <div className="flex items-center gap-2 font-extrabold">
-            <BookOpen size={16} className="text-cyan-400" />
-            <span>SÖZLÜK ANSİKLOPEDİSİ & KOLEKSİYON</span>
-          </div>
-          <span className="text-[10px] font-black text-cyan-300 bg-slate-950 px-2.5 py-0.5 rounded-lg border border-slate-800">
-            ANSİKLOPEDİ 📖
-          </span>
-        </button>
-
-        {/* 4. Utility bar — profile / sound / settings / decks */}
-        <div className="flex items-center gap-2 mt-1">
-          <div className="flex-1 flex items-center gap-2 px-3 py-2 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-md">
-            <div className="w-7 h-7 rounded-xl bg-amber-500/15 border border-amber-500/40 flex items-center justify-center text-amber-300 shrink-0">
-              <User size={14} />
-            </div>
-            <span className="text-[11px] font-black text-slate-300 truncate">Oyuncu</span>
-          </div>
-
-          <button
-            onClick={() => setActiveModal('DECKS')}
-            title="Başlangıç Destesi"
-            className="w-11 h-11 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 text-slate-300 flex items-center justify-center shadow-md active:scale-95 cursor-pointer shrink-0"
-          >
-            <Layers size={16} />
-          </button>
 
           <button
             onClick={handleToggleSound}
             title="Ses Efektleri"
-            className={`w-11 h-11 rounded-2xl border flex items-center justify-center shadow-md active:scale-95 cursor-pointer shrink-0 transition ${
-              soundEnabled
-                ? 'bg-slate-900/90 hover:bg-slate-800 border-slate-800 text-slate-300'
-                : 'bg-rose-950/60 hover:bg-rose-950 border-rose-500/50 text-rose-300'
+            className={`p-2.5 rounded-2xl border backdrop-blur-md transition cursor-pointer shadow-md ${
+              soundEnabled ? 'bg-slate-950/80 border-slate-700 text-slate-200' : 'bg-rose-950/80 border-rose-500 text-rose-300'
             }`}
           >
-            {soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+            {soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
           </button>
 
           <button
             onClick={() => setActiveModal('SETTINGS')}
             title="Ayarlar"
-            className="w-11 h-11 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 text-slate-300 flex items-center justify-center shadow-md active:scale-95 cursor-pointer shrink-0"
+            className="p-2.5 rounded-2xl bg-slate-950/80 border border-slate-700 hover:border-amber-400 text-amber-300 backdrop-blur-md transition cursor-pointer shadow-md"
           >
-            <Settings size={16} />
+            <Settings size={18} />
           </button>
+        </div>
+      </div>
+
+      {/* MAIN MENU ACTION BUTTONS — POSITIONED AT VERY BOTTOM OF SCREEN */}
+      <div className="w-full max-w-4xl mx-auto z-10 mt-auto mb-2">
+        <div className="flex flex-row-reverse flex-wrap items-center justify-center gap-2.5 sm:gap-3.5">
+          {/* 1. BUTTON (RIGHTMOST): YENİ RUN BAŞLAT */}
+          <motion.button
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.96 }}
+            onClick={() => onStartRun(selectedDeckId)}
+            className="flex-1 min-w-[150px] sm:min-w-[180px] py-3.5 px-4 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-xs sm:text-sm transition flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(245,158,11,0.5)] border border-yellow-200 cursor-pointer animate-pulse-glow"
+          >
+            <Play size={18} className="fill-slate-950" />
+            <span>YENİ RUN BAŞLAT</span>
+          </motion.button>
+
+          {/* 2. BUTTON: DEVAM ET (KALDIĞIN YERDEN) */}
+          {hasActiveRun && (
+            <motion.button
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
+              onClick={onResumeRun}
+              className="flex-1 min-w-[140px] sm:min-w-[170px] py-3.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-slate-950 font-black text-xs sm:text-sm transition flex items-center justify-center gap-2 shadow-xl shadow-emerald-950/50 border border-emerald-400/50 cursor-pointer"
+            >
+              <RotateCcw size={16} />
+              <span>DEVAM ET</span>
+            </motion.button>
+          )}
+
+          {/* 3. BUTTON: BAŞLANGIÇ DESTESİ SEÇİMİ */}
+          <motion.button
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.96 }}
+            onClick={() => setActiveModal('DECKS')}
+            className="flex-1 min-w-[130px] sm:min-w-[160px] py-3 px-3.5 rounded-2xl bg-slate-950/90 hover:bg-slate-900 border border-purple-500/50 text-purple-200 font-bold text-xs transition flex items-center justify-center gap-2 shadow-md backdrop-blur-md cursor-pointer"
+          >
+            <Layers size={15} className="text-purple-400" />
+            <span>DESTE SEÇ</span>
+          </motion.button>
+
+          {/* 4. BUTTON: SÖZLÜK ANSİKLOPEDİSİ (CODEX) */}
+          <motion.button
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.96 }}
+            onClick={() => { if (onOpenCodex) onOpenCodex(); else setActiveModal('COLLECTION'); }}
+            className="flex-1 min-w-[130px] sm:min-w-[160px] py-3 px-3.5 rounded-2xl bg-slate-950/90 hover:bg-slate-900 border border-cyan-500/50 text-cyan-200 font-bold text-xs transition flex items-center justify-center gap-2 shadow-md backdrop-blur-md cursor-pointer"
+          >
+            <BookOpen size={15} className="text-cyan-400" />
+            <span>ANSİKLOPEDİ</span>
+          </motion.button>
+
+          {/* 5. BUTTON (LEFTMOST): ÖZEL MEYDAN OKUMALAR (CHALLENGES) */}
+          <motion.button
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.96 }}
+            onClick={() => { if (onOpenChallengeSelect) onOpenChallengeSelect(); }}
+            className="flex-1 min-w-[130px] sm:min-w-[160px] py-3 px-3.5 rounded-2xl bg-slate-950/90 hover:bg-slate-900 border border-rose-500/50 text-rose-200 font-bold text-xs transition flex items-center justify-center gap-2 shadow-md backdrop-blur-md cursor-pointer"
+          >
+            <Trophy size={15} className="text-rose-400" />
+            <span>MEYDAN OKUMALAR</span>
+          </motion.button>
         </div>
       </div>
 
