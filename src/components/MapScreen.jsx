@@ -91,49 +91,16 @@ export function MapScreen({
           </div>
         </div>
 
-        {/* ── 2. NEON CONNECTOR STEPPER LINE ── */}
-        <div className="my-3 px-4 py-2.5 rounded-3xl bg-slate-950/80 border border-slate-800 shadow-2xl backdrop-blur-md flex items-center justify-between gap-2 z-20 overflow-x-auto scrollbar-none w-full max-w-5xl mx-auto">
-          {blinds.map((blind, idx) => {
-            const isCurrent = idx === currentBlindIndex && blind.status !== 'COMPLETED' && blind.status !== 'SKIPPED';
-            const isDone = blind.status === 'COMPLETED';
-            const isSkipped = blind.status === 'SKIPPED';
-
-            return (
-              <React.Fragment key={blind.id}>
-                {idx > 0 && (
-                  <div className={`h-1 flex-1 min-w-[12px] rounded-full transition-all duration-500 ${
-                    isDone || isSkipped ? 'bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.8)]' : 'bg-slate-800'
-                  }`} />
-                )}
-                <div
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border text-xs font-black transition-all whitespace-nowrap ${
-                    isCurrent
-                      ? 'bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-slate-950 border-yellow-200 shadow-[0_0_20px_rgba(245,158,11,0.9)] animate-pulse'
-                      : isDone
-                      ? 'bg-emerald-950/90 border-emerald-500/70 text-emerald-300'
-                      : isSkipped
-                      ? 'bg-purple-950/90 border-purple-500/70 text-purple-300'
-                      : 'bg-slate-950/80 border-slate-800 text-slate-500'
-                  }`}
-                >
-                  <span>{isDone ? '✓' : isSkipped ? '⏩' : isCurrent ? '◉' : '🔒'}</span>
-                  <span>{blind.title}</span>
-                </div>
-              </React.Fragment>
-            );
-          })}
-        </div>
-
-        {/* ── 3. BLIND CARDS CAROUSEL WITH 3D NEON EFFECTS ── */}
+                {/* ── 3. BLIND CARDS CAROUSEL WITH 3D NEON EFFECTS ── */}
         <div className="flex-1 flex items-center gap-2 z-20 min-h-[360px] my-auto">
           <button
             onClick={() => scrollCarousel(-1)}
-            className="shrink-0 w-10 h-16 rounded-2xl bg-slate-950/90 hover:bg-slate-900 border border-amber-500/40 text-amber-300 flex items-center justify-center transition cursor-pointer shadow-xl"
+            className="hidden md:flex shrink-0 w-10 h-16 rounded-2xl bg-slate-950/90 hover:bg-slate-900 border border-amber-500/40 text-amber-300 items-center justify-center transition cursor-pointer shadow-xl"
           >
             <ChevronLeft size={24} />
           </button>
 
-          <div ref={carouselRef} className="flex-1 h-full flex items-center justify-start sm:justify-center snap-x snap-mandatory gap-4 sm:gap-6 py-2 px-4 overflow-x-auto scrollbar-none w-full max-w-6xl mx-auto">
+          <div ref={carouselRef} className="flex-1 w-full h-full flex items-center justify-center gap-3 sm:gap-6 py-2 px-2 overflow-x-auto scrollbar-none">
             {blinds.map((blind, idx) => {
               const isCurrent = idx === currentBlindIndex && blind.status !== 'COMPLETED' && blind.status !== 'SKIPPED';
               const isDone = blind.status === 'COMPLETED';
@@ -166,7 +133,7 @@ export function MapScreen({
                   ref={isCurrent ? activeCardRef : null}
                   whileHover={isCurrent ? { scale: 1.04, y: -6 } : {}}
                   transition={{ duration: 0.2 }}
-                  className={`w-[260px] sm:w-[280px] min-h-[380px] h-auto snap-center shrink-0 rounded-3xl p-4 sm:p-5 flex flex-col justify-between border backdrop-blur-xl relative overflow-hidden shadow-2xl ${cardStyle}`}
+                  className={`flex-1 min-w-[240px] max-w-[310px] min-h-[420px] h-auto snap-center shrink-0 rounded-3xl p-4 sm:p-5 flex flex-col justify-between border backdrop-blur-xl relative shadow-2xl ${cardStyle}`}
                 >
                   {/* CARD HEADER */}
                   <div className="flex flex-col gap-2">
@@ -299,7 +266,7 @@ export function MapScreen({
 
           <button
             onClick={() => scrollCarousel(1)}
-            className="shrink-0 w-10 h-16 rounded-2xl bg-slate-950/90 hover:bg-slate-900 border border-amber-500/40 text-amber-300 flex items-center justify-center transition cursor-pointer shadow-xl"
+            className="hidden md:flex shrink-0 w-10 h-16 rounded-2xl bg-slate-950/90 hover:bg-slate-900 border border-amber-500/40 text-amber-300 items-center justify-center transition cursor-pointer shadow-xl"
           >
             <ChevronRight size={24} />
           </button>
