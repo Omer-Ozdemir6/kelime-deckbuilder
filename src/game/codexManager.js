@@ -9,7 +9,7 @@ const STAKE_STORAGE_KEY = 'kd_unlocked_stakes_v1';
 // Default unlocked items for brand new players
 const DEFAULT_DISCOVERIES = [
   'A', 'B', 'C', 'D', 'E', 'K', 'L', 'M', 'N', 'O', 'R', 'S', 'T', 'Y',
-  'BIOME_ZINDAN'
+  'BIOME_FROZEN'
 ];
 
 const DEFAULT_HEROES = ['SPELLCASTER'];

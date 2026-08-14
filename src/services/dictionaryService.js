@@ -8,13 +8,29 @@ const MEANINGS_CACHE_KEY = 'kd_word_meanings_cache';
 function getCache() {
   try {
     const raw = localStorage.getItem(MEANINGS_CACHE_KEY);
-    return raw ? JSON.parse(raw) : {};
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    let changed = false;
+    // Clean out any stale fallback entries from cache
+    for (const key of Object.keys(parsed)) {
+      if (parsed[key]?.isFallback) {
+        delete parsed[key];
+        changed = true;
+      }
+    }
+    if (changed) {
+      localStorage.setItem(MEANINGS_CACHE_KEY, JSON.stringify(parsed));
+    }
+    return parsed;
   } catch (e) {
     return {};
   }
 }
 
 function saveToCache(word, data) {
+  // NEVER cache fallback placeholders!
+  if (!data || data.isFallback) return;
+
   try {
     const cache = getCache();
     cache[word] = data;
@@ -64,14 +80,20 @@ function extractStemCandidates(word) {
 
 async function fetchFromTDK(queryWord) {
   const cleanWord = queryWord.toLowerCase('tr-TR').trim();
+  const targetUrl = `https://sozluk.gov.tr/gts?ara=${encodeURIComponent(cleanWord)}`;
+
   const urls = [
+    // 1. Local Vite dev server proxy (No CORS restrictions)
     `/api/tdk/gts?ara=${encodeURIComponent(cleanWord)}`,
-    `https://api.allorigins.win/get?url=${encodeURIComponent('https://sozluk.gov.tr/gts?ara=' + cleanWord)}`
+    // 2. Direct TDK API
+    targetUrl
   ];
+
+
 
   for (const url of urls) {
     try {
-      const response = await fetch(url, { signal: AbortSignal.timeout(3000) });
+      const response = await fetch(url, { signal: AbortSignal.timeout(5000) });
       if (!response.ok) continue;
       const json = await response.json();
 
@@ -87,24 +109,25 @@ async function fetchFromTDK(queryWord) {
         data = json;
       }
 
-      if (data && data.anlamlarListe) {
+      if (data && data.anlamlarListe && Array.isArray(data.anlamlarListe) && data.anlamlarListe.length > 0) {
         const meanings = data.anlamlarListe.map(a => ({
           anlam: a.anlam,
-          type: a.ozelHaklar ? a.ozelHaklar[0]?.kisa_adı : (a.fiil === '1' ? 'fiil' : 'isim'),
-          example: a.orneklerListe ? a.orneklerListe[0]?.ornek : null,
-          author: a.orneklerListe ? a.orneklerListe[0]?.yazar ? a.orneklerListe[0].yazar[0]?.tam_adı : null : null
+          type: a.ozelHaklar && a.ozelHaklar[0] ? a.ozelHaklar[0].kisa_adı : (a.fiil === '1' ? 'fiil' : 'isim'),
+          example: a.orneklerListe && a.orneklerListe[0] ? a.orneklerListe[0].ornek : null,
+          author: a.orneklerListe && a.orneklerListe[0] && a.orneklerListe[0].yazar ? a.orneklerListe[0].yazar[0]?.tam_adı : null
         }));
 
         return {
           word: (data.madde || cleanWord).toUpperCase('tr-TR'),
           matchedQuery: queryWord,
           found: true,
-          meanings: meanings.slice(0, 4), // Top 4 meanings
+          isFallback: false,
+          meanings: meanings.slice(0, 5),
           proverbCount: data.atasozu ? data.atasozu.length : 0
         };
       }
     } catch (e) {
-      // Try next fallback silently
+      // Try next endpoint
     }
   }
   return null;
@@ -114,9 +137,9 @@ export async function getWordMeaning(rawWord) {
   if (!rawWord || typeof rawWord !== 'string') return null;
   const uppercaseWord = rawWord.toUpperCase('tr-TR').trim();
 
-  // Check Cache
+  // Check Cache (ignoring fallbacks)
   const cache = getCache();
-  if (cache[uppercaseWord]) {
+  if (cache[uppercaseWord] && !cache[uppercaseWord].isFallback) {
     return cache[uppercaseWord];
   }
 
@@ -124,7 +147,7 @@ export async function getWordMeaning(rawWord) {
 
   for (const candidate of candidates) {
     const res = await fetchFromTDK(candidate);
-    if (res && res.found) {
+    if (res && res.found && !res.isFallback) {
       const resultData = {
         ...res,
         originalWord: uppercaseWord,
@@ -135,14 +158,14 @@ export async function getWordMeaning(rawWord) {
     }
   }
 
-  // Rich contextual Turkish word definition fallback (100% reliable offline/online)
+  // Fallback placeholder only if network is completely offline / unreachable
   const vowels = ['A', 'E', 'I', 'İ', 'O', 'Ö', 'U', 'Ü'];
   const vowelCount = [...uppercaseWord].filter(c => vowels.includes(c)).length;
   const consonantCount = Math.max(0, uppercaseWord.length - vowelCount);
   const isVerb = uppercaseWord.endsWith('MAK') || uppercaseWord.endsWith('MEK');
   const wordType = isVerb ? 'fiil' : 'isim';
 
-  const fallback = {
+  return {
     word: uppercaseWord,
     originalWord: uppercaseWord,
     found: true,
@@ -155,6 +178,5 @@ export async function getWordMeaning(rawWord) {
       }
     ]
   };
-  saveToCache(uppercaseWord, fallback);
-  return fallback;
 }
+

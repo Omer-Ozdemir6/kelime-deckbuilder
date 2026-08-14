@@ -78,8 +78,8 @@ export const SEAL_DEFINITIONS = {
     id: 'EMERALD_SEAL',
     name: '💚 Zümrüt Mühür',
     icon: '💚',
-    bonusGold: 15,
-    desc: 'Oynandığında anında +15 Ekstra Altın kazandırır.',
+    bonusGold: 4,
+    desc: 'Oynandığında anında +4 Ekstra Altın kazandırır.',
     badgeClass: 'border-emerald-400 bg-emerald-950/90 text-emerald-300 shadow-emerald-500/50'
   },
   LIGHTNING_SEAL: {
@@ -571,7 +571,7 @@ export const SPECIAL_CARDS = {
     type: 'golden',
     cost: 45,
     rarity: 'nadir',
-    desc: 'Oynandığında anında +15 Ekstra Altın kazandırır.',
+    desc: 'Oynandığında anında +4 Ekstra Altın kazandırır.',
     bgGradient: 'from-yellow-400 via-amber-500 to-yellow-600'
   },
   ASH: {
@@ -1307,10 +1307,11 @@ export const PASSIVE_JOKERS_BY_RARITY = {
 export const STARTER_DECKS = [
   {
     id: 'starter_basit',
-    name: 'Standart Deste (Kırmızı)',
-    desc: '20 Türkçe harften oluşan dengeli ve klasik başlangıç destesi.',
+    name: 'Standart Deste (Klasik Kırmızı)',
+    desc: '20 Türkçe harften oluşan dengeli ve klasik başlangıç destesi. +$15 Başlangıç altını.',
     icon: '🃏',
     unlocked: true,
+    bonusGold: 15,
     letters: ['A', 'A', 'A', 'E', 'E', 'E', 'İ', 'O', 'U', 'K', 'K', 'L', 'L', 'M', 'N', 'R', 'S', 'T', 'B', 'Y']
   },
   {
@@ -1319,16 +1320,17 @@ export const STARTER_DECKS = [
     desc: 'Bolca sesli harf içeren 22 kartlık kolay kelime türetme destesi.',
     icon: '🌊',
     unlocked: true,
+    bonusGold: 10,
     letters: ['A', 'A', 'A', 'A', 'E', 'E', 'E', 'İ', 'İ', 'I', 'O', 'Ö', 'U', 'Ü', 'K', 'L', 'M', 'N', 'R', 'S', 'T', 'Y']
   },
   {
     id: 'starter_tyccar',
     name: 'Tüccar Destesi (Altın)',
-    desc: 'Oyuna ekstra +20 Altın ve 2 adet Altın Harf avantajıyla başlar.',
+    desc: 'Oyuna ekstra +$35 Altın ve 2 adet Altın Harf avantajıyla başlar.',
     icon: '💰',
-    unlocked: false,
-    unlockCost: 40,
-    bonusGold: 20,
+    unlocked: true,
+    unlockCost: 0,
+    bonusGold: 35,
     letters: ['A', 'A', 'E', 'E', 'İ', 'O', 'K', 'K', 'L', 'M', 'N', 'R', 'S', 'T', 'B', 'D', 'Y', 'Z', 'GOLDEN', 'GOLDEN']
   },
   {
@@ -1336,8 +1338,8 @@ export const STARTER_DECKS = [
     name: 'Nadir Harfler Destesi (Zümrüt)',
     desc: 'J, Z, Ş, Ğ, Ç, V, P gibi devasa puanlı ama zor Türkçe harfler içerir.',
     icon: '💎',
-    unlocked: false,
-    unlockCost: 80,
+    unlocked: true,
+    unlockCost: 0,
     letters: ['A', 'A', 'E', 'E', 'İ', 'K', 'L', 'R', 'Ş', 'Ç', 'Ğ', 'Z', 'J', 'F', 'P', 'V', 'C', 'H']
   },
   {
@@ -1346,7 +1348,7 @@ export const STARTER_DECKS = [
     desc: 'Her yeni oyunda 20 harf tamamen rastgele ve sürpriz biçimde türetilir!',
     icon: '🎲',
     unlocked: false,
-    unlockCost: 100,
+    unlockCost: 30,
     isErratic: true,
     letters: []
   },
@@ -1356,7 +1358,7 @@ export const STARTER_DECKS = [
     desc: 'Sadece 12 harften oluşan ultra hızlı dönen kombo destesi.',
     icon: '🗡️',
     unlocked: false,
-    unlockCost: 120,
+    unlockCost: 40,
     letters: ['A', 'A', 'E', 'İ', 'K', 'K', 'L', 'M', 'N', 'R', 'S', 'T']
   },
   {
@@ -1365,27 +1367,32 @@ export const STARTER_DECKS = [
     desc: 'Başlangıçta Ateşli, Şanslı ve Çift Harf efsunlu harfler taşır.',
     icon: '🔥',
     unlocked: false,
-    unlockCost: 150,
+    unlockCost: 50,
     letters: ['A', 'A', 'E', 'E', 'İ', 'O', 'K', 'L', 'M', 'N', 'R', 'S', 'T', 'Y', 'MIRROR', 'DOUBLE', 'JOKER', 'ASH']
   }
 ];
 
+
 let nextCardId = 1;
 
-export function createCard(letterOrSpecialKey, upgradeLevel = 0, infusedType = null, seal = null) {
+export function createCard(letterOrSpecialKey = 'A', upgradeLevel = 0, infusedType = null, seal = null) {
   const uniqueSuffix = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}_${Math.floor(Math.random() * 1000000)}`;
 
-  if (SPECIAL_CARDS[letterOrSpecialKey]) {
-    const spec = SPECIAL_CARDS[letterOrSpecialKey];
+  let key = letterOrSpecialKey;
+  if (key === 'JOKER_CARD' || key === 'JOKER_HARF') key = 'JOKER';
+  if (key === 'FOIL_JOKER') key = 'RAINBOW_JOKER';
+
+  if (SPECIAL_CARDS[key]) {
+    const spec = SPECIAL_CARDS[key];
     return {
       id: `card_spec_${nextCardId++}_${uniqueSuffix}`,
-      letter: spec.letter,
+      letter: '🃏',
       isSpecial: true,
-      specialType: spec.type,
+      specialType: spec.type || 'joker',
       name: spec.name,
       points: spec.points || 0,
       upgradeLevel: 0,
-      rarity: spec.rarity,
+      rarity: spec.rarity || 'nadir',
       desc: spec.desc,
       bgGradient: spec.bgGradient,
       infusedType: infusedType,
@@ -1393,7 +1400,13 @@ export function createCard(letterOrSpecialKey, upgradeLevel = 0, infusedType = n
     };
   }
 
-  const upper = letterOrSpecialKey.toUpperCase();
+  let upper = String(key || 'A').toUpperCase();
+  if (upper === 'BUFFOON_PACK' || upper === 'ARCANA_PACK' || upper.length > 2) {
+    const specialKeys = Object.keys(SPECIAL_CARDS);
+    const randomSpecKey = specialKeys[Math.floor(Math.random() * specialKeys.length)];
+    return createCard(randomSpecKey, upgradeLevel, infusedType, seal);
+  }
+
   const def = LETTER_DEFINITIONS[upper] || { points: 1, rarity: 'normal', desc: 'Harf' };
 
   const basePoints = def.points;

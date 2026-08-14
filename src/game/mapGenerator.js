@@ -174,7 +174,7 @@ export function generateKademe(kademeNumber = 1) {
       title: 'Küçük Mücadele',
       icon: '📜',
       targetScore: smallTarget,
-      rewardGold: 10 + kademeNumber * 2,
+      rewardGold: 3 + Math.floor(kademeNumber / 2),
       tag: smallTag,
       canSkip: true,
       status: 'ACTIVE'
@@ -241,7 +241,7 @@ export function generateKademe(kademeNumber = 1) {
     title: 'Büyük Mücadele',
     icon: '⚔️',
     targetScore: bigTarget,
-    rewardGold: 20 + kademeNumber * 3,
+    rewardGold: 4 + Math.floor(kademeNumber / 2),
     tag: bigTag,
     canSkip: true,
     status: 'LOCKED'
@@ -255,15 +255,20 @@ export function generateKademe(kademeNumber = 1) {
     title: `Boss: ${bossRuleDef.title}`,
     icon: '👑',
     targetScore: bossTarget,
-    rewardGold: 35 + kademeNumber * 5,
+    rewardGold: 5 + Math.floor(kademeNumber / 2),
     bossRule: { ...bossRuleDef, title: `👑 ${bossRuleDef.title}`, desc: `${bossRuleDef.desc} (Hedef: ${bossTarget} Puan)` },
     maxHandsOverride: 7,
     canSkip: false,
     status: 'LOCKED'
   });
 
+  // Assign Biome based on Kademe number
+  const biomeIndex = Math.min(kademeNumber - 1, REGIONAL_BIOMES.length - 1);
+  const biome = REGIONAL_BIOMES[biomeIndex] || REGIONAL_BIOMES[0];
+
   return {
     kademeNumber,
+    biome,
     blinds
   };
 }

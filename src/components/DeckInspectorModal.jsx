@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { X, Layers, Sparkles, PieChart, Percent, Activity } from 'lucide-react';
 import { getRarityDetails } from '../game/cardData';
+import { RunicCardFrame } from './RunicCardFrame';
+import { JokerCardIllustration } from './JokerCardIllustration';
 
 export function DeckInspectorModal({ fullDeck = [], onClose }) {
   const [tab, setTab] = useState('DECK'); // 'DECK' | 'STATS'
@@ -30,7 +32,7 @@ export function DeckInspectorModal({ fullDeck = [], onClose }) {
       <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
         <div className="flex items-center gap-2">
           <Layers className="text-amber-400" size={20} />
-          <h2 className="text-base sm:text-lg font-extrabold text-slate-100 font-cinzel">DESTE & CANLI İSTATİSTİK İNSP EKTÖRÜ</h2>
+          <h2 className="text-base sm:text-lg font-extrabold text-slate-100 font-cinzel">DESTE & CANLI İSTATİSTİK İNSPEKTÖRÜ</h2>
         </div>
         <button
           onClick={onClose}
@@ -88,18 +90,23 @@ export function DeckInspectorModal({ fullDeck = [], onClose }) {
               return (
                 <div
                   key={`${card.id}_inspect_${idx}`}
-                  className="p-2.5 rounded-2xl border border-slate-800 bg-slate-900 flex flex-col items-center justify-between gap-1 shadow relative"
+                  className="p-2.5 rounded-2xl border border-slate-800 bg-slate-900 flex flex-col items-center justify-between gap-1 shadow relative overflow-hidden min-h-[90px]"
                 >
+                  <RunicCardFrame rarity={card.isSpecial ? 'joker' : (card.rarity === 'efsanevi' ? 'legendary' : 'common')} />
                   {card.upgradeLevel > 0 && (
-                    <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-400 text-slate-950 font-black text-[9px] flex items-center justify-center shadow">
+                    <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-400 text-slate-950 font-black text-[9px] flex items-center justify-center shadow z-20">
                       +{card.upgradeLevel}
                     </div>
                   )}
-                  <span className="text-[9px] font-bold text-slate-400 uppercase truncate w-full text-center">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase truncate w-full text-center z-10">
                     {card.isSpecial ? 'ÖZEL' : rarity.label}
                   </span>
-                  <span className="text-2xl font-black text-amber-300">{card.letter}</span>
-                  <span className="text-[10px] font-bold text-amber-400/90">
+                  {card.isSpecial || card.type === 'joker' ? (
+                    <JokerCardIllustration cardId={card.id} type={card.specialType || 'joker'} className="w-8 h-8 z-10" />
+                  ) : (
+                    <span className="text-2xl font-black text-amber-300 font-cinzel z-10">{card.letter}</span>
+                  )}
+                  <span className="text-[10px] font-bold text-amber-400/90 z-10">
                     {card.isSpecial ? '★' : `${card.points}pt`}
                   </span>
                 </div>
@@ -108,6 +115,7 @@ export function DeckInspectorModal({ fullDeck = [], onClose }) {
           </div>
         </>
       )}
+
 
       {/* TAB 2: PROBABILITY & STATS */}
       {tab === 'STATS' && (

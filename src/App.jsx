@@ -26,6 +26,7 @@ import { StakesSelectModal, STAKES_DEFINITIONS } from './components/StakesSelect
 import { JokerSelectorModal } from './components/JokerSelectorModal';
 import { ChallengeSelectModal } from './components/ChallengeSelectModal';
 import { AchievementToast } from './components/AchievementToast';
+import { SvgFilterDefs } from './components/SvgFilterDefs';
 import { useGameState } from './hooks/useGameState';
 import { checkMetaUnlocks } from './game/metaUnlocks';
 
@@ -125,7 +126,9 @@ export default function App() {
 
   return (
     <VerticalMobileContainer activeBiome={activeBiome}>
+      <SvgFilterDefs />
       <BalatroBackground stage={stage || gameStateObj.currentKademe || 1} />
+
       {/* REAL-TIME UNLOCKED ACHIEVEMENT POPUP TOAST */}
       {gameStateObj.activeAchievementToast && (
         <AchievementToast
@@ -237,12 +240,17 @@ export default function App() {
             boardSlotModifiers={gameStateObj.boardSlotModifiers}
             onUnselectCard={unselectCard}
             onClearCards={clearSelectedCards}
+            onShuffleHand={gameStateObj.shuffleHand}
+            onDiscardHand={discardAndRedraw}
+            discardsLeft={discardsLeft}
+
             onPlayWord={playWord}
             onPassTurn={gameStateObj.passTurnOrSurrender}
             feedbackMessage={feedbackMessage}
             currentWordMeaning={currentWordMeaning}
             onOpenMeaningModal={openWordMeaningModal}
           />
+
 
           <HandCardRack
             handCards={hand}

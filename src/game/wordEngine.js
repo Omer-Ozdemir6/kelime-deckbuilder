@@ -82,10 +82,24 @@ function scoreJokerCandidate(candidate, letter) {
   return score;
 }
 
+function isJokerCard(c) {
+  if (!c) return false;
+  const ltr = String(c.letter || '').toUpperCase();
+  return (
+    c.isSpecial ||
+    c.type === 'joker' ||
+    c.specialType === 'joker' ||
+    ltr.includes('JOKER') ||
+    ltr.includes('BUFFOON') ||
+    ltr.includes('ARCANA') ||
+    ltr.length > 1
+  );
+}
+
 function solveJokerWord(selectedCards, playedWordsThisStage = []) {
   const jokerIndices = [];
   selectedCards.forEach((c, idx) => {
-    if (c.isSpecial && (c.specialType === 'joker' || c.type === 'joker')) {
+    if (isJokerCard(c)) {
       jokerIndices.push(idx);
     }
   });
@@ -93,12 +107,12 @@ function solveJokerWord(selectedCards, playedWordsThisStage = []) {
   const buildCandidateStr = (jokerSubstitutions = {}) => {
     let str = '';
     selectedCards.forEach((c, idx) => {
-      if (c.isSpecial) {
-        if (c.specialType === 'joker' || c.type === 'joker') {
-          str += jokerSubstitutions[idx] || 'A';
-        }
+      if (isJokerCard(c)) {
+        const assigned = c.assignedLetter || jokerSubstitutions[idx] || 'A';
+        str += assigned;
       } else {
-        str += c.letter || '';
+        const cleanLtr = String(c.letter || '').toUpperCase('tr-TR').trim();
+        str += cleanLtr.length === 1 ? cleanLtr : 'A';
       }
     });
     return str.toUpperCase('tr-TR').trim();
@@ -112,6 +126,7 @@ function solveJokerWord(selectedCards, playedWordsThisStage = []) {
       isResolved: true
     };
   }
+
 
   // 1 Joker case
   if (jokerIndices.length === 1) {

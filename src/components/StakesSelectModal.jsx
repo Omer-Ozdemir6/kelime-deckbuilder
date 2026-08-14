@@ -1,12 +1,98 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, ChevronRight, ChevronLeft, X, Lock, Zap, ShieldAlert, Info } from 'lucide-react';
+import { Trophy, ChevronRight, ChevronLeft, X, Lock, Zap, Info, ShieldAlert } from 'lucide-react';
 import { soundEngine } from '../game/audioEngine';
 import { getUnlockedStakes } from '../game/codexManager';
 
-// ─────────────────────────────────────────────────────────────
-// 10 ZORLUK MÜHÜRİ — Balatro'nun 8'ini aşıyor, her biri kümülatif
-// ─────────────────────────────────────────────────────────────
+// Custom 3D SVG Stake Seals Component
+function StakeSealSvgEmblem({ stakeId, isUnlocked }) {
+  const getSealColors = () => {
+    switch (stakeId) {
+      case 'WHITE_STAKE': return { main: '#e2e8f0', glow: '#94a3b8', bg: '#1e293b' };
+      case 'RED_STAKE': return { main: '#f87171', glow: '#ef4444', bg: '#4c0519' };
+      case 'GREEN_STAKE': return { main: '#4ade80', glow: '#10b981', bg: '#052e16' };
+      case 'BLACK_STAKE': return { main: '#c084fc', glow: '#9333ea', bg: '#1a0533' };
+      case 'BLUE_STAKE': return { main: '#38bdf8', glow: '#0284c7', bg: '#082f49' };
+      case 'PURPLE_STAKE': return { main: '#e9d5ff', glow: '#a855f7', bg: '#3b0764' };
+      case 'ORANGE_STAKE': return { main: '#fb923c', glow: '#f97316', bg: '#431407' };
+      case 'GOLD_STAKE': return { main: '#fef08a', glow: '#eab308', bg: '#713f12' };
+      case 'OBSIDIAN_STAKE': return { main: '#a5b4fc', glow: '#6366f1', bg: '#1e1b4b' };
+      case 'DIAMOND_STAKE': return { main: '#a5f3fc', glow: '#06b6d4', bg: '#083344' };
+      default: return { main: '#e2e8f0', glow: '#94a3b8', bg: '#1e293b' };
+    }
+  };
+
+  const colors = getSealColors();
+
+  return (
+    <div className="relative flex items-center justify-center">
+      {/* Background Ambient Glow */}
+      <div 
+        className="absolute w-28 h-28 rounded-full blur-xl pointer-events-none transition-all" 
+        style={{ background: isUnlocked ? colors.glow : 'transparent', opacity: 0.5 }} 
+      />
+
+      <svg className="w-24 h-24 sm:w-28 sm:h-28 drop-shadow-[0_8px_25px_rgba(0,0,0,0.7)]" viewBox="0 0 120 120" fill="none">
+        <defs>
+          <linearGradient id={`stakeGrad_${stakeId}`} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor={colors.main} />
+            <stop offset="100%" stopColor={colors.glow} />
+          </linearGradient>
+          <radialGradient id={`stakeInner_${stakeId}`} cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor={colors.bg} />
+            <stop offset="100%" stopColor="#020617" />
+          </radialGradient>
+        </defs>
+
+        {/* Outer Wax Seal Edge Points */}
+        <path d="M60 8 C72 8, 80 14, 90 20 C100 28, 110 38, 112 50 C114 65, 108 78, 98 88 C88 98, 75 110, 60 112 C45 110, 32 98, 22 88 C12 78, 6 65, 8 50 C10 38, 20 28, 30 20 C40 14, 48 8, 60 8 Z" 
+          fill={`url(#stakeGrad_${stakeId})`} stroke="#fef08a" strokeWidth="1.5" opacity={isUnlocked ? 1 : 0.4} />
+
+        {/* Inner Dark Basin */}
+        <circle cx="60" cy="60" r="44" fill={`url(#stakeInner_${stakeId})`} stroke={colors.main} strokeWidth="2" strokeDasharray="8 3" opacity={isUnlocked ? 0.9 : 0.4} />
+        
+        {/* Runic Inner Accent Ring */}
+        <circle cx="60" cy="60" r="36" fill="none" stroke="#fde047" strokeWidth="1" strokeDasharray="4 2" opacity="0.6" />
+
+        {/* Center Symbol Art based on Stake Tier */}
+        {stakeId === 'WHITE_STAKE' && (
+          <circle cx="60" cy="60" r="18" fill="#ffffff" stroke="#cbd5e1" strokeWidth="2" />
+        )}
+        {stakeId === 'RED_STAKE' && (
+          <path d="M60 40 L76 60 L60 80 L44 60 Z" fill="#f87171" stroke="#fef08a" strokeWidth="1.5" />
+        )}
+        {stakeId === 'GREEN_STAKE' && (
+          <path d="M60 38 C75 38, 80 50, 60 80 C40 50, 45 38, 60 38 Z" fill="#4ade80" stroke="#fef08a" strokeWidth="1.5" />
+        )}
+        {stakeId === 'BLACK_STAKE' && (
+          <path d="M60 36 C72 36, 78 48, 78 60 C78 72, 60 82, 60 82 C60 82, 42 72, 42 60 C42 48, 48 36, 60 36 Z" fill="#a78bfa" stroke="#fef08a" strokeWidth="1.5" />
+        )}
+        {stakeId === 'BLUE_STAKE' && (
+          <polygon points="60,35 68,48 82,48 70,58 75,72 60,63 45,72 50,58 38,48 52,48" fill="#38bdf8" stroke="#fef08a" strokeWidth="1.5" />
+        )}
+        {stakeId === 'PURPLE_STAKE' && (
+          <g>
+            <circle cx="60" cy="56" r="14" fill="#c084fc" />
+            <path d="M50 70 L70 70 L66 78 L54 78 Z" fill="#c084fc" />
+          </g>
+        )}
+        {stakeId === 'ORANGE_STAKE' && (
+          <path d="M50 40 L70 40 L55 60 L70 80 L50 80 L65 60 Z" fill="#fb923c" stroke="#fef08a" strokeWidth="1.5" />
+        )}
+        {stakeId === 'GOLD_STAKE' && (
+          <circle cx="60" cy="60" r="18" fill="#facc15" stroke="#fef08a" strokeWidth="2.5" />
+        )}
+        {stakeId === 'OBSIDIAN_STAKE' && (
+          <path d="M42 40 L60 82 L78 40 L60 52 Z" fill="#818cf8" stroke="#fef08a" strokeWidth="1.5" />
+        )}
+        {stakeId === 'DIAMOND_STAKE' && (
+          <polygon points="60,32 80,50 60,86 40,50" fill="#22d3ee" stroke="#ffffff" strokeWidth="2" />
+        )}
+      </svg>
+    </div>
+  );
+}
+
 export const STAKES_DEFINITIONS = [
   {
     id: 'WHITE_STAKE',
@@ -17,9 +103,9 @@ export const STAKES_DEFINITIONS = [
     tier: 0,
     glowColor: '#e2e8f0',
     ringColor: 'rgba(226,232,240,0.5)',
-    cardGradient: 'linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #1e293b 100%)',
-    borderColor: '#475569',
-    accentColor: '#94a3b8',
+    cardGradient: 'from-slate-900 via-slate-950 to-slate-900',
+    borderColor: '#94a3b8',
+    accentColor: '#f8fafc',
     cumulativeModifiers: [],
     desc: 'Temel roguelite mücadele kural ve puan hedefleri. Yeni başlayanlar için ideal.',
     achievementReq: 'Varsayılan Açık',
@@ -33,7 +119,7 @@ export const STAKES_DEFINITIONS = [
     tier: 1,
     glowColor: '#f87171',
     ringColor: 'rgba(248,113,113,0.5)',
-    cardGradient: 'linear-gradient(135deg, #4c0519 0%, #0f172a 50%, #3f0d14 100%)',
+    cardGradient: 'from-rose-950 via-slate-950 to-rose-950',
     borderColor: '#f87171',
     accentColor: '#fca5a5',
     cumulativeModifiers: [
@@ -51,7 +137,7 @@ export const STAKES_DEFINITIONS = [
     tier: 2,
     glowColor: '#4ade80',
     ringColor: 'rgba(74,222,128,0.5)',
-    cardGradient: 'linear-gradient(135deg, #052e16 0%, #0f172a 50%, #14532d 100%)',
+    cardGradient: 'from-emerald-950 via-slate-950 to-emerald-950',
     borderColor: '#4ade80',
     accentColor: '#86efac',
     cumulativeModifiers: [
@@ -64,13 +150,13 @@ export const STAKES_DEFINITIONS = [
   {
     id: 'BLACK_STAKE',
     name: 'Siyah Mühür',
-    title: 'Kalıcı Lanет',
+    title: 'Kalıcı Lanet',
     multiplier: 1.8,
     icon: '⚫',
     tier: 3,
     glowColor: '#a78bfa',
     ringColor: 'rgba(167,139,250,0.5)',
-    cardGradient: 'linear-gradient(135deg, #1a0533 0%, #030712 50%, #120024 100%)',
+    cardGradient: 'from-purple-950 via-slate-950 to-purple-950',
     borderColor: '#a78bfa',
     accentColor: '#c4b5fd',
     cumulativeModifiers: [
@@ -90,7 +176,7 @@ export const STAKES_DEFINITIONS = [
     tier: 4,
     glowColor: '#38bdf8',
     ringColor: 'rgba(56,189,248,0.5)',
-    cardGradient: 'linear-gradient(135deg, #082f49 0%, #0c1a2e 50%, #0e2d4a 100%)',
+    cardGradient: 'from-sky-950 via-slate-950 to-sky-950',
     borderColor: '#38bdf8',
     accentColor: '#7dd3fc',
     cumulativeModifiers: [
@@ -111,7 +197,7 @@ export const STAKES_DEFINITIONS = [
     tier: 5,
     glowColor: '#c084fc',
     ringColor: 'rgba(192,132,252,0.5)',
-    cardGradient: 'linear-gradient(135deg, #3b0764 0%, #1e0a2e 50%, #4a0d6b 100%)',
+    cardGradient: 'from-fuchsia-950 via-slate-950 to-fuchsia-950',
     borderColor: '#c084fc',
     accentColor: '#e9d5ff',
     cumulativeModifiers: [
@@ -133,7 +219,7 @@ export const STAKES_DEFINITIONS = [
     tier: 6,
     glowColor: '#fb923c',
     ringColor: 'rgba(251,146,60,0.5)',
-    cardGradient: 'linear-gradient(135deg, #431407 0%, #1c0a03 50%, #7c2d12 100%)',
+    cardGradient: 'from-orange-950 via-slate-950 to-orange-950',
     borderColor: '#fb923c',
     accentColor: '#fdba74',
     cumulativeModifiers: [
@@ -156,7 +242,7 @@ export const STAKES_DEFINITIONS = [
     tier: 7,
     glowColor: '#facc15',
     ringColor: 'rgba(250,204,21,0.6)',
-    cardGradient: 'linear-gradient(135deg, #713f12 0%, #1c1000 50%, #92400e 100%)',
+    cardGradient: 'from-amber-950 via-slate-950 to-amber-950',
     borderColor: '#facc15',
     accentColor: '#fef08a',
     cumulativeModifiers: [
@@ -180,7 +266,7 @@ export const STAKES_DEFINITIONS = [
     tier: 8,
     glowColor: '#818cf8',
     ringColor: 'rgba(129,140,248,0.6)',
-    cardGradient: 'linear-gradient(135deg, #1e1b4b 0%, #030712 50%, #312e81 100%)',
+    cardGradient: 'from-indigo-950 via-slate-950 to-indigo-950',
     borderColor: '#818cf8',
     accentColor: '#a5b4fc',
     cumulativeModifiers: [
@@ -206,7 +292,7 @@ export const STAKES_DEFINITIONS = [
     tier: 9,
     glowColor: '#67e8f9',
     ringColor: 'rgba(103,232,249,0.7)',
-    cardGradient: 'linear-gradient(135deg, #083344 0%, #020617 30%, #0c4a6e 70%, #0e7490 100%)',
+    cardGradient: 'from-cyan-950 via-slate-950 to-cyan-950',
     borderColor: '#22d3ee',
     accentColor: '#a5f3fc',
     cumulativeModifiers: [
@@ -225,9 +311,6 @@ export const STAKES_DEFINITIONS = [
   },
 ];
 
-// ─────────────────────────────────────────────────────────────
-// Rarity badge görsel
-// ─────────────────────────────────────────────────────────────
 const TIER_LABELS = [
   { label: 'Başlangıç', color: '#94a3b8' },
   { label: 'Kolay', color: '#f87171' },
@@ -241,352 +324,232 @@ const TIER_LABELS = [
   { label: 'Efsane', color: '#22d3ee' },
 ];
 
-// ─────────────────────────────────────────────────────────────
-// Ana Modal
-// ─────────────────────────────────────────────────────────────
 export function StakesSelectModal({ onSelectStake, onBack }) {
   const unlockedStakes = getUnlockedStakes();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showModifiers, setShowModifiers] = useState(false);
-  const [particles, setParticles] = useState([]);
 
   const currentStake = STAKES_DEFINITIONS[currentIndex];
   const isUnlocked = unlockedStakes.has(currentStake.id);
   const tierLabel = TIER_LABELS[currentStake.tier];
 
-  // Parçacık efekti — kart değişince yenilenir
   useEffect(() => {
-    const pts = Array.from({ length: 12 }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: Math.random() * 4 + 2,
-      delay: Math.random() * 2,
-      dur: Math.random() * 3 + 2,
-    }));
-    setParticles(pts);
     setShowModifiers(false);
   }, [currentIndex]);
 
   const handlePrev = () => {
-    soundEngine.playTap();
+    try { soundEngine.playTap?.(); } catch(e) {}
     setCurrentIndex((prev) => (prev > 0 ? prev - 1 : STAKES_DEFINITIONS.length - 1));
   };
 
   const handleNext = () => {
-    soundEngine.playTap();
+    try { soundEngine.playTap?.(); } catch(e) {}
     setCurrentIndex((prev) => (prev < STAKES_DEFINITIONS.length - 1 ? prev + 1 : 0));
   };
 
   const handleConfirm = () => {
-    if (!isUnlocked) { soundEngine.playInvalidWord(); return; }
-    soundEngine.playSuccess();
+    if (!isUnlocked) { try { soundEngine.playInvalidWord?.(); } catch(e) {} return; }
+    try { soundEngine.playSuccess?.(); } catch(e) {}
     if (onSelectStake) onSelectStake(currentStake);
   };
 
   return (
-    <div
-      className="fixed inset-0 z-[400] flex flex-col select-none overflow-hidden"
-      style={{ background: 'linear-gradient(180deg, #020617 0%, #0a0a1a 60%, #020617 100%)' }}
-    >
-      {/* Animated background grid */}
-      <div className="absolute inset-0 opacity-10 pointer-events-none"
-        style={{
-          backgroundImage: 'linear-gradient(rgba(99,102,241,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,0.3) 1px, transparent 1px)',
-          backgroundSize: '40px 40px'
-        }}
-      />
-
-      {/* Ambient glow blob */}
-      <div
-        className="absolute inset-0 pointer-events-none transition-all duration-700"
-        style={{
-          background: `radial-gradient(ellipse 60% 50% at 50% 40%, ${currentStake.ringColor} 0%, transparent 70%)`,
-        }}
-      />
+    <div className="fixed inset-0 z-[400] bg-slate-950/95 backdrop-blur-2xl flex flex-col justify-between p-4 sm:p-6 select-none overflow-hidden">
+      {/* Background SVG Runic Ray Aura */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
+        <svg className="w-[700px] h-[700px] text-amber-500/30" viewBox="0 0 200 200">
+          <circle cx="100" cy="100" r="90" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="6 3" />
+          <polygon points="100,20 180,100 100,180 20,100" fill="none" stroke="currentColor" strokeWidth="1" />
+        </svg>
+      </div>
 
       {/* ── HEADER ── */}
-      <div className="relative z-10 flex items-center justify-between px-5 pt-5 pb-3 border-b border-white/10">
+      <div className="relative z-10 flex items-center justify-between px-2 pb-3 border-b-2 border-slate-800/90 max-w-2xl w-full mx-auto">
         <div className="flex items-center gap-3">
-          <div
-            className="w-10 h-10 rounded-2xl flex items-center justify-center"
-            style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.5)' }}
-          >
-            <Trophy size={20} style={{ color: '#fbbf24' }} />
+          <div className="w-11 h-11 rounded-2xl bg-amber-500/20 border-2 border-amber-400 flex items-center justify-center text-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.3)]">
+            <Trophy size={22} />
           </div>
           <div>
-            <h2 className="text-base font-black tracking-wide" style={{ color: '#fbbf24', fontFamily: 'Cinzel, serif' }}>
+            <h2 className="text-base sm:text-xl font-black text-amber-300 font-cinzel tracking-wider">
               ZORLUK MÜHRÜ SEÇ
             </h2>
-            <p className="text-[10px] font-semibold" style={{ color: '#64748b' }}>
-              {currentIndex + 1} / {STAKES_DEFINITIONS.length} — Oklarla incele
+            <p className="text-xs font-semibold text-slate-400">
+              {currentIndex + 1} / {STAKES_DEFINITIONS.length} — Oklarla mühürleri inceleyin
             </p>
           </div>
         </div>
         <button
           onClick={onBack}
-          className="p-2 rounded-xl transition active:scale-95"
-          style={{ background: 'rgba(30,41,59,0.8)', border: '1px solid rgba(71,85,105,0.6)', color: '#94a3b8' }}
+          className="p-2 rounded-2xl bg-slate-950 text-slate-400 hover:text-slate-100 border-2 border-slate-800 hover:border-amber-400/60 cursor-pointer transition"
         >
-          <X size={18} />
+          <X size={20} />
         </button>
       </div>
 
-      {/* ── CAROUSEL ── */}
-      <div className="relative z-10 flex-1 flex items-center justify-between px-3 py-4 gap-2">
+      {/* ── CAROUSEL AREA ── */}
+      <div className="relative z-10 flex-1 flex items-center justify-center my-3 px-2 w-full max-w-xl mx-auto">
+        <div className="w-full flex items-center justify-between gap-3 sm:gap-5">
+          
+          {/* Left arrow */}
+          <motion.button
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.92 }}
+            onClick={handlePrev}
+            className="z-20 p-3.5 sm:p-4 rounded-2xl bg-slate-950/90 hover:bg-amber-500/20 text-amber-400 border-2 border-amber-500/50 hover:border-amber-400 shadow-xl cursor-pointer backdrop-blur-xl transition flex items-center justify-center shrink-0"
+            title="Önceki Mühür (Sol Ok)"
+          >
+            <ChevronLeft size={30} />
+          </motion.button>
 
-        {/* Left arrow */}
-        <button
-          onClick={handlePrev}
-          className="shrink-0 w-11 h-14 rounded-2xl flex items-center justify-center transition active:scale-90"
-          style={{
-            background: 'rgba(15,23,42,0.8)',
-            border: `2px solid ${currentIndex > 0 ? currentStake.borderColor + '60' : 'rgba(71,85,105,0.4)'}`,
-            color: currentStake.accentColor,
-          }}
-        >
-          <ChevronLeft size={28} />
-        </button>
-
-        {/* Center card */}
-        <div className="flex-1 max-w-xs">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentStake.id}
-              initial={{ scale: 0.82, opacity: 0, rotateY: -25, x: 40 }}
-              animate={{ scale: 1, opacity: 1, rotateY: 0, x: 0 }}
-              exit={{ scale: 0.82, opacity: 0, rotateY: 25, x: -40 }}
-              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-              className="relative rounded-3xl overflow-hidden flex flex-col"
-              style={{
-                background: currentStake.cardGradient,
-                border: `2px solid ${isUnlocked ? currentStake.borderColor : 'rgba(71,85,105,0.4)'}`,
-                boxShadow: isUnlocked
-                  ? `0 0 30px ${currentStake.ringColor}, 0 0 60px ${currentStake.ringColor.replace('0.5', '0.2')}, inset 0 1px 0 rgba(255,255,255,0.08)`
-                  : '0 4px 24px rgba(0,0,0,0.6)',
-                filter: isUnlocked ? 'none' : 'grayscale(0.6) brightness(0.7)',
-              }}
-            >
-              {/* Floating particles */}
-              {isUnlocked && particles.map(p => (
-                <motion.div
-                  key={p.id}
-                  className="absolute rounded-full pointer-events-none"
-                  style={{
-                    left: `${p.x}%`, top: `${p.y}%`,
-                    width: p.size, height: p.size,
-                    background: currentStake.glowColor,
-                    opacity: 0.6,
-                  }}
-                  animate={{ y: [0, -20, 0], opacity: [0.3, 0.8, 0.3] }}
-                  transition={{ duration: p.dur, delay: p.delay, repeat: Infinity, ease: 'easeInOut' }}
-                />
-              ))}
-
-              {/* Lock badge */}
-              {!isUnlocked && (
-                <div className="absolute top-3 right-3 z-10 flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black"
-                  style={{ background: 'rgba(127,29,29,0.9)', border: '1px solid #ef4444', color: '#fca5a5' }}>
-                  <Lock size={12} />
-                  <span>KİLİTLİ</span>
-                </div>
-              )}
-
-              {/* Tier badge */}
-              <div className="absolute top-3 left-3 z-10 px-2.5 py-1 rounded-full text-[10px] font-black"
+          {/* Center Card */}
+          <div className="flex-1 relative overflow-hidden min-h-[360px] sm:min-h-[380px] flex items-center justify-center p-1">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentStake.id}
+                initial={{ scale: 0.88, opacity: 0, x: 50 }}
+                animate={{ scale: 1, opacity: 1, x: 0 }}
+                exit={{ scale: 0.88, opacity: 0, x: -50 }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
                 style={{
-                  background: 'rgba(0,0,0,0.6)',
-                  border: `1px solid ${tierLabel.color}50`,
-                  color: tierLabel.color
-                }}>
-                {tierLabel.label}
-              </div>
-
-              {/* Card body */}
-              <div className="p-5 pt-12 flex flex-col items-center text-center gap-3">
-
-                {/* Big icon */}
-                <motion.div
-                  className="relative"
-                  animate={isUnlocked ? { scale: [1, 1.05, 1] } : {}}
-                  transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-                >
-                  <div
-                    className="w-20 h-20 rounded-3xl flex items-center justify-center text-5xl"
-                    style={{
-                      background: 'rgba(0,0,0,0.5)',
-                      border: `2px solid ${currentStake.borderColor}80`,
-                      boxShadow: isUnlocked ? `0 0 20px ${currentStake.ringColor}` : 'none',
-                    }}
-                  >
-                    {currentStake.icon}
-                  </div>
-                </motion.div>
-
-                {/* Name + title */}
+                  boxShadow: isUnlocked
+                    ? `0 0 35px ${currentStake.ringColor}`
+                    : '0 0 20px rgba(0,0,0,0.6)'
+                }}
+                className={`w-full p-6 rounded-3xl border-2 flex flex-col justify-between cursor-default relative bg-gradient-to-b ${currentStake.cardGradient} border-${currentStake.borderColor} backdrop-blur-xl shadow-2xl`}
+              >
                 <div>
-                  <h3 className="text-lg font-black tracking-wide" style={{ color: currentStake.accentColor, fontFamily: 'Cinzel, serif' }}>
-                    {currentStake.name}
-                  </h3>
-                  <p className="text-[10px] font-bold uppercase tracking-widest mt-0.5" style={{ color: '#64748b' }}>
-                    {currentStake.title}
-                  </p>
-                </div>
-
-                {/* Multiplier badge */}
-                <div
-                  className="flex items-center gap-2 px-4 py-1.5 rounded-full font-black text-sm"
-                  style={{
-                    background: 'rgba(0,0,0,0.5)',
-                    border: `1px solid ${currentStake.borderColor}60`,
-                    color: currentStake.accentColor,
-                    boxShadow: `0 0 12px ${currentStake.ringColor}`,
-                  }}
-                >
-                  <Zap size={14} fill="currentColor" />
-                  <span>{currentStake.multiplier}x Skor Hedefi</span>
-                </div>
-
-                {/* Description or unlock requirement */}
-                <div
-                  className="w-full p-3 rounded-2xl text-xs font-semibold leading-relaxed"
-                  style={{
-                    background: 'rgba(0,0,0,0.4)',
-                    border: '1px solid rgba(255,255,255,0.06)',
-                    color: isUnlocked ? '#cbd5e1' : '#fca5a5',
-                  }}
-                >
-                  {isUnlocked ? currentStake.desc : (
-                    <span>🔒 <strong>Kilit Koşulu:</strong> {currentStake.achievementReq}</span>
-                  )}
-                </div>
-
-                {/* Cumulative modifiers toggle */}
-                {isUnlocked && currentStake.cumulativeModifiers.length > 0 && (
-                  <button
-                    onClick={() => setShowModifiers(v => !v)}
-                    className="flex items-center gap-1.5 text-[10px] font-bold transition-all"
-                    style={{ color: currentStake.accentColor + 'aa' }}
-                  >
-                    <Info size={12} />
-                    <span>{showModifiers ? 'Zorlukları Gizle' : `${currentStake.cumulativeModifiers.length} Kümülatif Zorluk Gör`}</span>
-                  </button>
-                )}
-
-                <AnimatePresence>
-                  {showModifiers && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.25 }}
-                      className="w-full overflow-hidden"
+                  {/* Top Status & Tier Badges */}
+                  <div className="flex items-center justify-between mb-4">
+                    <span 
+                      className="px-3 py-1 rounded-full text-xs font-black border-2"
+                      style={{ borderColor: tierLabel.color, color: tierLabel.color, background: 'rgba(2, 6, 23, 0.8)' }}
                     >
-                      <div
-                        className="w-full p-3 rounded-2xl flex flex-col gap-1.5"
-                        style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.06)' }}
-                      >
-                        {currentStake.cumulativeModifiers.map((mod, i) => (
-                          <div key={i} className="flex items-center gap-2 text-[10px] font-semibold" style={{ color: '#94a3b8' }}>
-                            <span className="text-sm">{mod.icon}</span>
-                            <span>{mod.text}</span>
-                          </div>
-                        ))}
+                      {tierLabel.label}
+                    </span>
+
+                    {isUnlocked ? (
+                      <div className="flex items-center gap-1 bg-emerald-950/90 border-2 border-emerald-500/60 px-3 py-1 rounded-full text-xs font-black text-emerald-300 shadow">
+                        <span>✓ AÇIK</span>
                       </div>
-                    </motion.div>
+                    ) : (
+                      <div className="flex items-center gap-1 bg-rose-950/90 border-2 border-rose-500/60 px-3 py-1 rounded-full text-xs font-black text-rose-300 shadow">
+                        <Lock size={13} />
+                        <span>KİLİTLİ</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 3D SVG Stake Seal Emblem */}
+                  <div className="flex justify-center my-2">
+                    <StakeSealSvgEmblem stakeId={currentStake.id} isUnlocked={isUnlocked} />
+                  </div>
+
+                  {/* Name + Title */}
+                  <div className="text-center mt-2">
+                    <h3 className="text-2xl sm:text-3xl font-black font-cinzel text-white drop-shadow">
+                      {currentStake.name}
+                    </h3>
+                    <p className="text-xs font-black uppercase tracking-widest text-slate-400 mt-0.5">
+                      {currentStake.title}
+                    </p>
+                  </div>
+
+                  {/* Multiplier Badge */}
+                  <div className="flex items-center justify-center gap-2 mt-3 mb-3">
+                    <span className="px-4 py-1.5 rounded-full bg-slate-950/90 border-2 border-amber-400/80 text-amber-300 text-xs sm:text-sm font-black flex items-center gap-1.5 shadow-md">
+                      <Zap size={15} className="text-amber-400 fill-amber-400" />
+                      <span>{currentStake.multiplier}x Skor Hedefi</span>
+                    </span>
+                  </div>
+
+                  {/* Description Box */}
+                  <div className="p-3.5 rounded-2xl bg-slate-950/90 border-2 border-slate-800 text-xs font-medium leading-relaxed text-slate-200 text-center shadow-inner">
+                    {isUnlocked ? currentStake.desc : (
+                      <span className="text-rose-300 font-bold">🔒 Kilit Koşulu: {currentStake.achievementReq}</span>
+                    )}
+                  </div>
+
+                  {/* Cumulative Modifiers Toggle */}
+                  {isUnlocked && currentStake.cumulativeModifiers.length > 0 && (
+                    <div className="mt-2 text-center">
+                      <button
+                        onClick={() => setShowModifiers(v => !v)}
+                        className="text-xs font-black text-cyan-300 hover:text-cyan-200 flex items-center justify-center gap-1 mx-auto cursor-pointer"
+                      >
+                        <Info size={13} />
+                        <span>{showModifiers ? 'Kümülatif Etkileri Gizle' : `${currentStake.cumulativeModifiers.length} Kümülatif Etki Göster`}</span>
+                      </button>
+
+                      {showModifiers && (
+                        <div className="mt-2 p-2.5 rounded-xl bg-slate-950/95 border border-slate-800 text-[11px] font-bold text-slate-300 flex flex-col gap-1 text-left">
+                          {currentStake.cumulativeModifiers.map((mod, i) => (
+                            <div key={i} className="flex items-center gap-2">
+                              <span>{mod.icon}</span>
+                              <span>{mod.text}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   )}
-                </AnimatePresence>
-              </div>
+                </div>
 
-              {/* Bottom dot indicators */}
-              <div className="flex items-center justify-center gap-1.5 pb-4">
-                {STAKES_DEFINITIONS.map((s, idx) => {
-                  const isActive = idx === currentIndex;
-                  const isUnlockedDot = unlockedStakes.has(s.id);
-                  return (
-                    <button
+                {/* Footer Dots */}
+                <div className="flex items-center justify-center gap-1.5 mt-4 pt-2 border-t border-slate-800/60">
+                  {STAKES_DEFINITIONS.map((s, idx) => (
+                    <div
                       key={s.id}
-                      onClick={() => { soundEngine.playTap(); setCurrentIndex(idx); }}
-                      className="rounded-full transition-all duration-300"
-                      style={{
-                        width: isActive ? 16 : 6,
-                        height: 6,
-                        background: isActive
-                          ? currentStake.glowColor
-                          : isUnlockedDot
-                            ? 'rgba(255,255,255,0.25)'
-                            : 'rgba(255,255,255,0.1)',
-                        boxShadow: isActive ? `0 0 6px ${currentStake.glowColor}` : 'none',
-                      }}
+                      onClick={() => { try { soundEngine.playTap?.(); } catch(e){} setCurrentIndex(idx); }}
+                      className={`h-2 rounded-full cursor-pointer transition-all ${
+                        idx === currentIndex
+                          ? 'w-6 bg-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.8)]'
+                          : unlockedStakes.has(s.id)
+                          ? 'w-2 bg-slate-600 hover:bg-slate-400'
+                          : 'w-2 bg-slate-800'
+                      }`}
                     />
-                  );
-                })}
-              </div>
-            </motion.div>
-          </AnimatePresence>
-        </div>
+                  ))}
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
 
-        {/* Right arrow */}
-        <button
-          onClick={handleNext}
-          className="shrink-0 w-11 h-14 rounded-2xl flex items-center justify-center transition active:scale-90"
-          style={{
-            background: 'rgba(15,23,42,0.8)',
-            border: `2px solid ${currentIndex < STAKES_DEFINITIONS.length - 1 ? currentStake.borderColor + '60' : 'rgba(71,85,105,0.4)'}`,
-            color: currentStake.accentColor,
-          }}
-        >
-          <ChevronRight size={28} />
-        </button>
+          {/* Right arrow */}
+          <motion.button
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.92 }}
+            onClick={handleNext}
+            className="z-20 p-3.5 sm:p-4 rounded-2xl bg-slate-950/90 hover:bg-amber-500/20 text-amber-400 border-2 border-amber-500/50 hover:border-amber-400 shadow-xl cursor-pointer backdrop-blur-xl transition flex items-center justify-center shrink-0"
+            title="Sonraki Mühür (Sağ Ok)"
+          >
+            <ChevronRight size={30} />
+          </motion.button>
+        </div>
       </div>
 
       {/* ── CONFIRM BUTTON ── */}
-      <div className="relative z-10 px-5 pb-6 pt-3 border-t border-white/5">
-        {/* Unlock progress bar */}
-        <div className="flex items-center gap-2 mb-3">
-          <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)' }}>
-            <motion.div
-              className="h-full rounded-full"
-              style={{ background: `linear-gradient(90deg, ${currentStake.glowColor}, ${currentStake.accentColor})` }}
-              animate={{ width: `${((currentIndex + 1) / STAKES_DEFINITIONS.length) * 100}%` }}
-              transition={{ duration: 0.5 }}
-            />
-          </div>
-          <span className="text-[10px] font-black" style={{ color: '#475569' }}>
-            {Array.from(unlockedStakes).length}/{STAKES_DEFINITIONS.length} Açık
-          </span>
-        </div>
-
-        <motion.button
+      <div className="pt-3 border-t-2 border-slate-800/90 max-w-2xl w-full mx-auto z-10">
+        <button
           disabled={!isUnlocked}
           onClick={handleConfirm}
-          whileTap={isUnlocked ? { scale: 0.97 } : {}}
-          className="w-full py-4 px-6 rounded-2xl flex items-center justify-center gap-3 font-black text-sm tracking-wide transition-all"
-          style={isUnlocked ? {
-            background: `linear-gradient(135deg, ${currentStake.glowColor} 0%, ${currentStake.accentColor} 100%)`,
-            color: '#030712',
-            boxShadow: `0 0 20px ${currentStake.ringColor}, 0 4px 12px rgba(0,0,0,0.4)`,
-            border: 'none',
-          } : {
-            background: 'rgba(15,23,42,0.8)',
-            color: '#475569',
-            border: '1px solid rgba(71,85,105,0.3)',
-            cursor: 'not-allowed',
-          }}
+          className={`w-full py-4 px-6 rounded-2xl transition flex items-center justify-center gap-2.5 shadow-2xl text-xs sm:text-base font-black tracking-wider border-2 cursor-pointer ${
+            !isUnlocked
+              ? 'bg-slate-900/90 border-slate-800 text-slate-500 cursor-not-allowed'
+              : 'bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-yellow-300 text-slate-950 border-yellow-100 shadow-[0_0_30px_rgba(245,158,11,0.5)]'
+          }`}
         >
           {isUnlocked ? (
             <>
-              <span className="text-base">{currentStake.icon}</span>
               <span>{currentStake.name.toUpperCase()} İLE OYUNA BAŞLA!</span>
-              <ChevronRight size={18} />
+              <ChevronRight size={20} />
             </>
           ) : (
             <>
-              <ShieldAlert size={16} />
-              <span>🔒 KİLİTLİ — BAŞARIM GEREKLİ</span>
+              <ShieldAlert size={18} />
+              <span>🔒 MÜHÜR KİLİTLİ — BAŞARIM GEREKLİ</span>
             </>
           )}
-        </motion.button>
+        </button>
       </div>
     </div>
   );

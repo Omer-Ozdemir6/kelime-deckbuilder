@@ -155,9 +155,44 @@ export function useGameState() {
     return false;
   };
   const [selectedCards, setSelectedCards] = useState([]);
-
-  // UI State
   const [gameState, setGameState] = useState('START_MENU'); // START_MENU | MAP | PLAYING | SHOP | EVENT | STAGE_VICTORY_SUMMARY | DRAFT_REWARD | GAME_OVER
+
+  // Automated Card Sanitizer Helper
+  const sanitizeCard = (c) => {
+    if (!c) return c;
+    const ltr = String(c.letter || '').toUpperCase();
+    if (ltr.includes('BUFFOON') || ltr.includes('JOKER') || ltr.includes('ARCANA') || ltr.length > 2) {
+      return {
+        ...c,
+        letter: '🃏',
+        isSpecial: true,
+        specialType: c.specialType || 'joker',
+        name: c.name || 'Joker Harf Taşı',
+        desc: c.desc || 'Kelimeyi tamamlayan en uygun harfe dönüşür.'
+      };
+    }
+    return c;
+  };
+
+  useEffect(() => {
+    setHand(prev => {
+      const hasBad = prev.some(c => String(c?.letter || '').length > 2);
+      return hasBad ? prev.map(sanitizeCard) : prev;
+    });
+    setSelectedCards(prev => {
+      const hasBad = prev.some(c => String(c?.letter || '').length > 2);
+      return hasBad ? prev.map(sanitizeCard) : prev;
+    });
+    setFullDeck(prev => {
+      const hasBad = prev.some(c => String(c?.letter || '').length > 2);
+      return hasBad ? prev.map(sanitizeCard) : prev;
+    });
+    setBankCards(prev => {
+      const hasBad = prev.some(c => String(c?.letter || '').length > 2);
+      return hasBad ? prev.map(sanitizeCard) : prev;
+    });
+  }, [gameState]);
+
 
   // Combo Decay Timer Effect (Decreases combo if player doesn't make a move within 10s)
   useEffect(() => {
@@ -179,6 +214,7 @@ export function useGameState() {
     }
     return () => clearInterval(interval);
   }, [gameState, combo]);
+
   const [lastScoreBreakdown, setLastScoreBreakdown] = useState(null);
   const [lastStageVictoryStats, setLastStageVictoryStats] = useState(null);
   const [feedbackMessage, setFeedbackMessage] = useState(null);
@@ -448,7 +484,7 @@ export function useGameState() {
    */
   const skipBlind = (blindIndex = currentBlindIndex) => {
     const targetBlind = kademeData.blinds[blindIndex];
-    if (!targetBlind || !targetBlind.canSkip) return;
+    if (!targetBlind || targetBlind.type === 'BOSS_BLIND') return;
 
     soundEngine.playVictory();
     confetti({ particleCount: 60, spread: 70, origin: { y: 0.5 } });
@@ -456,6 +492,7 @@ export function useGameState() {
     const tag = targetBlind.tag;
     if (tag) {
       setActiveTags(prev => [...prev, tag]);
+
 
       // Execute Tag Effect
       if (tag.effect.type === 'ADD_GOLD') {
@@ -491,7 +528,11 @@ export function useGameState() {
         setFullDeck(prev => [...prev, jokerCard]);
         setGoalNotice({ category: '🏷️ ETİKET ÖDÜLÜ', title: tag.name, description: 'Desteğe 🃏 Joker Harfi eklendi!' });
       }
+    } else {
+      setGold(prev => prev + 5);
+      setGoalNotice({ category: '⏩ OTOMATİK PAS', title: targetBlind.title, description: 'Aşama pas geçildi! +$5 Altın kazandın.', rewardGold: 5 });
     }
+
 
     // Mark current blind SKIPPED and activate next blind
     const updatedBlinds = kademeData.blinds.map((b, i) => {
@@ -645,7 +686,20 @@ export function useGameState() {
     }
   };
 
+  const shuffleHand = () => {
+    soundEngine.playTap();
+    setHand(prev => {
+      const arr = [...prev];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    });
+  };
+
   const clearSelectedCards = () => {
+
     if (selectedCards.length === 0) return;
     soundEngine.playDeselect();
     const returnToBank = selectedCards.filter(c => c.fromBank).map(c => {
@@ -825,7 +879,7 @@ export function useGameState() {
       maxWordLength: breakdown.word.length,
       maxCombo: nextCombo,
       totalGoldEarned: newGold,
-      maxStage: stage,
+      maxStage: currentKademe,
       maxSingleWordScore: breakdown.score,
       totalWordsPlayed: wordsThisBattle
     });
@@ -869,13 +923,14 @@ export function useGameState() {
       }
 
       setLastStageVictoryStats({
-        stage,
+        stage: currentKademe,
         score: newScore,
         targetScore,
         goldEarned: earnedGold,
         playedWords: [...playedWordsThisStage, breakdown.word.toUpperCase()],
         combo: nextCombo
       });
+
 
       setFeedbackMessage(`🎉 KADEME TAMAMLANDI! ${overkillGold > 0 ? `(+${overkillGold} 💰 Bonus Altın)` : ''}`);
       setTimeout(() => {
@@ -1058,6 +1113,7 @@ export function useGameState() {
 
     setCurrentKademe(nextKademeNum);
     setKademeData(nextKademe);
+    if (nextKademe?.biome?.id) discoverCodexItem(nextKademe.biome.id);
     setCurrentBlindIndex(0);
     setShopDiscountPercent(0);
     setGameState('MAP');
@@ -1216,9 +1272,10 @@ export function useGameState() {
   };
 
   const openWordMeaningModal = async (wordToLookup) => {
-    const target = wordToLookup || lastPlayedWord;
+    const rawWord = typeof wordToLookup === 'object' ? (wordToLookup?.word || wordToLookup?.cleanWord || '') : wordToLookup;
+    const target = (rawWord || lastPlayedWord || '').trim();
     if (!target) return;
-    soundEngine.playTap();
+    try { soundEngine.playTap(); } catch (e) {}
     const meaning = await getWordMeaning(target);
     if (meaning) {
       setCurrentWordMeaning(meaning);
@@ -1312,7 +1369,9 @@ export function useGameState() {
     selectCardFromBank,
     unselectCard,
     clearSelectedCards,
+    shuffleHand,
     playWord,
+
     passTurnOrSurrender,
     proceedFromVictory,
     proceedToRewardsFromVictory: proceedFromVictory,
