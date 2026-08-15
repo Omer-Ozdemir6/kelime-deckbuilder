@@ -264,6 +264,13 @@ export function useGameState() {
   const [goalNotice, setGoalNotice] = useState(null);
   const [activeAchievementToast, setActiveAchievementToast] = useState(null);
 
+  // Pasif Joker Kapasitesi (Max 5/5), Kuponlar (Vouchers), Sarf Malzemeleri (Consumables) & Endless Mode
+  const [maxJokerSlots, setMaxJokerSlots] = useState(5);
+  const [activeVouchers, setActiveVouchers] = useState([]);
+  const [consumableSlots, setConsumableSlots] = useState([]); // Max 2 consumables held
+  const [maxConsumableSlots, setMaxConsumableSlots] = useState(2);
+  const [isEndlessMode, setIsEndlessMode] = useState(false);
+
   // Dynamic Biome, Floor Modifier & Board Slot Modifiers State
   const [activeBiome, setActiveBiome] = useState(null);
   const [activeFloorModifier, setActiveFloorModifier] = useState(null);
@@ -297,7 +304,12 @@ export function useGameState() {
   };
 
   const proceedFromVictory = () => {
-    soundEngine.playTap();
+    try { soundEngine.playTap?.(); } catch(e) {}
+
+    if (!kademeData || !Array.isArray(kademeData.blinds)) {
+      setGameState('MAP');
+      return;
+    }
 
     // Mark current blind COMPLETED and unlock next blind in current Kademe
     const updatedBlinds = kademeData.blinds.map((b, i) => {
@@ -310,6 +322,12 @@ export function useGameState() {
 
     const isLastBlind = currentBlindIndex >= kademeData.blinds.length - 1;
     const isBossBlind = kademeData.blinds[currentBlindIndex]?.type === 'BOSS_BLIND';
+
+    // Check if player beat Ante 8 (Kademe 8) Final Boss and hasn't enabled Endless Mode yet!
+    if (isBossBlind && currentKademe >= 8 && !isEndlessMode) {
+      setGameState('RUN_VICTORY');
+      return;
+    }
 
     if (!isBossBlind && !isLastBlind) {
       // Small or Big Blind completed -> return to Kademe Run Track
@@ -523,8 +541,8 @@ export function useGameState() {
     const targetBlind = kademeData.blinds[blindIndex];
     if (!targetBlind || targetBlind.type === 'BOSS_BLIND') return;
 
-    soundEngine.playVictory();
-    confetti({ particleCount: 60, spread: 70, origin: { y: 0.5 } });
+    try { soundEngine.playVictory?.(); } catch(e) {}
+    try { confetti({ particleCount: 60, spread: 70, origin: { y: 0.5 } }); } catch(e) {}
 
     const tag = targetBlind.tag;
     if (tag) {
@@ -835,7 +853,7 @@ export function useGameState() {
     // Secret Word Trigger Check
     if (secretWordTrigger && breakdown.word === secretWordTrigger && !isSecretFoundThisRun) {
       setIsSecretFoundThisRun(true);
-      confetti({ particleCount: 120, spread: 100, origin: { y: 0.5 } });
+      try { confetti({ particleCount: 120, spread: 100, origin: { y: 0.5 } }); } catch(e) {}
 
       const infusedTypes = ['ignited', 'electric', 'lucky', 'frozen'];
       const randomInfused = infusedTypes[Math.floor(Math.random() * infusedTypes.length)];
@@ -942,34 +960,64 @@ export function useGameState() {
       return card;
     };
 
-    const newDiscard = [...discardPile, ...selectedCards].map(resetJokerCard);
+    // Glass Card Shatter Mechanics (25% chance to break/destroy when played)
+    const glassCards = selectedCards.filter(c => c && (c.seal === 'GLASS' || c.specialType === 'glass'));
+    const brokenCardIds = [];
+    glassCards.forEach(c => {
+      if (Math.random() < 0.25) {
+        brokenCardIds.push(c.id);
+      }
+    });
+
+    if (brokenCardIds.length > 0) {
+      try { soundEngine.playDeleteSound?.(); } catch(e) {}
+      setFullDeck(prev => prev.filter(c => !brokenCardIds.includes(c.id)));
+      const brokenLetters = selectedCards.filter(c => brokenCardIds.includes(c.id)).map(c => c.letter).join(', ');
+      msg += ` 💥 Cam Harf (${brokenLetters}) kırıldı ve parçalandı!`;
+    }
+
+    const survivingSelected = selectedCards.filter(c => !brokenCardIds.includes(c.id));
+    const newDiscard = [...discardPile, ...survivingSelected].map(resetJokerCard);
     setSelectedCards([]);
 
     // Check Stage Victory
     if (newScore >= targetScore) {
-      confetti({ particleCount: 90, spread: 80, origin: { y: 0.6 } });
-      soundEngine.playVictory();
+      try { confetti({ particleCount: 90, spread: 80, origin: { y: 0.6 } }); } catch(e) {}
+      try { soundEngine.playVictory?.(); } catch(e) {}
 
-      const overkillGold = newScore > targetScore ? Math.min(8, Math.floor((newScore - targetScore) / 20)) : 0;
-      const finalGoldEarned = earnedGold + overkillGold;
-      setGold(prev => prev + overkillGold);
+      const baseStageGold = Math.max(3, Number(earnedGold) || 3);
+      const comboBonusGold = nextCombo > 2 ? Math.min(3, Math.floor(nextCombo / 2)) : 0;
+      const overkillGold = newScore > targetScore ? Math.min(8, Math.floor((newScore - targetScore) / 40)) : 0;
+      const interestGold = Math.min(5, Math.floor(newGold / 5)); // +1 per 5 gold held, max +5
+      const grandTotalBonusGold = comboBonusGold + overkillGold + interestGold;
+
+      setGold(prev => prev + grandTotalBonusGold);
 
       if (newScore > highScore) {
         setHighScore(newScore);
-        localStorage.setItem('kd_high_score', newScore.toString());
+        try { localStorage.setItem('kd_high_score', newScore.toString()); } catch(e) {}
+      }
+
+      const currentWordStr = typeof breakdown?.word === 'string' ? breakdown.word.toUpperCase() : (breakdown?.word ? String(breakdown.word).toUpperCase() : '');
+      const playedWordsList = Array.isArray(playedWordsThisStage) ? [...playedWordsThisStage] : [];
+      if (currentWordStr && !playedWordsList.includes(currentWordStr)) {
+        playedWordsList.push(currentWordStr);
       }
 
       setLastStageVictoryStats({
-        stage: currentKademe,
+        stage: currentKademe || 1,
         score: newScore,
         targetScore,
-        goldEarned: earnedGold,
-        playedWords: [...playedWordsThisStage, breakdown.word.toUpperCase()],
+        goldEarned: baseStageGold,
+        comboBonusGold,
+        overkillGold,
+        interestGold,
+        grandTotalGold: baseStageGold + grandTotalBonusGold,
+        playedWords: playedWordsList,
         combo: nextCombo
       });
 
-
-      setFeedbackMessage(`🎉 KADEME TAMAMLANDI! ${overkillGold > 0 ? `(+${overkillGold} 💰 Bonus Altın)` : ''}`);
+      setFeedbackMessage(`🎉 KADEME TAMAMLANDI! (+${grandTotalBonusGold} 💰 Bonus & Faiz Altını Kazandın)`);
       setTimeout(() => {
         setGameState('STAGE_VICTORY_SUMMARY');
       }, 700);
@@ -1133,12 +1181,104 @@ export function useGameState() {
 
   const handleShopBuyRelic = (relicId, cost) => {
     const effectiveCost = shopDiscountPercent > 0 ? Math.round(cost * (1 - shopDiscountPercent / 100)) : cost;
+    
+    // Capacity limit check (5/5 Pasif Joker Sınırı)
+    if (activeRelicKeys.length >= maxJokerSlots) {
+      try { soundEngine.playInvalidWord?.(); } catch(e) {}
+      setFeedbackMessage(`⚠️ Pasif Joker kapasiten dolu (${activeRelicKeys.length}/${maxJokerSlots})! Önce bir jokeri satmalısın.`);
+      return false;
+    }
+
     if (gold >= effectiveCost && !activeRelicKeys.includes(relicId)) {
-      soundEngine.playVictory();
+      try { soundEngine.playVictory?.(); } catch(e) {}
       setGold(prev => prev - effectiveCost);
       setActiveRelicKeys(prev => [...prev, relicId]);
       discoverCodexItem(relicId);
+      return true;
     }
+    return false;
+  };
+
+  const handleBuyVoucher = (voucher, cost = 10) => {
+    const effectiveCost = shopDiscountPercent > 0 ? Math.round(cost * (1 - shopDiscountPercent / 100)) : cost;
+    if (gold >= effectiveCost && voucher && !activeVouchers.some(v => v.id === voucher.id)) {
+      try { soundEngine.playVictory?.(); } catch(e) {}
+      setGold(prev => prev - effectiveCost);
+      setActiveVouchers(prev => [...prev, voucher]);
+
+      if (voucher.effect.type === 'ADD_DISCARDS') {
+        setExtraDiscardsNextStage(prev => prev + 1);
+        setFeedbackMessage(`🎟️ KUPON ALINDI: ${voucher.name}! Tur başı +1 Iskarta eklendi.`);
+      } else if (voucher.effect.type === 'SHOP_DISCOUNT') {
+        setShopDiscountPercent(25);
+        setFeedbackMessage(`🎟️ KUPON ALINDI: ${voucher.name}! Tüm dükkânda %25 İndirim devede.`);
+      } else {
+        setFeedbackMessage(`🎟️ KUPON ALINDI: ${voucher.name}! Etkisi aktifleşti.`);
+      }
+      return true;
+    }
+    return false;
+  };
+
+  const handleBuyConsumable = (potionItem) => {
+    if (consumableSlots.length >= maxConsumableSlots) {
+      try { soundEngine.playInvalidWord?.(); } catch(e) {}
+      setFeedbackMessage(`⚠️ Sarf Malzemesi yuvaların dolu (${consumableSlots.length}/${maxConsumableSlots})!`);
+      return false;
+    }
+    const cost = potionItem.cost || 30;
+    if (gold >= cost) {
+      try { soundEngine.playVictory?.(); } catch(e) {}
+      setGold(prev => prev - cost);
+      setConsumableSlots(prev => [...prev, potionItem]);
+      setFeedbackMessage(`🧪 SARF MALZEMESİ ALINDI: "${potionItem.name}" yuvana eklendi!`);
+      return true;
+    }
+    return false;
+  };
+
+  const handleUseConsumable = (slotIdx) => {
+    const item = consumableSlots[slotIdx];
+    if (!item) return;
+
+    try { soundEngine.playUpgradeSound?.(); } catch(e) {}
+
+    if (item.id === 'TRANSMUTE') {
+      setHand(prev => {
+        const copy = [...prev];
+        let count = 0;
+        return copy.map(c => {
+          if (count < 2 && (!c.isSpecial || c.specialType !== 'joker')) {
+            count++;
+            return createCard('🃏', 0, undefined);
+          }
+          return c;
+        });
+      });
+      setFeedbackMessage('🧪 Dönüşüm İksiri Kullanıldı! Eldeki 2 harf JOKER\'e dönüştü!');
+    } else if (item.id === 'THUNDER') {
+      setCombo(prev => prev + 2);
+      setFeedbackMessage('⚡ Yıldırım İksiri Kullanıldı! Kombo +2 yükseltildi!');
+    } else if (item.id === 'SEAL_INFUSION') {
+      setHand(prev => {
+        if (prev.length === 0) return prev;
+        const copy = [...prev];
+        copy[0] = { ...copy[0], seal: 'POLYCHROME' };
+        return copy;
+      });
+      setFeedbackMessage('🔮 Mühür İksiri Kullanıldı! Eldeki ilk harfe POLİKROM MÜHÜR basıldı!');
+    } else if (item.id === 'MIDAS') {
+      setGold(prev => prev + 20);
+      setFeedbackMessage('💎 Midas İksiri Kullanıldı! +20 Altın Kazandın!');
+    }
+
+    setConsumableSlots(prev => prev.filter((_, idx) => idx !== slotIdx));
+  };
+
+  const handleContinueEndless = () => {
+    setIsEndlessMode(true);
+    setCurrentBlindIndex(kademeData.blinds.length);
+    setGameState('SHOP');
   };
 
   const handleLeaveShop = () => {
@@ -1398,6 +1538,12 @@ export function useGameState() {
     wordTypeLevels,
     wordCategoryLevels,
 
+    maxJokerSlots,
+    activeVouchers,
+    consumableSlots,
+    maxConsumableSlots,
+    isEndlessMode,
+
     currentKademe,
     kademeData,
     currentBlindIndex,
@@ -1430,6 +1576,10 @@ export function useGameState() {
     handleShopUpgradePerk,
     handleShopRemoveCard,
     handleShopBuyRelic,
+    handleBuyVoucher,
+    handleBuyConsumable,
+    handleUseConsumable,
+    handleContinueEndless,
     handleSellPassiveJoker,
     handleReorderPassiveJokers,
     handleLeaveShop,

@@ -52,7 +52,7 @@ export function ChallengeResultsModal({
   }
 
   useEffect(() => {
-    soundEngine.playVictory();
+    try { soundEngine.playVictory?.(); } catch(e) {}
     try {
       confetti({
         particleCount: score >= 10 ? 90 : 50,

@@ -5,6 +5,7 @@ import { soundEngine } from '../game/audioEngine';
 import { BoosterPackOpeningModal } from './BoosterPackOpeningModal';
 import { JokerCardIllustration } from './JokerCardIllustration';
 import { BalatroJokerCard } from './BalatroJokerCard';
+import { getRandomVoucher } from '../game/voucherData';
 
 // Custom SVG Shop Header Crest Component
 function ShopSvgCrest() {
@@ -29,11 +30,15 @@ export function ShopScreen({
   gold,
   fullDeck = [],
   activeRelicKeys = [],
+  maxJokerSlots = 5,
+  activeVouchers = [],
   onBuyCard,
   onBuyPassiveJoker,
+  onBuyVoucher,
   onRemoveCard,
   onLeaveShop
 }) {
+  const currentVoucher = getRandomVoucher(activeVouchers.map(v => v.id));
   const MAX_DECK_SIZE = 30;
   const isDeckFull = fullDeck.length >= MAX_DECK_SIZE;
   const [rerollCost, setRerollCost] = useState(5);
@@ -124,12 +129,17 @@ export function ShopScreen({
                 <span>DÜKKÂN (BALATRO SHOP)</span>
                 <Sparkles size={16} className="text-amber-400" />
               </h2>
-              <div className="flex items-center gap-2 mt-0.5">
+              <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                 <div className={`px-2.5 py-0.5 rounded-full text-xs font-black border flex items-center gap-1 ${
                   isDeckFull ? 'bg-rose-950 border-rose-500/80 text-rose-300' : 'bg-slate-900 border-slate-700 text-slate-300'
                 }`}>
                   <Layers size={13} className={isDeckFull ? 'text-rose-400' : 'text-slate-400'} />
                   <span>Deste: {fullDeck.length} / {MAX_DECK_SIZE} {isDeckFull ? '(DOLU)' : ''}</span>
+                </div>
+                <div className={`px-2.5 py-0.5 rounded-full text-xs font-black border flex items-center gap-1 ${
+                  activeRelicKeys.length >= maxJokerSlots ? 'bg-rose-950 border-rose-500/80 text-rose-300' : 'bg-purple-950/80 border-purple-500/80 text-purple-300'
+                }`}>
+                  <span>🃏 Jokerler: {activeRelicKeys.length} / {maxJokerSlots}</span>
                 </div>
                 <button
                   onClick={() => {
@@ -248,26 +258,29 @@ export function ShopScreen({
             </span>
 
             <span className="px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 font-black text-xs shadow border border-yellow-200 font-mono mb-1">
-              $10
+              ${currentVoucher?.cost || 10}
             </span>
 
             <motion.button
               whileHover={{ scale: 1.05 }}
-              onClick={() => buyItem('voucher', 10, null, false)}
-              disabled={soldSlots.voucher || gold < 10}
-              className={`w-24 h-28 rounded-2xl border-2 stroke-dasharray flex flex-col items-center justify-between p-2 shadow-xl cursor-pointer ${
+              onClick={() => buyItem('voucher', currentVoucher?.cost || 10, () => onBuyVoucher && onBuyVoucher(currentVoucher, currentVoucher?.cost || 10), false)}
+              disabled={soldSlots.voucher || gold < (currentVoucher?.cost || 10)}
+              className={`w-24 h-28 rounded-2xl border-2 flex flex-col items-center justify-between p-1.5 shadow-xl cursor-pointer ${
                 soldSlots.voucher
                   ? 'opacity-30 bg-slate-950 border-slate-800'
                   : 'bg-gradient-to-b from-emerald-950 via-teal-900 to-slate-950 border-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.4)]'
               }`}
+              title={currentVoucher?.desc}
             >
               {soldSlots.voucher ? (
-                <span className="text-xs font-black text-slate-500 my-auto">KULLANILDI</span>
+                <span className="text-xs font-black text-slate-500 my-auto">SATIN ALINDI</span>
               ) : (
                 <>
-                  <span className="text-[10px] font-black text-emerald-300 uppercase tracking-wider mt-1 font-cinzel">VOUCHER</span>
-                  <span className="text-3xl">🎟️</span>
-                  <span className="text-[8px] font-black text-emerald-200 text-center leading-tight bg-emerald-950 px-1 py-0.5 rounded-md border border-emerald-500/50">+1 Yenileme</span>
+                  <span className="text-[9px] font-black text-emerald-300 uppercase tracking-wider font-cinzel truncate w-full text-center">{currentVoucher?.name || 'VOUCHER'}</span>
+                  <span className="text-2xl">{currentVoucher?.icon || '🎟️'}</span>
+                  <span className="text-[8px] font-black text-emerald-200 text-center leading-tight bg-emerald-950/90 px-1 py-0.5 rounded border border-emerald-500/50 line-clamp-2 w-full">
+                    {currentVoucher?.desc || 'Kalıcı Kupon'}
+                  </span>
                 </>
               )}
             </motion.button>

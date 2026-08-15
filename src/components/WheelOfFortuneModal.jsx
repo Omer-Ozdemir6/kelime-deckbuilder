@@ -35,8 +35,8 @@ export function WheelOfFortuneModal({ onSpinResult, onClose }) {
     setTimeout(() => {
       setIsSpinning(false);
       setPrizeResult(prize);
-      confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
-      soundEngine.playSuccess();
+      try { confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } }); } catch(e) {}
+      try { soundEngine.playSuccess?.(); } catch(e) {}
 
       if (onSpinResult) {
         onSpinResult(prize);

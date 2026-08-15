@@ -140,7 +140,7 @@ export function StageVictoryModal({
   // Balatro-tight Gold Calculations
   const baseStageGold = Math.max(3, Number(goldEarned) || 3);
   const comboBonusGold = combo > 2 ? Math.min(3, Math.floor(combo / 2)) : 0;
-  const overkillGold = score > targetScore ? Math.min(3, Math.floor((score - targetScore) / 60)) : 0;
+  const overkillGold = score > targetScore ? Math.min(8, Math.floor((score - targetScore) / 40)) : 0;
   const interestGold = Math.min(5, Math.floor((goldEarned || 0) / 5)); // +1 per 5 gold held, max +5
   const grandTotalGold = baseStageGold + comboBonusGold + overkillGold + interestGold;
 
@@ -153,13 +153,15 @@ export function StageVictoryModal({
     { id: 'total', type: 'total', label: 'KAZANILAN NET ALTIN', val: `+${grandTotalGold} 💰`, color: 'text-amber-400 font-extrabold text-sm', isTotal: true }
   ];
 
+  const safePlayedWords = Array.isArray(playedWords) ? playedWords : [];
+
   // Build Score calculation lines array
   let runningScore = 0;
-  const scoreLines = playedWords.map((rawItem, idx) => {
+  const scoreLines = safePlayedWords.map((rawItem, idx) => {
     const wordStr = typeof rawItem === 'object' ? (rawItem?.word || '') : String(rawItem || '');
-    const approxWordScore = Math.max(10, Math.floor((score / Math.max(1, playedWords.length)) * (0.8 + idx * 0.1)));
+    const approxWordScore = Math.max(10, Math.floor((score / Math.max(1, safePlayedWords.length)) * (0.8 + idx * 0.1)));
     runningScore += approxWordScore;
-    if (idx === playedWords.length - 1) runningScore = score;
+    if (idx === safePlayedWords.length - 1) runningScore = score;
     return {
       id: `word_${idx}`,
       index: idx + 1,
@@ -202,7 +204,7 @@ export function StageVictoryModal({
       <motion.div
         initial={{ scale: 0.9, opacity: 0, y: 15 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
-        className="w-full max-w-md bg-slate-950/95 border-4 border-amber-500/80 rounded-3xl p-4 sm:p-5 shadow-[0_0_60px_rgba(245,158,11,0.4)] flex flex-col items-center text-center text-slate-100 relative overflow-hidden z-10 backdrop-blur-2xl"
+        className="w-full max-w-md max-h-[92vh] overflow-y-auto scrollbar-thin bg-slate-950/95 border-4 border-amber-500/80 rounded-3xl p-4 sm:p-5 shadow-[0_0_60px_rgba(245,158,11,0.4)] flex flex-col items-center text-center text-slate-100 relative z-10 backdrop-blur-2xl"
       >
         {/* Runic Card Frame Overlay */}
         <RunicCardFrame rarity="legendary" active={true} />
@@ -239,7 +241,7 @@ export function StageVictoryModal({
         </div>
 
         {/* CLICKABLE PLAYED WORDS CHIPS BAR (TDK ANLAMI ÖĞREN) */}
-        {playedWords.length > 0 && (
+        {safePlayedWords.length > 0 && (
           <div className="w-full bg-slate-900/95 border-2 border-amber-500/50 rounded-2xl p-2.5 my-1.5 z-10 text-left">
             <div className="flex items-center justify-between text-[10px] font-black text-amber-300 mb-1.5 uppercase tracking-wider">
               <span className="flex items-center gap-1">
@@ -248,7 +250,7 @@ export function StageVictoryModal({
               </span>
             </div>
             <div className="flex items-center gap-1.5 overflow-x-auto py-1 scrollbar-none">
-              {playedWords.map((item, i) => {
+              {safePlayedWords.map((item, i) => {
                 const wordStr = typeof item === 'object' ? (item?.word || '') : String(item || '');
                 if (!wordStr) return null;
                 return (

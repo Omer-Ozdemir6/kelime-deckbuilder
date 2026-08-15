@@ -380,7 +380,14 @@ export function calculateWordScore(
       } else if (card.infusedType === 'electric') {
         extraDrawCards += 1;
       } else if (card.infusedType === 'lucky') {
-        infusedBonusGold += 6;
+        // Balatro Lucky Card odds roll: 1/5 (20%) for +20 Mult, 1/15 (6.7%) for +20 Gold
+        if (Math.random() < 0.20) {
+          sealBonusMult += 20;
+        }
+        if (Math.random() < 0.067) {
+          infusedBonusGold += 20;
+        }
+        sealBonusChips += 10;
       }
     }
   });

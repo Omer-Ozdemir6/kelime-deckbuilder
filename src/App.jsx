@@ -31,6 +31,7 @@ import { SparkParticles } from './components/SparkParticles';
 import { useGameState } from './hooks/useGameState';
 import { checkMetaUnlocks } from './game/metaUnlocks';
 
+import { RunVictoryModal } from './components/RunVictoryModal';
 import { SettingsModal } from './components/SettingsModal';
 
 export default function App() {
@@ -316,12 +317,27 @@ export default function App() {
           fullDeck={fullDeck}
           activeRelicKeys={activeRelicKeys}
           activeJokerIds={gameStateObj.activeRelicKeys || []}
+          maxJokerSlots={gameStateObj.maxJokerSlots}
+          activeVouchers={gameStateObj.activeVouchers}
           wordCategoryLevels={gameStateObj.wordCategoryLevels}
           onBuyCard={handleShopBuyCard}
           onBuyPassiveJoker={handleShopBuyRelic}
+          onBuyVoucher={gameStateObj.handleBuyVoucher}
           onBuyPlanetCard={gameStateObj.handleBuyPlanetCard}
           onRemoveCard={handleShopRemoveCard}
           onLeaveShop={handleLeaveShop}
+        />
+      )}
+
+      {/* 4B. RUN VICTORY CHAMPIONSHIP MODAL */}
+      {gameState === 'RUN_VICTORY' && (
+        <RunVictoryModal
+          stage={gameStateObj.currentKademe}
+          score={currentScore}
+          totalGold={gold}
+          wordsPlayedCount={playedWordsThisStage.length}
+          onContinueEndless={gameStateObj.handleContinueEndless}
+          onReturnToMainMenu={() => setGameState('START_MENU')}
         />
       )}
 
