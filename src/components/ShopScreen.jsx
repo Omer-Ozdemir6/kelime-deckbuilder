@@ -4,6 +4,7 @@ import { Coins, ArrowRight, RefreshCw, Sparkles, ShoppingCart, Layers, Package, 
 import { soundEngine } from '../game/audioEngine';
 import { BoosterPackOpeningModal } from './BoosterPackOpeningModal';
 import { JokerCardIllustration } from './JokerCardIllustration';
+import { BalatroJokerCard } from './BalatroJokerCard';
 
 // Custom SVG Shop Header Crest Component
 function ShopSvgCrest() {

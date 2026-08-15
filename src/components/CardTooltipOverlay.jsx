@@ -10,6 +10,10 @@ export function CardTooltipOverlay({ card, targetRect }) {
   const cardLetterStr = String(card.letter || '').toUpperCase();
   const isJokerLike = card.isSpecial || card.type === 'joker' || cardLetterStr.includes('JOKER') || cardLetterStr.includes('BUFFOON') || cardLetterStr.includes('ARCANA') || cardLetterStr.length > 2;
 
+  // Only show tooltip for important/special cards (Special Tiles, Jokers, Seals, Upgraded Cards, or cards with explicit description)
+  const isImportantCard = isJokerLike || Boolean(card.seal) || Boolean(card.desc) || (card.upgradeLevel && card.upgradeLevel > 0);
+  if (!isImportantCard) return null;
+
   let title = '';
   let description = '';
   let pointText = card.points > 0 ? `+${card.points} Puan` : 'Joker Harf';

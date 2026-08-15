@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Coins, Home, FastForward, Play, Lock, CheckCircle2, ShieldAlert, ChevronLeft, ChevronRight, Award, Compass, Skull, HelpCircle, Swords, Target, Flame } from 'lucide-react';
+import { Sparkles, Coins, Home, Settings, FastForward, Play, Lock, CheckCircle2, ShieldAlert, ChevronLeft, ChevronRight, Award, Compass, Skull, HelpCircle, Swords, Target, Flame } from 'lucide-react';
 import { generateKademe } from '../game/mapGenerator';
 import { soundEngine } from '../game/audioEngine';
 import { RunicCardFrame } from './RunicCardFrame';
@@ -175,7 +175,7 @@ export function MapScreen({
                   <span>ANTE {currentKademe} / 8</span>
                   <Sparkles size={13} className="text-amber-400" />
                 </h2>
-                <span className="text-[9px] sm:text-[10px] px-2 sm:px-3 py-0.5 rounded-full bg-amber-950/90 border border-amber-400/60 text-amber-300 font-black uppercase shadow-md truncate max-w-[100px] sm:max-w-none">
+                <span className="text-[9px] sm:text-[11px] px-2.5 sm:px-3.5 py-0.5 rounded-full bg-amber-950/90 border border-amber-400/60 text-amber-300 font-black uppercase shadow-md whitespace-nowrap">
                   {kademeData?.biome?.name || '🌲 Orman Diyarı'}
                 </span>
               </div>
@@ -224,16 +224,16 @@ export function MapScreen({
               <button
                 onClick={onOpenMainMenu}
                 className="p-1.5 sm:p-2.5 rounded-xl sm:rounded-2xl bg-slate-950 hover:bg-slate-900 text-slate-300 border-2 border-slate-800 transition cursor-pointer shadow-md active:scale-95"
-                title="Ana Menüye Dön"
+                title="Ayarlar & Menü"
               >
-                <Home size={16} className="sm:w-[18px] sm:h-[18px]" />
+                <Settings size={16} className="text-amber-400 sm:w-[18px] sm:h-[18px]" />
               </button>
             )}
           </div>
         </div>
 
         {/* ── 2. STAGE TABS SELECTOR (1. Normal | 2. Yüksek | 3. Boss) ── */}
-        <div className="flex items-center justify-center gap-2 my-2.5 z-20">
+        <div className="flex items-center justify-center gap-2 my-2.5 z-20 flex-wrap">
           {blinds.map((b, idx) => {
             const isTabCurrent = idx === currentBlindIndex;
             const isTabFocused = idx === focusedIndex;
@@ -282,7 +282,7 @@ export function MapScreen({
           </motion.button>
 
           {/* CENTER FOCUSED CARD */}
-          <div className="w-full max-w-[310px] sm:max-w-[330px] flex items-center justify-center relative">
+          <div className="w-full max-w-[340px] sm:max-w-[380px] md:max-w-[420px] flex items-center justify-center relative">
             <AnimatePresence mode="wait">
               <motion.div
                 key={`blind_card_${currentBlind.id}_${focusedIndex}`}
@@ -290,18 +290,18 @@ export function MapScreen({
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.94 }}
                 transition={{ duration: 0.25 }}
-                className={`w-full min-h-[340px] sm:min-h-[390px] max-h-[72vh] h-auto rounded-3xl p-4 sm:p-5 flex flex-col justify-between backdrop-blur-2xl relative shadow-2xl transition-all ${cardStyle}`}
+                className={`w-full min-h-[340px] sm:min-h-[380px] max-h-[75vh] h-auto rounded-3xl p-4 sm:p-5 flex flex-col justify-between backdrop-blur-2xl relative shadow-2xl transition-all ${cardStyle}`}
               >
                 {/* SVG Runic Frame Overlay */}
                 <RunicCardFrame rarity={runicRarity} active={isCurrent} />
 
                 {/* CARD HEADER */}
-                <div className="flex flex-col gap-2.5 sm:gap-3 z-10 relative">
+                <div className="flex flex-col gap-2 z-10 relative">
                   <div className="flex items-center gap-2.5 sm:gap-3">
                     <NodeSvgIcon type={currentBlind.type} isBoss={isBoss} isCurrent={isCurrent} />
 
-                    <div className="text-left">
-                      <h3 className={`text-sm sm:text-base font-black tracking-wide font-cinzel leading-snug ${
+                    <div className="text-left flex-1 min-w-0">
+                      <h3 className={`text-xs sm:text-sm font-black tracking-wide font-cinzel leading-tight break-words ${
                         isBoss ? 'text-rose-300' : isSideEncounter ? 'text-purple-300' : 'text-amber-300'
                       }`}>
                         <span>{currentBlind.title}</span>
@@ -313,22 +313,22 @@ export function MapScreen({
                   </div>
 
                   {/* STATUS BADGE */}
-                  <div className="mt-0.5 sm:mt-1">
+                  <div className="mt-0.5">
                     {isCurrent && (
-                      <span className="px-3 sm:px-4 py-1 sm:py-1.5 rounded-full bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-slate-950 text-[10px] sm:text-[11px] font-black uppercase tracking-wider shadow-xl inline-flex items-center gap-1 sm:gap-1.5 border border-amber-200">
-                        <Sparkles size={12} className="fill-slate-950 sm:w-3.5 sm:h-3.5" />
+                      <span className="px-3 py-1 rounded-full bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-slate-950 text-[10px] sm:text-[11px] font-black uppercase tracking-wider shadow-xl inline-flex items-center gap-1 border border-amber-200">
+                        <Sparkles size={12} className="fill-slate-950" />
                         <span>🔥 AKTİF SAVAŞ AŞAMASI</span>
                       </span>
                     )}
                     {isDone && (
-                      <span className="px-3 sm:px-4 py-1 sm:py-1.5 rounded-full bg-emerald-950 border-2 border-emerald-500 text-emerald-300 text-[10px] sm:text-[11px] font-black inline-flex items-center gap-1 sm:gap-1.5 shadow-lg">
-                        <CheckCircle2 size={13} className="text-emerald-400 sm:w-3.5 sm:h-3.5" />
+                      <span className="px-3 py-1 rounded-full bg-emerald-950 border-2 border-emerald-500 text-emerald-300 text-[10px] sm:text-[11px] font-black inline-flex items-center gap-1 shadow-lg">
+                        <CheckCircle2 size={13} className="text-emerald-400" />
                         <span>✓ Tamamlandı</span>
                       </span>
                     )}
                     {isSkipped && (
-                      <span className="px-3 sm:px-4 py-1 sm:py-1.5 rounded-full bg-purple-950 border-2 border-purple-500 text-purple-300 text-[10px] sm:text-[11px] font-black inline-flex items-center gap-1 sm:gap-1.5 shadow-lg">
-                        <FastForward size={13} className="text-purple-400 sm:w-3.5 sm:h-3.5" />
+                      <span className="px-3 py-1 rounded-full bg-purple-950 border-2 border-purple-500 text-purple-300 text-[10px] sm:text-[11px] font-black inline-flex items-center gap-1 shadow-lg">
+                        <FastForward size={13} className="text-purple-400" />
                         <span>⏩ Atlandı (Etiket Ödülü Alındı)</span>
                       </span>
                     )}
@@ -336,9 +336,9 @@ export function MapScreen({
 
                   {/* TARGET SCORE & DETAILS */}
                   {!isSideEncounter ? (
-                    <div className="p-3 sm:p-3.5 rounded-2xl bg-slate-950/95 border-2 border-slate-800 flex items-center justify-between my-1.5 sm:my-2 shadow-inner">
+                    <div className="p-2.5 sm:p-3 rounded-2xl bg-slate-950/95 border-2 border-slate-800 flex items-center justify-between my-1 sm:my-1.5 shadow-inner">
                       <span className="text-xs text-slate-300 font-bold flex items-center gap-1.5">
-                        <Target size={15} className="text-emerald-400 sm:w-[16px] sm:h-[16px]" />
+                        <Target size={15} className="text-emerald-400" />
                         <span>Hedef Puan:</span>
                       </span>
                       <span className="text-xl sm:text-2xl font-black text-amber-300 font-mono tracking-wider">
@@ -346,60 +346,58 @@ export function MapScreen({
                       </span>
                     </div>
                   ) : (
-                    <div className="p-3 sm:p-3.5 rounded-2xl bg-slate-950/95 border border-purple-800/80 text-purple-200 text-xs my-1.5 sm:my-2 leading-relaxed font-medium shadow-inner">
+                    <div className="p-2.5 sm:p-3 rounded-2xl bg-slate-950/95 border border-purple-800/80 text-purple-200 text-xs my-1 sm:my-1.5 leading-relaxed font-medium shadow-inner">
                       {currentBlind.desc}
                     </div>
                   )}
 
                   {/* BOSS RULE BANNER */}
                   {isBoss && currentBlind.bossRule && (
-                    <div className="p-3 sm:p-3.5 rounded-2xl bg-rose-950/90 border-2 border-rose-500/80 text-rose-200 text-xs font-semibold flex items-start gap-2 shadow-xl">
-                      <ShieldAlert size={18} className="text-rose-400 shrink-0 mt-0.5 sm:w-[20px] sm:h-[20px]" />
-                      <div className="text-left space-y-0.5 sm:space-y-1">
-                        <h4 className="font-black text-rose-300 text-xs">{currentBlind.bossRule.title}</h4>
-                        <p className="text-[10px] sm:text-[11px] text-rose-200/90 leading-snug">{currentBlind.bossRule.desc}</p>
+                    <div className="p-2.5 sm:p-3 rounded-2xl bg-rose-950/90 border-2 border-rose-500/80 text-rose-200 text-xs font-semibold flex items-start gap-2 shadow-xl">
+                      <ShieldAlert size={16} className="text-rose-400 shrink-0 mt-0.5" />
+                      <div className="text-left space-y-0.5">
+                        <h4 className="font-black text-rose-300 text-xs leading-snug break-words">{currentBlind.bossRule.title}</h4>
+                        <p className="text-[10px] sm:text-[11px] text-rose-200/90 leading-snug break-words">{currentBlind.bossRule.desc}</p>
                       </div>
                     </div>
                   )}
 
                   {/* REWARD GOLD */}
                   {!isSideEncounter && (
-                    <div className="flex items-center gap-1.5 text-xs font-black text-amber-300 bg-amber-950/80 px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-xl border border-amber-500/50 w-fit shadow-md">
-                      <Coins size={14} className="fill-amber-400 text-amber-400 sm:w-[16px] sm:h-[16px]" />
+                    <div className="flex items-center gap-1.5 text-xs font-black text-amber-300 bg-amber-950/80 px-3 py-1 rounded-xl border border-amber-500/50 w-fit shadow-md">
+                      <Coins size={14} className="fill-amber-400 text-amber-400" />
                       <span>Ödül: +${currentBlind.rewardGold} Altın</span>
                     </div>
                   )}
                 </div>
 
                 {/* ACTION CTA BUTTON */}
-                <div className="mt-2 sm:mt-4 pt-2 sm:pt-3 border-t border-slate-800/90 z-10 relative">
+                <div className="mt-2 sm:mt-3 pt-2 sm:pt-2.5 border-t border-slate-800/90 z-10 relative">
                   {isCurrent && (
-                    <div className="space-y-2 sm:space-y-2.5">
+                    <div className="space-y-2">
                       <motion.button
                         whileTap={{ scale: 0.95 }}
                         whileHover={{ scale: 1.02 }}
                         onClick={() => handlePlayClick(focusedIndex)}
-                        className={`w-full py-2.5 sm:py-3.5 rounded-2xl font-black text-xs sm:text-sm tracking-wider flex items-center justify-center gap-2 shadow-2xl cursor-pointer border-2 transition ${
+                        className={`w-full py-2.5 sm:py-3 rounded-2xl font-black text-xs sm:text-sm tracking-wider shadow-2xl flex items-center justify-center gap-2 cursor-pointer ${
                           isBoss
-                            ? 'bg-gradient-to-r from-rose-600 via-red-500 to-rose-600 text-white border-rose-300 shadow-rose-600/70 hover:from-rose-500 hover:to-red-500'
-                            : isSideEncounter
-                            ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white border-purple-300 shadow-purple-600/70 hover:from-purple-500 hover:to-indigo-500'
-                            : 'bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-slate-950 border-amber-200 shadow-amber-500/70 hover:from-amber-300 hover:to-yellow-300'
+                            ? 'bg-gradient-to-r from-rose-600 via-red-600 to-rose-700 hover:from-rose-500 hover:to-red-600 text-white border-2 border-rose-300 shadow-[0_0_25px_rgba(244,63,94,0.6)]'
+                            : 'bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 hover:from-amber-400 hover:to-yellow-400 text-slate-950 border-2 border-yellow-200 shadow-[0_0_25px_rgba(245,158,11,0.6)]'
                         }`}
                       >
-                        <Play size={16} className="fill-current sm:w-[18px] sm:h-[18px]" />
-                        <span>SEÇ VE SAVAŞA BAŞLA</span>
+                        <Play size={16} className="fill-current" />
+                        <span className="whitespace-nowrap">SEÇ VE SAVAŞA BAŞLA</span>
                       </motion.button>
 
-                      {!isBoss && (
+                      {currentBlind.type !== 'BOSS_BLIND' && (
                         <motion.button
                           whileTap={{ scale: 0.95 }}
-                          whileHover={{ scale: 1.02 }}
+                          whileHover={{ scale: 1.01 }}
                           onClick={() => handleSkipClick(focusedIndex)}
-                          className="w-full py-2 sm:py-2.5 rounded-2xl bg-purple-950/90 hover:bg-purple-900 border-2 border-purple-500/70 text-purple-200 font-extrabold text-[11px] sm:text-xs flex items-center justify-center gap-1.5 sm:gap-2 transition cursor-pointer shadow-xl"
+                          className="w-full py-2 sm:py-2.5 rounded-2xl bg-purple-950/90 hover:bg-purple-900/90 border-2 border-purple-500/70 text-purple-200 font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer shadow-md"
                         >
-                          <FastForward size={15} className="text-purple-300 sm:w-[16px] sm:h-[16px]" />
-                          <span className="truncate">
+                          <FastForward size={15} className="text-purple-300" />
+                          <span className="whitespace-nowrap">
                             {currentBlind.tag
                               ? `PAS GEÇ & ETİKET AL (${currentBlind.tag.name})`
                               : 'PAS GEÇ / AŞAMAYI ATLA (+$10 Altın)'}
@@ -453,19 +451,19 @@ export function MapScreen({
 
         {/* ── 4. ACTIVE TAGS TRAY (KAZANILAN ETİKETLER) ── */}
         {activeTags.length > 0 && (
-          <div className="mt-3 p-3.5 rounded-3xl bg-slate-950/95 border-2 border-purple-800/80 backdrop-blur-2xl flex items-center justify-center gap-3 overflow-x-auto z-20 shrink-0 shadow-2xl w-full max-w-4xl mx-auto">
+          <div className="mt-2 p-2.5 sm:p-3 rounded-3xl bg-slate-950/95 border-2 border-purple-800/80 backdrop-blur-2xl flex items-center justify-center gap-2 sm:gap-3 overflow-x-auto z-20 shrink-0 shadow-2xl w-full max-w-4xl mx-auto flex-wrap">
             <div className="flex items-center gap-1.5 text-xs font-black text-purple-300 shrink-0">
-              <Award size={18} className="text-purple-400" />
+              <Award size={16} className="text-purple-400" />
               <span>KAZANILAN ETİKETLER:</span>
             </div>
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2 flex-wrap">
               {activeTags.map((tag, i) => (
                 <div
                   key={i}
-                  className="px-3.5 py-1.5 rounded-2xl bg-gradient-to-r from-purple-950 to-indigo-950 border border-purple-400/80 text-purple-200 text-xs font-black flex items-center gap-2 shadow-lg shrink-0"
+                  className="px-3 py-1 rounded-2xl bg-gradient-to-r from-purple-950 to-indigo-950 border border-purple-400/80 text-purple-200 text-xs font-black flex items-center gap-1.5 shadow-lg shrink-0 whitespace-nowrap"
                   title={tag.desc}
                 >
-                  <span className="text-base">{tag.icon}</span>
+                  <span className="text-sm">{tag.icon}</span>
                   <span>{tag.name}</span>
                 </div>
               ))}

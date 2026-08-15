@@ -2,15 +2,12 @@
  * Progressive Codex Discovery & Achievement Unlock System
  */
 
-const STORAGE_KEY = 'kd_discovered_codex_v1';
+const STORAGE_KEY = 'kd_discovered_codex_v2';
 const HERO_STORAGE_KEY = 'kd_unlocked_heroes_v1';
 const STAKE_STORAGE_KEY = 'kd_unlocked_stakes_v1';
 
-// Default unlocked items for brand new players
-const DEFAULT_DISCOVERIES = [
-  'A', 'B', 'C', 'D', 'E', 'K', 'L', 'M', 'N', 'O', 'R', 'S', 'T', 'Y',
-  'BIOME_FROZEN'
-];
+// Default unlocked items for brand new players (100% locked initial state)
+const DEFAULT_DISCOVERIES = [];
 
 const DEFAULT_HEROES = ['SPELLCASTER'];
 // All 10 stakes (White & Red default unlocked, rest earned through progression)

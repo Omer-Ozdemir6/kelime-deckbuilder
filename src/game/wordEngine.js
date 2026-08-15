@@ -64,6 +64,7 @@ export const TURKISH_ALPHABET = [
   'I', 'İ', 'J', 'K', 'L', 'M', 'N', 'O', 'Ö', 'P',
   'R', 'S', 'Ş', 'T', 'U', 'Ü', 'V', 'Y', 'Z'
 ];
+export const TURKISH_VOWELS = ['A', 'E', 'I', 'İ', 'O', 'Ö', 'U', 'Ü'];
 
 /**
  * Resolves Joker cards in selectedCards to valid Turkish letters that form a valid dictionary word.
@@ -89,6 +90,7 @@ function isJokerCard(c) {
     c.isSpecial ||
     c.type === 'joker' ||
     c.specialType === 'joker' ||
+    c.jokerVariant ||
     ltr.includes('JOKER') ||
     ltr.includes('BUFFOON') ||
     ltr.includes('ARCANA') ||
@@ -127,13 +129,14 @@ function solveJokerWord(selectedCards, playedWordsThisStage = []) {
     };
   }
 
-
   // 1 Joker case
   if (jokerIndices.length === 1) {
     const jIdx = jokerIndices[0];
+    const targetCard = selectedCards[jIdx];
+    const alphabetPool = (targetCard && targetCard.jokerVariant === 'VOWEL') ? TURKISH_VOWELS : TURKISH_ALPHABET;
     let candidatePool = [];
 
-    for (const letter of TURKISH_ALPHABET) {
+    for (const letter of alphabetPool) {
       const candidate = buildCandidateStr({ [jIdx]: letter });
       if (candidate.length >= 2 && isWordValid(candidate) && !playedWordsThisStage.includes(candidate)) {
         candidatePool.push({
@@ -357,6 +360,18 @@ export function calculateWordScore(
       } else if (card.seal === 'CROWN_SEAL' && selectedCards.length >= 5) {
         sealBonusChips += 50;
         sealBonusMult += 20;
+      }
+
+      // Joker Variants Bonuses (FIRE, VOWEL, GOLD, VORTEX)
+      if (card.jokerVariant === 'FIRE') {
+        sealBonusChips += 15;
+        polychromeMultiplier *= 1.3;
+      } else if (card.jokerVariant === 'VOWEL') {
+        sealBonusMult += 10;
+      } else if (card.jokerVariant === 'GOLD') {
+        slotBonusGold += 10;
+      } else if (card.jokerVariant === 'VORTEX') {
+        polychromeMultiplier *= 1.5;
       }
 
       // Infused Elemental Perks
@@ -675,6 +690,20 @@ export function calculateWordScore(
     { label: 'FİNAL SKOR', type: 'TOTAL', val: totalScore, icon: '💥', desc: `Kombo x${currentCombo}` }
   ];
 
+  // Detect Active Build Archetype (WOW Build Indicator)
+  let buildArchetype = null;
+  if (upperWord.length >= 5 && (safeRelicKeys.includes('UZUN_SOZ') || safeRelicKeys.includes('EJDERHA_SOZ'))) {
+    buildArchetype = { id: 'BUILD_LONG_WORD', name: '🔥 UZUN KELİME BUILD\'İ', color: 'from-amber-500 via-orange-600 to-rose-600', icon: '🔥', text: 'Uzun Kelime & Çarpan Sinerjisi!' };
+  } else if (containsRare && (safeRelicKeys.includes('NADIR_MUHUR') || safeRelicKeys.includes('ZUMRUT_HARF'))) {
+    buildArchetype = { id: 'BUILD_RARE_LETTER', name: '💎 NADİR HARF BUILD\'İ', color: 'from-emerald-400 via-teal-500 to-cyan-600', icon: '💎', text: 'Nadir Harf Katlama Sinerjisi!' };
+  } else if (chainType !== 'NONE' && (safeRelicKeys.includes('ZINCIR_USTASI') || safeRelicKeys.includes('SERI_KATIP'))) {
+    buildArchetype = { id: 'BUILD_CHAIN', name: '⚡ KELİME ZİNCİRİ BUILD\'İ', color: 'from-yellow-400 via-amber-500 to-yellow-600', icon: '⚡', text: 'Kelime Uzatma/Dönüşüm Sinerjisi!' };
+  } else if (isBankUsed && safeRelicKeys.includes('BANKACI')) {
+    buildArchetype = { id: 'BUILD_BANK', name: '🏦 BANKACI BUILD\'İ', color: 'from-cyan-400 via-blue-500 to-indigo-600', icon: '🏦', text: 'Harf Bankası Katlama Sinerjisi!' };
+  } else if (polychromeMultiplier > 1.2 || selectedCards.some(c => c.seal === 'RED_SEAL')) {
+    buildArchetype = { id: 'BUILD_SEAL_MASTER', name: '🔴 MÜHÜRLÜ EFENDİ BUILD\'İ', color: 'from-rose-500 via-purple-600 to-pink-600', icon: '👑', text: 'Mühür & Polikrom Katlama Sinerjisi!' };
+  }
+
   let msg = '✓ GEÇERLİ KELİME!';
   if (chainType === 'EXTEND') {
     msg = '⚡ KELİME ZİNCİRİ (UZATMAN)! (+%20 Çarpan)';
@@ -705,6 +734,7 @@ export function calculateWordScore(
     isExtension: isExtension,
     newCombo: nextCombo,
     archetype: archetype,
+    buildArchetype: buildArchetype,
     message: msg
   };
 }

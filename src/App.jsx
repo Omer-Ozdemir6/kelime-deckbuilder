@@ -31,10 +31,13 @@ import { SparkParticles } from './components/SparkParticles';
 import { useGameState } from './hooks/useGameState';
 import { checkMetaUnlocks } from './game/metaUnlocks';
 
+import { SettingsModal } from './components/SettingsModal';
+
 export default function App() {
   const gameStateObj = useGameState();
   const [isSplashActive, setIsSplashActive] = useState(true);
   const [isDeckInspectorOpen, setIsDeckInspectorOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [selectedRelicKey, setSelectedRelicKey] = useState(null);
   const [isCodexOpen, setIsCodexOpen] = useState(false);
   const [isWheelOpen, setIsWheelOpen] = useState(false);
@@ -211,7 +214,7 @@ export default function App() {
           onPlayBlind={gameStateObj.playBlind}
           onSkipBlind={gameStateObj.skipBlind}
           onSelectNode={enterMapNode}
-          onOpenMainMenu={() => setGameState('START_MENU')}
+          onOpenMainMenu={() => setIsSettingsOpen(true)}
         />
       )}
 
@@ -232,7 +235,7 @@ export default function App() {
             fullDeckCount={fullDeck.length}
             onOpenDeckInspector={() => setIsDeckInspectorOpen(true)}
             onDiscardHand={discardAndRedraw}
-            onOpenMainMenu={() => setGameState('START_MENU')}
+            onOpenMainMenu={() => setIsSettingsOpen(true)}
             onOpenRelicTooltip={(key) => setSelectedRelicKey(key)}
             activeBiome={activeBiome}
             activeFloorModifier={activeFloorModifier}
@@ -398,6 +401,17 @@ export default function App() {
           jokerCard={gameStateObj.pendingJokerCard}
           onSelectLetter={gameStateObj.handleAssignJokerLetter}
           onClose={() => gameStateObj.setPendingJokerCard(null)}
+        />
+      )}
+
+      {/* SETTINGS MODAL */}
+      {isSettingsOpen && (
+        <SettingsModal
+          onClose={() => setIsSettingsOpen(false)}
+          onReturnToMainMenu={() => {
+            setIsSettingsOpen(false);
+            setGameState('START_MENU');
+          }}
         />
       )}
 

@@ -68,6 +68,19 @@ export function LuminousScoreBreakdown({ scoreBreakdown, onClose }) {
           <span>{word}</span>
         </div>
 
+        {/* WOW BUILD ARCHETYPE BANNER */}
+        {scoreBreakdown.buildArchetype && (
+          <motion.div
+            initial={{ scale: 0, rotate: -5 }}
+            animate={{ scale: [0, 1.15, 1], rotate: 0 }}
+            transition={{ type: 'spring', damping: 12, stiffness: 200 }}
+            className={`w-full py-1.5 px-3 rounded-2xl bg-gradient-to-r ${scoreBreakdown.buildArchetype.color} text-slate-950 font-black text-xs flex items-center justify-center gap-1.5 shadow-xl border border-white/40 tracking-wide font-cinzel`}
+          >
+            <span className="text-base">{scoreBreakdown.buildArchetype.icon}</span>
+            <span>{scoreBreakdown.buildArchetype.name}</span>
+          </motion.div>
+        )}
+
         {/* STEPS LIST */}
         <div className="w-full flex flex-col gap-2 my-1">
           {steps.map((step, idx) => {

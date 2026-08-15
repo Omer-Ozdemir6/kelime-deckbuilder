@@ -208,7 +208,7 @@ export function WordPlayArea({
 
       {/* Word Rack Area (Tile Tray Container) */}
       <div className="w-full flex-1 flex flex-col items-center justify-center my-2 min-h-[160px] relative">
-        <div className="w-full min-h-[95px] sm:min-h-[130px] p-2 sm:p-4 bg-slate-950/90 backdrop-blur-2xl border-2 sm:border-4 border-amber-400 rounded-3xl shadow-[0_0_50px_rgba(245,158,11,0.45)] flex items-center justify-start sm:justify-center gap-1 sm:gap-2.5 transition-all relative overflow-x-auto scrollbar-none">
+        <div className="w-full max-w-4xl min-h-[110px] sm:min-h-[140px] px-3 sm:px-6 py-3 bg-slate-950/95 backdrop-blur-2xl border-3 sm:border-4 border-amber-400/90 rounded-3xl shadow-[0_0_60px_rgba(245,158,11,0.4)] flex items-center justify-center gap-2 sm:gap-3.5 md:gap-4.5 transition-all relative overflow-x-auto scrollbar-none mx-auto">
           <LuminousWordEffect word={selectedCards.map(c => c.letter).join('')} active={isWordLuminous} />
           <BurstParticles count={16} active={showBurst} color={combo > 3 ? '#f97316' : '#f59e0b'} />
 
@@ -245,7 +245,7 @@ export function WordPlayArea({
                     setHoveredSlotCard(null);
                     setHoveredSlotTargetRect(null);
                   }}
-                  className={`w-9 sm:w-14 md:w-16 h-14 sm:h-20 md:h-24 rounded-2xl flex flex-col items-center justify-between p-1 transition-all relative cursor-pointer select-none shrink-0 overflow-visible shadow-2xl ${tileClass} ${
+                  className={`w-10 sm:w-14 md:w-16 h-15 sm:h-20 md:h-24 rounded-2xl flex flex-col items-center justify-between p-1 transition-all relative cursor-pointer select-none shrink-0 overflow-visible shadow-2xl ${tileClass} ${
                     modCfg ? `ring-2 sm:ring-4 ${modCfg.border}` : ''
                   }`}
                 >
@@ -293,7 +293,7 @@ export function WordPlayArea({
             return (
               <div
                 key={`empty_slot_${slotIdx}`}
-                className={`w-9 sm:w-14 md:w-16 h-14 sm:h-20 md:h-24 shrink-0 rounded-2xl flex flex-col items-center justify-between p-1 transition-all relative overflow-hidden ${
+                className={`w-10 sm:w-14 md:w-16 h-15 sm:h-20 md:h-24 shrink-0 rounded-2xl flex flex-col items-center justify-between p-1 transition-all relative overflow-hidden ${
                   modCfg
                     ? `${modCfg.bg} ${modCfg.border} text-amber-300`
                     : 'border border-slate-800 bg-slate-950/70 text-slate-600'
@@ -346,14 +346,6 @@ export function WordPlayArea({
               <div className="px-3 py-1 rounded-xl bg-purple-950/80 border border-purple-400/80 text-purple-300 flex items-center gap-1.5 shadow-[0_0_10px_rgba(168,85,247,0.3)]">
                 <Zap size={14} className="text-purple-400" />
                 <span>Kelime Çarpanı: x{(scoreBreakdown.mult * (scoreBreakdown.xMult || 1)).toFixed(1).replace('.0', '')}</span>
-              </div>
-
-              <span className="text-amber-300/80 font-black text-sm font-cinzel">=</span>
-
-              {/* TAHMİNİ PUAN */}
-              <div className="px-3.5 py-1 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 font-black flex items-center gap-1.5 shadow-[0_0_15px_rgba(245,158,11,0.5)] font-cinzel tracking-wider">
-                <Trophy size={14} className="text-slate-950" />
-                <span>+{scoreBreakdown.score} Puan</span>
               </div>
             </div>
 
@@ -412,12 +404,12 @@ export function WordPlayArea({
             disabled={discardsLeft <= 0}
             className={`col-span-3 sm:col-span-3 font-black py-2.5 sm:py-3.5 px-1.5 sm:px-2 rounded-2xl border-2 transition flex items-center justify-center gap-1 active:scale-95 text-[11px] sm:text-sm shadow-lg truncate ${
               discardsLeft > 0
-                ? 'bg-gradient-to-r from-amber-500/30 to-yellow-600/30 border-amber-400 text-amber-300 hover:bg-amber-500/40 cursor-pointer shadow-amber-500/20'
+                ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 border-2 border-yellow-300 text-slate-950 font-black shadow-[0_0_20px_rgba(245,158,11,0.6)] cursor-pointer'
                 : 'bg-slate-950 border-slate-800 text-slate-600 cursor-not-allowed'
             }`}
             title="Eli Yenile: Eldeki harfleri desteye gönderir ve yeni harfler çeker"
           >
-            <RotateCcw size={14} className={discardsLeft > 0 ? 'text-amber-400 shrink-0' : 'text-slate-600 shrink-0'} />
+            <RotateCcw size={14} className={discardsLeft > 0 ? 'text-slate-950 shrink-0' : 'text-slate-600 shrink-0'} />
             <span className="truncate">Yenile ({discardsLeft})</span>
           </button>
         )}

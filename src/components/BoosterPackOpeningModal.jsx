@@ -44,6 +44,22 @@ const PACK_CONFIGS = {
       { type: 'letter', letter: 'J', rarity: 'efsanevi', points: 7 },
       { type: 'letter', letter: 'Ç', rarity: 'nadir', points: 4 }
     ]
+  },
+  SPECTRAL_PACK: {
+    title: 'MİSTİK RİTÜEL PAKETİ',
+    subtitle: 'Kutsal / Karanlık Mistik Dönüşüm Kartları',
+    icon: '🔮',
+    bgGradient: 'from-purple-950 via-indigo-900 to-slate-950',
+    borderColor: 'border-purple-400',
+    shadowGlow: 'shadow-[0_0_60px_rgba(168,85,247,0.6)]',
+    badgeBg: 'bg-purple-400 text-slate-950',
+    cardsPool: [
+      { type: 'sealed', letter: 'A', seal: 'RED_SEAL', name: '🔴 Kırmızı Mühürlü A', desc: 'Harf 2 kez tetiklenir (Dark Ritual)', points: 1, rarity: 'efsanevi' },
+      { type: 'sealed', letter: 'E', seal: 'POLYCHROME', name: '🌈 Polikrom Mühürlü E', desc: 'Polychrome ×1.5 çarpan', points: 1, rarity: 'efsanevi' },
+      { type: 'special', key: 'SPECIAL_VORTEX_JOKER', name: '🌀 Vorteks Jokeri', desc: 'Efsanevi Joker: Skoru x1.5 katlar!', points: 20, rarity: 'efsanevi' },
+      { type: 'special', key: 'SPECIAL_FIRE_JOKER', name: '🔥 Ateşli Joker', desc: '+15 Taban Puan & x1.3 Çarpan!', points: 15, rarity: 'cok_nadir' },
+      { type: 'special', key: 'SPECIAL_GOLD_JOKER', name: '💰 Altın Joker', desc: 'Oynandığında +10 Altın verir!', points: 10, rarity: 'cok_nadir' }
+    ]
   }
 };
 

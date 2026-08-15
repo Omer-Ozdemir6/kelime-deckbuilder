@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Layers, Flame, RotateCcw, Star, Coins, Home, Target, Sparkles } from 'lucide-react';
+import { Layers, Flame, RotateCcw, Star, Coins, Home, Settings, Target, Sparkles } from 'lucide-react';
 import { getBossStageRule, getMaxComboTime } from '../hooks/useGameState';
 import { RELICS } from '../game/relicData';
 import { PASSIVE_JOKERS } from '../game/cardData';
@@ -185,112 +185,66 @@ export function HeaderBar({
         style={{ background: `linear-gradient(90deg, transparent, ${biomeGlowColor}, transparent)` }}
       />
 
-      {/* Top Stat Badges Row */}
-      <div className="flex items-center justify-between gap-1 flex-wrap">
-        {/* Left Badges */}
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <div className="px-2.5 py-1 rounded-xl bg-gradient-to-r from-amber-500/20 to-yellow-600/10 border border-amber-500/40 text-amber-300 text-xs font-black tracking-wider flex items-center gap-1 shadow-md shadow-amber-950/30">
-            <Sparkles size={12} className="text-amber-400" />
-            <span>KADEME {stage}</span>
-          </div>
+      {/* Top Main Bar: Dedicated Passive Joker Cards Area + Gold & Settings */}
+      <div className="flex items-center justify-between gap-2 z-20 relative flex-wrap sm:flex-nowrap">
+        {/* LEFT: PASİF JOKERLER AREA */}
+        <div className="flex items-center gap-1.5 overflow-x-auto py-1 px-2 scrollbar-none bg-purple-950/40 border border-purple-800/60 rounded-2xl shadow-inner flex-1 min-w-0">
+          <span className="text-[10px] uppercase font-black text-purple-300 tracking-wider shrink-0 flex items-center gap-1">
+            <Sparkles size={13} className="text-purple-400 animate-pulse" />
+            <span>PASİF JOKERLER ({activeRelicKeys.length}/5):</span>
+          </span>
 
-          <div className="flex items-center gap-1.5 text-xs font-extrabold text-amber-300 bg-slate-900/90 border border-amber-500/30 px-2.5 py-1 rounded-xl shadow-inner">
-            <Coins size={13} className="text-amber-400 fill-amber-400" />
-            <span>{gold}</span>
-          </div>
-
-          {bossRule && (
-            <span className="px-2 py-0.5 rounded-full bg-rose-950/80 border border-rose-500/50 text-rose-300 text-[10px] font-bold animate-pulse flex items-center gap-1">
-              <span>⚠️</span>
-              <span>{bossRule.title}</span>
-            </span>
+          {activeRelicKeys && activeRelicKeys.length > 0 ? (
+            activeRelicKeys.map(key => {
+              const item = PASSIVE_JOKERS[key] || RELICS[key];
+              if (!item) return null;
+              return (
+                <button
+                  key={key}
+                  onClick={() => onOpenRelicTooltip && onOpenRelicTooltip(key)}
+                  className="px-2.5 py-1 rounded-xl bg-gradient-to-b from-purple-900 via-indigo-950 to-slate-950 hover:from-purple-800 border-2 border-purple-400/70 hover:border-purple-300 text-purple-100 text-[11px] font-black shrink-0 flex items-center gap-1.5 shadow-lg transition cursor-pointer active:scale-95 group"
+                  title={`${item.name}: ${item.desc || item.description}`}
+                >
+                  <JokerCardIllustration cardId={key} className="w-5 h-5 group-hover:scale-125 transition-transform shrink-0" />
+                  <span className="truncate max-w-[110px]">{item.name}</span>
+                </button>
+              );
+            })
+          ) : (
+            <span className="text-[10px] text-slate-500 font-bold italic truncate">Pasif Joker Slotu Boş (Dükkândan yeni jokerler alabilirsiniz)</span>
           )}
         </div>
 
-        {/* Right Badges */}
-        <div className="flex items-center gap-1.5">
-          {/* Aggressive Tiered Combo Badge System */}
+        {/* RIGHT: GOLD & SETTINGS GEAR */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          <div className="flex items-center gap-1.5 text-xs font-extrabold text-amber-300 bg-slate-900/90 border border-amber-500/40 px-3 py-1 rounded-xl shadow-inner font-mono">
+            <Coins size={14} className="text-amber-400 fill-amber-400" />
+            <span>${gold}</span>
+          </div>
+
           {combo > 1 && (
             <ComboTimerBadge combo={combo} comboTimeLeft={comboTimeLeft} />
           )}
 
-          {/* Home / Main menu toggle */}
           {onOpenMainMenu && (
             <button
               onClick={onOpenMainMenu}
-              className="p-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700/80 transition active:scale-95 shadow-md"
-              title="Ana Menüye Dön"
+              className="p-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700/80 transition active:scale-95 shadow-md cursor-pointer"
+              title="Ayarlar & Menü"
             >
-              <Home size={14} />
+              <Settings size={16} className="text-amber-400" />
             </button>
           )}
-
-          {/* Deck inspector toggle */}
-          <button
-            onClick={onOpenDeckInspector}
-            className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-slate-200 text-xs px-2.5 py-1 rounded-xl border border-slate-700/80 transition active:scale-95 shadow-md group"
-            title="Desteyi İncele"
-          >
-            <Layers size={14} className="text-cyan-400 group-hover:scale-110 transition-transform" />
-            <span className="font-extrabold text-cyan-300">{fullDeckCount}</span>
-          </button>
         </div>
       </div>
 
-      {/* Active Passive Jokers & Relics Bar (Balatro-style Slots) */}
-      {activeRelicKeys && activeRelicKeys.length > 0 ? (
-        <div className="flex items-center gap-1.5 overflow-x-auto py-1 px-2 scrollbar-none bg-purple-950/40 border border-purple-800/60 rounded-2xl shadow-inner">
-          <span className="text-[10px] uppercase font-black text-purple-300 tracking-wider shrink-0 flex items-center gap-1">
-            <Sparkles size={12} className="text-purple-400 animate-pulse" />
-            <span>PASİF JOKERLER ({activeRelicKeys.length}/5):</span>
-          </span>
-          {activeRelicKeys.map(key => {
-            const item = PASSIVE_JOKERS[key] || RELICS[key];
-            if (!item) return null;
-            return (
-              <button
-                key={key}
-                onClick={() => onOpenRelicTooltip && onOpenRelicTooltip(key)}
-                className="px-2.5 py-1 rounded-xl bg-gradient-to-b from-purple-900 via-indigo-950 to-slate-950 hover:from-purple-800 border-2 border-purple-400/70 hover:border-purple-300 text-purple-100 text-[11px] font-black shrink-0 flex items-center gap-1.5 shadow-lg transition cursor-pointer active:scale-95 group"
-                title={`${item.name}: ${item.desc || item.description}`}
-              >
-                <JokerCardIllustration cardId={key} className="w-5 h-5 group-hover:scale-125 transition-transform shrink-0" />
-                <span className="truncate max-w-[110px]">{item.name}</span>
-              </button>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="flex items-center gap-1.5 py-1 px-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80 text-[10px] text-slate-500 font-semibold italic">
-          <Sparkles size={11} className="text-purple-400 shrink-0" />
-          <span>Pasif Joker Slotu Boş (Dükkândan yeni jokerler alabilirsiniz)</span>
-        </div>
-      )}
-
-      {/* Active Biome + Floor Modifier Row */}
-      {(activeBiome || activeFloorModifier) && (
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none py-0.5">
-          {activeBiome && (
-            <span className={`flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full border bg-slate-900/80 ${biomeAccent} border-slate-700/60`}>
-              {activeBiome.icon} {activeBiome.name}
-            </span>
-          )}
-          {activeFloorModifier && (
-            <span className="flex items-center gap-1.5 text-[10px] font-black px-2 py-0.5 rounded-full border bg-yellow-950/60 text-yellow-300 border-yellow-700/50 shrink-0">
-              {activeFloorModifier.icon} {activeFloorModifier.name}
-            </span>
-          )}
-        </div>
-      )}
-
-      {/* Enhanced Target Score Progress Bar Section with Thick Neon Arcade Gauge */}
+      {/* Enhanced Target Score Progress Bar Section */}
       <div className="w-full bg-slate-950/90 border-2 border-emerald-500/50 rounded-3xl p-3 space-y-2 shadow-[0_0_35px_rgba(16,185,129,0.25)] relative overflow-hidden">
         <div className="flex items-center justify-between text-xs font-black">
           <div className="flex items-center gap-2">
             <TargetScoreGauge progressPercent={progressPercent} />
-            <span className="text-emerald-300 font-extrabold uppercase tracking-widest text-xs flex items-center gap-1">
-              <span>🎯 HEDEF PUAN:</span>
-              <span className="text-amber-300 font-mono font-black text-sm">%{progressPercent}</span>
+            <span className="text-emerald-300 font-extrabold uppercase tracking-widest text-xs">
+              HEDEF PUAN:
             </span>
           </div>
 
@@ -300,25 +254,20 @@ export function HeaderBar({
           </div>
         </div>
 
-        {/* Dynamic Glowing Progress Fill Bar with Percentage Shimmer */}
-        <div className="w-full h-5 sm:h-6 bg-slate-900 rounded-full overflow-hidden p-0.5 border-2 border-slate-800 relative shadow-inner">
+        {/* Dynamic Glowing Progress Fill Bar */}
+        <div className="w-full h-4 sm:h-5 bg-slate-900 rounded-full overflow-hidden p-0.5 border-2 border-slate-800 relative shadow-inner">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 transition-all duration-700 shadow-[0_0_25px_rgba(16,185,129,0.9)] relative overflow-hidden flex items-center justify-end pr-2"
+            className="h-full rounded-full bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 transition-all duration-700 shadow-[0_0_25px_rgba(16,185,129,0.9)] relative overflow-hidden"
             style={{ width: `${progressPercent}%` }}
           >
             <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.45)_50%,transparent_100%)] animate-shimmer" />
-            {progressPercent >= 15 && (
-              <span className="text-[10px] font-black text-slate-950 font-mono relative z-10">
-                %{progressPercent}
-              </span>
-            )}
           </div>
         </div>
 
-        {/* Remaining Hands (Plays) & Refresh Action Row */}
+        {/* Remaining Hands (Plays) Row */}
         <div className="flex items-center justify-between text-xs font-bold text-slate-300 pt-0.5">
           <div className="flex items-center gap-2">
-            <span className="text-slate-300 font-extrabold uppercase text-[11px] tracking-wider">🎯 Hamle Hakkı:</span>
+            <span className="text-slate-300 font-extrabold uppercase text-[11px] tracking-wider">HAMLE HAKKI:</span>
             <span className="px-3 py-0.5 bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 rounded-xl font-black text-xs shadow-md border border-yellow-200 min-w-[32px] flex items-center justify-center">
               {showMinusOne ? (
                 <span className="text-rose-950 animate-pulse font-mono font-black">-1</span>

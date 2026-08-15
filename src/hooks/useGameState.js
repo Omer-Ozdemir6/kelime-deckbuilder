@@ -1139,6 +1139,7 @@ export function useGameState() {
       soundEngine.playVictory();
       setGold(prev => prev - effectiveCost);
       setActiveRelicKeys(prev => [...prev, relicId]);
+      discoverCodexItem(relicId);
     }
   };
 

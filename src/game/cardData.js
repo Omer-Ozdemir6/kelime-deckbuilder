@@ -258,11 +258,63 @@ export const SPECIAL_CARDS = {
     letter: '💎',
     name: 'Midas Jokeri',
     points: 25,
+    type: 'golden',
+    cost: 85,
+    rarity: 'efsanevi',
+    desc: 'Oynandığında +15 Altın verir ve Joker görevi görür.',
+    bgGradient: 'from-amber-400 via-yellow-500 to-amber-600'
+  },
+  FIRE_JOKER: {
+    id: 'SPECIAL_FIRE_JOKER',
+    letter: '🔥',
+    name: 'Ateşli Joker',
+    points: 15,
     type: 'joker',
+    jokerVariant: 'FIRE',
+    bonusMultX: 1.3,
     cost: 75,
     rarity: 'cok_nadir',
-    desc: 'Her tur sonu destedeki 1 harfi Altın Yaldıza çevirir ve +25 Altın verir.',
-    bgGradient: 'from-yellow-500 via-amber-600 to-yellow-800'
+    desc: 'Eksik harfe dönüşür, +15 Taban Puan ve x1.3 Çarpan ekler!',
+    bgGradient: 'from-rose-500 via-orange-600 to-red-700'
+  },
+  VOWEL_JOKER: {
+    id: 'SPECIAL_VOWEL_JOKER',
+    letter: '🔮',
+    name: 'Büyülü Sesli Joker',
+    points: 10,
+    type: 'joker',
+    jokerVariant: 'VOWEL',
+    bonusMult: 10,
+    cost: 70,
+    rarity: 'nadir',
+    desc: 'Sadece sesli harflere (A, E, İ, O...) dönüşür ve +10 Çarpan ekler!',
+    bgGradient: 'from-purple-500 via-indigo-600 to-purple-800'
+  },
+  GOLD_JOKER: {
+    id: 'SPECIAL_GOLD_JOKER',
+    letter: '💰',
+    name: 'Altın Joker',
+    points: 10,
+    type: 'joker',
+    jokerVariant: 'GOLD',
+    bonusGold: 10,
+    cost: 75,
+    rarity: 'cok_nadir',
+    desc: 'Eksik harfe dönüşür ve oynandığında anında +10 Altın kazandırır!',
+    bgGradient: 'from-amber-400 via-yellow-500 to-amber-600'
+  },
+  VORTEX_JOKER: {
+    id: 'SPECIAL_VORTEX_JOKER',
+    letter: '🌀',
+    name: 'Vorteks Jokeri',
+    points: 20,
+    type: 'joker',
+    jokerVariant: 'VORTEX',
+    bonusMultX: 1.5,
+    cost: 95,
+    rarity: 'efsanevi',
+    desc: 'Efsanevi Joker: Eksik harfe dönüşür ve toplam skoru x1.5 katlar!',
+    bgGradient: 'from-pink-500 via-purple-600 to-cyan-500 animate-pulse'
   },
   SHADOW_JOKER: {
     id: 'SPECIAL_SHADOW_JOKER',
@@ -1329,6 +1381,594 @@ export const PASSIVE_JOKERS = {
     bgGradient: 'from-amber-800 via-yellow-900 to-stone-950', glowColor: 'rgba(245,158,11,0.6)',
     artEmoji: '🏛️👑⚔️',
     flavorText: '"Tiran küçük ve disiplinli bir ordu ister." — İmparatorluk Tüzüğü'
+  },
+
+  // ══════════════════════════════════════════
+  // 🌟 EKSTRA 73 BENZERSİZ JOKER KART KART KORPUSU (TOPLAM 150 JOKER KONTROLÜ)
+  // ══════════════════════════════════════════
+  JOKER_ASTRONAUT: {
+    id: 'JOKER_ASTRONAUT', icon: '👨‍🚀', name: 'Astronot Jokeri',
+    rarity: 'nadir', cost: 70, maxPerRun: 1,
+    effect: { type: 'per_vowel_chips', value: 8 },
+    desc: 'Uzay Serüveni: Kelimedeki her sesli harf için +8 Taban Puan katar.',
+    bgGradient: 'from-blue-900 via-indigo-950 to-black', glowColor: 'rgba(99,102,241,0.6)',
+    artEmoji: '👨‍🚀🚀⭐', flavorText: '"Yerçekimsiz ortamda kelimeler hafifler."'
+  },
+  JOKER_BLACKSMITH: {
+    id: 'JOKER_BLACKSMITH', icon: '⚒️', name: 'Demirci Jokeri',
+    rarity: 'yaygin', cost: 40, maxPerRun: 1,
+    effect: { type: 'per_consonant_mult', value: 3 },
+    desc: 'Kelimedeki her sert ünsüz harf için +3 Çarpan ekler.',
+    bgGradient: 'from-orange-800 via-red-950 to-stone-950', glowColor: 'rgba(249,115,22,0.5)',
+    artEmoji: '⚒️🔥🗡️', flavorText: '"Sert harfler demirci ocağında dövülür."'
+  },
+  JOKER_ALCHEMIST_LAB: {
+    id: 'JOKER_ALCHEMIST_LAB', icon: '🔬', name: 'Simya Laboratuvarı',
+    rarity: 'nadir', cost: 75, maxPerRun: 1,
+    effect: { type: 'shop_gold_bonus', value: 15 },
+    desc: 'Her Çarşı girişinde otomatik +15 Altın ikramiyesi kazandırır.',
+    bgGradient: 'from-emerald-800 via-teal-900 to-black', glowColor: 'rgba(16,185,129,0.5)',
+    artEmoji: '🔬🧪💰', flavorText: '"Deneyler altın sonuçlar verir."'
+  },
+  JOKER_CHESS_KING: {
+    id: 'JOKER_CHESS_KING', icon: '♔', name: 'Satranç Şahı',
+    rarity: 'efsanevi', cost: 110, maxPerRun: 1,
+    effect: { type: 'long_word_dragon_mult', minLen: 7, mult: 2.2 },
+    desc: '7+ Harfli şah kelimelerinde skoru 2.2x ile çarpar!',
+    bgGradient: 'from-amber-600 via-yellow-700 to-slate-950', glowColor: 'rgba(245,158,11,0.7)',
+    artEmoji: '♔🏰👑', flavorText: '"Şah hamlesi oyunu bitirir."'
+  },
+  JOKER_CHESS_QUEEN: {
+    id: 'JOKER_CHESS_QUEEN', icon: '♕', name: 'Satranç Veziri',
+    rarity: 'efsanevi', cost: 115, maxPerRun: 1,
+    effect: { type: 'rare_letter_xmult', value: 1.6 },
+    desc: 'Kelimedeki her nadir harf için vezir gücüyle x1.6 Çarpan katar!',
+    bgGradient: 'from-purple-700 via-pink-800 to-black', glowColor: 'rgba(168,85,247,0.7)',
+    artEmoji: '♕✨👑', flavorText: '"Vezir tahtanın her köşesine hükmeder."'
+  },
+  JOKER_NIGHT_OWL: {
+    id: 'JOKER_NIGHT_OWL', icon: '🦉', name: 'Gece Kuşu',
+    rarity: 'yaygin', cost: 35, maxPerRun: 1,
+    effect: { type: 'short_word_chips', maxLen: 3, value: 25 },
+    desc: '3 harfli hızlı gece kelimeleri +25 Taban Puan kazanır.',
+    bgGradient: 'from-indigo-950 via-slate-900 to-black', glowColor: 'rgba(99,102,241,0.4)',
+    artEmoji: '🦉🌙🌌', flavorText: '"Karanlıkta gözleri keskinleşir."'
+  },
+  JOKER_CHRONO_TRIGGER: {
+    id: 'JOKER_CHRONO_TRIGGER', icon: '⏰', name: 'Zaman Tetikleyicisi',
+    rarity: 'efsanevi', cost: 105, maxPerRun: 1,
+    effect: { type: 'chain_master_xmult', mult: 2.2, gold: 4 },
+    desc: 'Kelime zinciri yapıldığında zamanı büküp x2.2 Mult & +$4 Altın katar.',
+    bgGradient: 'from-amber-700 via-orange-800 to-slate-950', glowColor: 'rgba(245,158,11,0.6)',
+    artEmoji: '⏰⏳⚡', flavorText: '"Geçmiş ve gelecek tek kelimede buluşur."'
+  },
+  JOKER_LUCKY_DICE: {
+    id: 'JOKER_LUCKY_DICE', icon: '🎲', name: 'Şans Zarları',
+    rarity: 'yaygin', cost: 45, maxPerRun: 1,
+    effect: { type: 'lucky_gold_chance', chance: 35, value: 15 },
+    desc: 'Oynanan her kelimede %35 ihtimalle +15 Altın kazandırır.',
+    bgGradient: 'from-emerald-700 via-green-900 to-black', glowColor: 'rgba(16,185,129,0.5)',
+    artEmoji: '🎲🍀🎰', flavorText: '"Zarlar dükkân için döner."'
+  },
+  JOKER_SPELLBOOK: {
+    id: 'JOKER_SPELLBOOK', icon: '📖', name: 'Büyü Kitabı',
+    rarity: 'nadir', cost: 70, maxPerRun: 1,
+    effect: { type: 'per_word_chips', value: 6 },
+    desc: 'Yazılan her efsunlu kelimede +6 Taban Puanı kalıcı olarak biriktirir.',
+    bgGradient: 'from-purple-800 via-indigo-900 to-black', glowColor: 'rgba(168,85,247,0.5)',
+    artEmoji: '📖🔮✨', flavorText: '"Sayfalar çevrildikçe büyü katlanır."'
+  },
+  JOKER_FROSTBITE: {
+    id: 'JOKER_FROSTBITE', icon: '🥶', name: 'Buz Isırığı',
+    rarity: 'yaygin', cost: 40, maxPerRun: 1,
+    effect: { type: 'bank_card_chips', per_card: 6 },
+    desc: 'Harf bankasındaki her dondurulmuş harf +6 Taban Puan verir.',
+    bgGradient: 'from-cyan-800 via-sky-900 to-black', glowColor: 'rgba(6,182,212,0.4)',
+    artEmoji: '🥶❄️🧊', flavorText: '"Dondurucu soğuk puanı korur."'
+  },
+  JOKER_VOLCANIC_FORGE: {
+    id: 'JOKER_VOLCANIC_FORGE', icon: '🌋', name: 'Volkanik Ocak',
+    rarity: 'efsanevi', cost: 125, maxPerRun: 1,
+    effect: { type: 'long_word_dragon_mult', minLen: 5, mult: 1.6 },
+    desc: '5+ Harfli lav kelimelerinde skoru 1.6x katlar.',
+    bgGradient: 'from-red-800 via-orange-900 to-black', glowColor: 'rgba(239,68,68,0.7)',
+    artEmoji: '🌋🔥💥', flavorText: '"Lavlar tahtayı yakıp kavurur."'
+  },
+  JOKER_SHADOW_NINJA: {
+    id: 'JOKER_SHADOW_NINJA', icon: '🥷', name: 'Gölge Ninja',
+    rarity: 'nadir', cost: 80, maxPerRun: 1,
+    effect: { type: 'short_word_combo_boost', maxLen: 3, combo: 3, chips: 20 },
+    desc: '3 harfli hızlı katanasız kelimelerde kombonu +3 sıçratır.',
+    bgGradient: 'from-slate-900 via-zinc-950 to-black', glowColor: 'rgba(113,113,122,0.5)',
+    artEmoji: '🥷⚔️🌑', flavorText: '"Sessiz, hızlı ve ölümcül kelimeler."'
+  },
+  JOKER_ROYAL_GUARD: {
+    id: 'JOKER_ROYAL_GUARD', icon: '🛡️', name: 'Kraliyet Muhafızı',
+    rarity: 'nadir', cost: 65, maxPerRun: 1,
+    effect: { type: 'same_first_last_letter_chips', chips: 40, mult: 12 },
+    desc: 'Aynı harfle başlayıp biten muhafız kelimelerde +40 Puan & +12 Çarpan katar.',
+    bgGradient: 'from-amber-800 via-yellow-900 to-black', glowColor: 'rgba(245,158,11,0.5)',
+    artEmoji: '🛡️🏰👑', flavorText: '"Kale kapıları iki ucu korur."'
+  },
+  JOKER_PIRATE_CAPTAIN: {
+    id: 'JOKER_PIRATE_CAPTAIN', icon: '🏴‍☠️', name: 'Korsan Kaptanı',
+    rarity: 'efsanevi', cost: 120, maxPerRun: 1,
+    effect: { type: 'boss_victory_gold', gold: 50 },
+    desc: 'Boss engelleri aşıldığında zindandan ekstra +50 Altın yağdırır!',
+    bgGradient: 'from-stone-900 via-amber-950 to-black', glowColor: 'rgba(217,119,6,0.6)',
+    artEmoji: '🏴‍☠️💰⚔️', flavorText: '"Denizlerin ganimeti kaptana aittir."'
+  },
+  JOKER_GOLDEN_GOOSE: {
+    id: 'JOKER_GOLDEN_GOOSE', icon: '🪿', name: 'Altın Kaz Jokeri',
+    rarity: 'nadir', cost: 85, maxPerRun: 1,
+    effect: { type: 'shop_gold_bonus', value: 20 },
+    desc: 'Her dükkân ziyaretinde +20 Altın yumurtlar.',
+    bgGradient: 'from-yellow-500 via-amber-600 to-yellow-950', glowColor: 'rgba(234,179,8,0.6)',
+    artEmoji: '🪿🪺🪙', flavorText: '"Her dükkânda altın yumurtlar."'
+  },
+  JOKER_DIAMOND_MINE: {
+    id: 'JOKER_DIAMOND_MINE', icon: '💎', name: 'Elmas Madeni',
+    rarity: 'efsanevi', cost: 130, maxPerRun: 1,
+    effect: { type: 'rare_letter_gold_chips', chips: 30, gold: 20 },
+    desc: 'Nadir harf kullanıldığında +30 Taban Puan & +20 Altın çıkartır!',
+    bgGradient: 'from-cyan-600 via-blue-700 to-black', glowColor: 'rgba(6,182,212,0.7)',
+    artEmoji: '💎⛏️💰', flavorText: '"Madendeki her parıltı bir hazinedir."'
+  },
+  JOKER_SILENT_ASSASSIN: {
+    id: 'JOKER_SILENT_ASSASSIN', icon: '🗡️', name: 'Sessiz Suikastçı',
+    rarity: 'nadir', cost: 75, maxPerRun: 1,
+    effect: { type: 'per_consonant_mult', value: 4 },
+    desc: 'Kelimedeki her sessiz harf için +4 Çarpan keser.',
+    bgGradient: 'from-rose-950 via-slate-900 to-black', glowColor: 'rgba(244,63,94,0.5)',
+    artEmoji: '🗡️🩸🎭', flavorText: '"Sessiz kelimeler derinden vurur."'
+  },
+  JOKER_SUN_GOD: {
+    id: 'JOKER_SUN_GOD', icon: '☀️', name: 'Güneş Tanrısı',
+    rarity: 'efsane_otesi', cost: 210, maxPerRun: 1,
+    effect: { type: 'rare_letter_xmult', value: 2.2 },
+    desc: 'Efsanevi Işık: Nadir harfler için x2.2 Çarpan yayar!',
+    bgGradient: 'from-yellow-400 via-amber-500 to-red-900', glowColor: 'rgba(250,204,21,0.9)',
+    artEmoji: '☀️👑✨', flavorText: '"Güneşin ışığı tüm kelimeleri parlatır."'
+  },
+  JOKER_MOON_GODDESS: {
+    id: 'JOKER_MOON_GODDESS', icon: '🌙', name: 'Ay Tanrıçası',
+    rarity: 'efsane_otesi', cost: 205, maxPerRun: 1,
+    effect: { type: 'long_word_dragon_mult', minLen: 6, mult: 2.4 },
+    desc: 'Efsanevi Işık: 6+ Harfli kelimeler oynandığında skoru x2.4 katlar!',
+    bgGradient: 'from-indigo-700 via-purple-900 to-black', glowColor: 'rgba(168,85,247,0.9)',
+    artEmoji: '🌙🌌✨', flavorText: '"Ayın büyüsü geceyi kelimelerle doldurur."'
+  },
+  JOKER_TIME_WARP: {
+    id: 'JOKER_TIME_WARP', icon: '🌀', name: 'Zaman Bükücü',
+    rarity: 'efsanevi', cost: 110, maxPerRun: 1,
+    effect: { type: 'short_word_combo_boost', maxLen: 4, combo: 3, chips: 40 },
+    desc: '3-4 Harfli kelimelerde kombonu +3 ve puanını +40 zıplatır.',
+    bgGradient: 'from-cyan-700 via-indigo-900 to-black', glowColor: 'rgba(34,211,238,0.6)',
+    artEmoji: '🌀⏳⚡', flavorText: '"Zaman bükülünce kombolar katlanır."'
+  },
+  JOKER_FORTUNE_TELLER: {
+    id: 'JOKER_FORTUNE_TELLER', icon: '🔮', name: 'Falcı Jokeri',
+    rarity: 'yaygin', cost: 45, maxPerRun: 1,
+    effect: { type: 'per_vowel_chips', value: 5 },
+    desc: 'Kelimedeki her sesli harf için +5 Taban Puan kehanetinde bulunur.',
+    bgGradient: 'from-purple-900 via-pink-950 to-black', glowColor: 'rgba(236,72,153,0.4)',
+    artEmoji: '🔮🃏✨', flavorText: '"Gelecekte büyük skorlar görüyorum."'
+  },
+  JOKER_JESTER_COURT: {
+    id: 'JOKER_JESTER_COURT', icon: '🃏', name: 'Saray Palyaçosu',
+    rarity: 'nadir', cost: 70, maxPerRun: 1,
+    effect: { type: 'per_word_chips', value: 8 },
+    desc: 'Her oynanan kelimede sarayı güldürür ve +8 Taban Puan biriktirir.',
+    bgGradient: 'from-rose-700 via-purple-900 to-black', glowColor: 'rgba(244,63,94,0.5)',
+    artEmoji: '🃏👑🎪', flavorText: '"Sarayda tek gülen soytarıdır."'
+  },
+  JOKER_WARMONGER: {
+    id: 'JOKER_WARMONGER', icon: '⚔️', name: 'Savaş Çığırtkanı',
+    rarity: 'nadir', cost: 80, maxPerRun: 1,
+    effect: { type: 'per_consonant_mult', value: 3 },
+    desc: 'Kelimedeki her ünsüz harf için +3 Çarpan çığlığı atar.',
+    bgGradient: 'from-red-900 via-rose-950 to-black', glowColor: 'rgba(225,29,72,0.5)',
+    artEmoji: '⚔️🔥🛡️', flavorText: '"Savaş davulları çaldığında harfler birleşir."'
+  },
+  JOKER_ARCHMAGE: {
+    id: 'JOKER_ARCHMAGE', icon: '🧙‍♂️', name: 'Başbüyücü',
+    rarity: 'efsanevi', cost: 135, maxPerRun: 1,
+    effect: { type: 'vowel_trio_bonus', chips: 60, mult: 20 },
+    desc: '3 Sesli harfli efsunlu kelimelerde +60 Puan & +20 Çarpan büyüsü yapar.',
+    bgGradient: 'from-purple-800 via-indigo-900 to-black', glowColor: 'rgba(168,85,247,0.7)',
+    artEmoji: '🧙‍♂️🔮⚡', flavorText: '"Başbüyücü tek dokunuşla tahtayı değiştirebilir."'
+  },
+  JOKER_NECTAR_COLLECTOR: {
+    id: 'JOKER_NECTAR_COLLECTOR', icon: '🐝', name: 'Nektar Toplayıcı',
+    rarity: 'yaygin', cost: 40, maxPerRun: 1,
+    effect: { type: 'lucky_gold_chance', chance: 40, value: 12 },
+    desc: 'Her kelimede %40 ihtimalle bal gibi +12 Altın toplar.',
+    bgGradient: 'from-amber-600 via-yellow-700 to-black', glowColor: 'rgba(245,158,11,0.4)',
+    artEmoji: '🐝🍯🪙', flavorText: '"Damla damla biriken altınlar dağ olur."'
+  },
+  JOKER_CRYSTAL_CAVE: {
+    id: 'JOKER_CRYSTAL_CAVE', icon: '🏔️', name: 'Kristal Mağarası',
+    rarity: 'nadir', cost: 75, maxPerRun: 1,
+    effect: { type: 'rare_letter_gold_chips', chips: 25, gold: 12 },
+    desc: 'Nadir harf oynandığında +25 Puan & +12 Altın kristalleşir.',
+    bgGradient: 'from-sky-700 via-cyan-800 to-black', glowColor: 'rgba(56,189,248,0.5)',
+    artEmoji: '🏔️💎✨', flavorText: '"Mağaranın derinliklerinde ışık parıldar."'
+  },
+  JOKER_STORM_RUNNER: {
+    id: 'JOKER_STORM_RUNNER', icon: '🌩️', name: 'Fırtına Koşucusu',
+    rarity: 'yaygin', cost: 50, maxPerRun: 1,
+    effect: { type: 'short_word_chips', maxLen: 4, value: 25 },
+    desc: '4 harften kısa fırtına kelimelerine +25 Taban Puan katar.',
+    bgGradient: 'from-slate-800 via-indigo-950 to-black', glowColor: 'rgba(99,102,241,0.4)',
+    artEmoji: '🌩️⚡🏃', flavorText: '"Fırtınadan hızlı kelimeler."'
+  },
+  JOKER_MIRROR_MAGICIAN: {
+    id: 'JOKER_MIRROR_MAGICIAN', icon: '🪞', name: 'Ayna İllüzyonisti',
+    rarity: 'nadir', cost: 70, maxPerRun: 1,
+    effect: { type: 'same_first_last_letter_chips', chips: 50, mult: 15 },
+    desc: 'Ayna simetrili kelimelerde (A...A, K...K) +50 Puan & +15 Çarpan katar.',
+    bgGradient: 'from-cyan-800 via-slate-900 to-black', glowColor: 'rgba(34,211,238,0.5)',
+    artEmoji: '🪞✨🪄', flavorText: '"İllüzyon gerçeğin aynadaki yansımasıdır."'
+  },
+  JOKER_GOLDEN_COMPASS: {
+    id: 'JOKER_GOLDEN_COMPASS', icon: '🧭', name: 'Altın Pusula',
+    rarity: 'nadir', cost: 65, maxPerRun: 1,
+    effect: { type: 'shop_gold_bonus', value: 18 },
+    desc: 'Pusula her Çarşıda yolunu gösterir ve +18 Altın kazandırır.',
+    bgGradient: 'from-amber-700 via-yellow-800 to-black', glowColor: 'rgba(234,179,8,0.5)',
+    artEmoji: '🧭🪙✨', flavorText: '"Altın pusula her zaman hazineye yöneltir."'
+  },
+  JOKER_BLOOD_MOON: {
+    id: 'JOKER_BLOOD_MOON', icon: '🌕', name: 'Kanlı Ay',
+    rarity: 'efsanevi', cost: 130, maxPerRun: 1,
+    effect: { type: 'rare_letter_xmult', value: 1.7 },
+    desc: 'Kanlı Ay altında oynanan her nadir harf için x1.7 Çarpan katlanır!',
+    bgGradient: 'from-red-950 via-rose-900 to-black', glowColor: 'rgba(225,29,72,0.7)',
+    artEmoji: '🌕🩸🐺', flavorText: '"Kanlı ay yükselince harfler vahşileşir."'
+  },
+  JOKER_SHADOW_KING: {
+    id: 'JOKER_SHADOW_KING', icon: '👑', name: 'Gölge Kralı',
+    rarity: 'efsane_otesi', cost: 230, maxPerRun: 1,
+    effect: { type: 'long_word_dragon_mult', minLen: 6, mult: 2.5 },
+    desc: 'Efsanevi Gölge: 6+ Harfli kelimeler yazıldığında skoru tam x2.5 katlar!',
+    bgGradient: 'from-purple-950 via-slate-950 to-black', glowColor: 'rgba(168,85,247,0.9)',
+    artEmoji: '👑🎭🌑', flavorText: '"Gölgelerin kralı karanlıktan hükmeder."'
+  },
+  JOKER_PHANTOM_RIDER: {
+    id: 'JOKER_PHANTOM_RIDER', icon: '🏇', name: 'Hayalet Süvari',
+    rarity: 'nadir', cost: 75, maxPerRun: 1,
+    effect: { type: 'chain_master_xmult', mult: 2.1, gold: 3 },
+    desc: 'Kelime zincirlerinde süvari hızıyla x2.1 Mult & +$3 Altın katar.',
+    bgGradient: 'from-indigo-900 via-purple-950 to-black', glowColor: 'rgba(129,140,248,0.5)',
+    artEmoji: '🏇👻⚡', flavorText: '"Geceyi süvarinin nal sesleri doldurur."'
+  },
+  JOKER_TREASURE_MAP: {
+    id: 'JOKER_TREASURE_MAP', icon: '🗺️', name: 'Hazine Haritası',
+    rarity: 'yaygin', cost: 45, maxPerRun: 1,
+    effect: { type: 'lucky_gold_chance', chance: 30, value: 20 },
+    desc: 'Oynanan kelimelerde %30 şansla gömülü +20 Altın hazinesi çıkarır.',
+    bgGradient: 'from-amber-800 via-yellow-900 to-black', glowColor: 'rgba(245,158,11,0.4)',
+    artEmoji: '🗺️💰💎', flavorText: '"X harfi hazinenin yerini gösterir."'
+  },
+  JOKER_GLADIATOR: {
+    id: 'JOKER_GLADIATOR', icon: '🛡️', name: 'Gladyatör Jokeri',
+    rarity: 'efsanevi', cost: 115, maxPerRun: 1,
+    effect: { type: 'long_word_dragon_mult', minLen: 5, mult: 1.7 },
+    desc: 'Arenada 5+ Harfli kelimeler oynandığında skoru 1.7x ile çarpar.',
+    bgGradient: 'from-red-800 via-amber-900 to-black', glowColor: 'rgba(239,68,68,0.6)',
+    artEmoji: '🛡️⚔️🏆', flavorText: '"Arenada sadece güçlü kelimeler ayakta kalır."'
+  },
+  JOKER_EMBER_MAGE: {
+    id: 'JOKER_EMBER_MAGE', icon: '🧙‍♀️', name: 'Köz Büyücüsü',
+    rarity: 'yaygin', cost: 40, maxPerRun: 1,
+    effect: { type: 'per_vowel_chips', value: 4 },
+    desc: 'Kelimedeki her sesli harf için +4 Taban Kor Puanı ekler.',
+    bgGradient: 'from-orange-800 via-rose-900 to-black', glowColor: 'rgba(249,115,22,0.4)',
+    artEmoji: '🧙‍♀️🔥✨', flavorText: '"Közler birleşince büyük yangın çıkar."'
+  },
+  JOKER_DEEP_OCEAN: {
+    id: 'JOKER_DEEP_OCEAN', icon: '🌊', name: 'Derin Okyanus',
+    rarity: 'nadir', cost: 70, maxPerRun: 1,
+    effect: { type: 'bank_card_chips', per_card: 7 },
+    desc: 'Harf bankasında bekleyen her dondurulmuş su harfi +7 Taban Puan verir.',
+    bgGradient: 'from-blue-900 via-cyan-950 to-black', glowColor: 'rgba(14,165,233,0.5)',
+    artEmoji: '🌊🧊🐋', flavorText: '"Okyanusun derinliklerinde büyük güçler yatar."'
+  },
+  JOKER_STAR_FORGE: {
+    id: 'JOKER_STAR_FORGE', icon: '🌟', name: 'Yıldız Ocağı',
+    rarity: 'efsanevi', cost: 140, maxPerRun: 1,
+    effect: { type: 'rare_letter_gold_chips', chips: 40, gold: 25 },
+    desc: 'Yıldız Ocağı: Nadir harfler oynandığında +40 Puan & +25 Altın üretir!',
+    bgGradient: 'from-yellow-400 via-amber-500 to-purple-950', glowColor: 'rgba(250,204,21,0.8)',
+    artEmoji: '🌟🔥💎', flavorText: '"Yıldız tozu harflere dönüşür."'
+  },
+  JOKER_ICE_QUEEN: {
+    id: 'JOKER_ICE_QUEEN', icon: '👸❄️', name: 'Buz Kraliçesi',
+    rarity: 'efsanevi', cost: 125, maxPerRun: 1,
+    effect: { type: 'vowel_trio_bonus', chips: 55, mult: 18 },
+    desc: '3 Sesli harfli buzul kelimelerinde +55 Puan & +18 Çarpan dondurur.',
+    bgGradient: 'from-cyan-600 via-sky-800 to-slate-950', glowColor: 'rgba(56,189,248,0.7)',
+    artEmoji: '👸❄️👑', flavorText: '"Kraliçenin tek bir bakışı tahtayı dondurur."'
+  },
+  JOKER_PHANTOM_ARCHER: {
+    id: 'JOKER_PHANTOM_ARCHER', icon: '🏹', name: 'Hayalet Okçu',
+    rarity: 'nadir', cost: 80, maxPerRun: 1,
+    effect: { type: 'short_word_combo_boost', maxLen: 4, combo: 2, chips: 35 },
+    desc: '4 harften kısa hedef kelimelerinde kombonu +2 & puanını +35 uçurur.',
+    bgGradient: 'from-emerald-800 via-teal-950 to-black', glowColor: 'rgba(16,185,129,0.5)',
+    artEmoji: '🏹🎯👻', flavorText: '"Görünmez oklar hedefi tam ortadan vurur."'
+  },
+  JOKER_DARK_KNIGHT: {
+    id: 'JOKER_DARK_KNIGHT', icon: '♞', name: 'Karanlık Şövalye',
+    rarity: 'efsanevi', cost: 130, maxPerRun: 1,
+    effect: { type: 'rare_letter_xmult', value: 1.8 },
+    desc: 'Karanlık Zırh: Kelimedeki her nadir harf için x1.8 Çarpan zırhı katar!',
+    bgGradient: 'from-purple-950 via-slate-950 to-black', glowColor: 'rgba(147,51,234,0.7)',
+    artEmoji: '♞🛡️🌑', flavorText: '"Şövalye karanlıkta daha güçlü dövüşür."'
+  },
+  JOKER_GOLDEN_HARVEST: {
+    id: 'JOKER_GOLDEN_HARVEST', icon: '🌾', name: 'Altın Hasat',
+    rarity: 'nadir', cost: 70, maxPerRun: 1,
+    effect: { type: 'shop_gold_bonus', value: 22 },
+    desc: 'Hasat Zamanı: Her Çarşı ziyaretinde tarladan +22 Altın biçer.',
+    bgGradient: 'from-amber-600 via-yellow-700 to-black', glowColor: 'rgba(234,179,8,0.5)',
+    artEmoji: '🌾🪙🌾', flavorText: '"Ekilen her harf altın olarak biçilir."'
+  },
+  JOKER_LIGHTNING_BOLT: {
+    id: 'JOKER_LIGHTNING_BOLT', icon: '⚡', name: 'Yıldırım Çarpsı',
+    rarity: 'yaygin', cost: 45, maxPerRun: 1,
+    effect: { type: 'per_consonant_mult', value: 3 },
+    desc: 'Kelimedeki her ünsüz harfe +3 Yıldırım Çarpanı çakar.',
+    bgGradient: 'from-amber-500 via-orange-600 to-black', glowColor: 'rgba(245,158,11,0.5)',
+    artEmoji: '⚡🌩️💥', flavorText: '"Yıldırım düştüğü yeri yakar."'
+  },
+  JOKER_DRAGON_SLAYER: {
+    id: 'JOKER_DRAGON_SLAYER', icon: '🗡️🐉', name: 'Ejderha Avcısı',
+    rarity: 'efsane_otesi', cost: 240, maxPerRun: 1,
+    effect: { type: 'long_word_dragon_mult', minLen: 6, mult: 2.6 },
+    desc: 'Efsanevi Av: 6+ Harfli dev kelimelerde skoru x2.6 ile katlar!',
+    bgGradient: 'from-rose-700 via-red-900 to-black', glowColor: 'rgba(244,63,94,0.9)',
+    artEmoji: '🗡️🐉👑', flavorText: '"Ejderhayı deviren şanını tarihe yazdırır."'
+  },
+  JOKER_CELESTIAL_SPHERE: {
+    id: 'JOKER_CELESTIAL_SPHERE', icon: '🔮', name: 'Kozmik Küre',
+    rarity: 'nadir', cost: 80, maxPerRun: 1,
+    effect: { type: 'vowel_trio_bonus', chips: 50, mult: 16 },
+    desc: '3 Sesli harfli kozmik kelimelerde +50 Puan & +16 Çarpan katar.',
+    bgGradient: 'from-indigo-800 via-purple-950 to-black', glowColor: 'rgba(129,140,248,0.5)',
+    artEmoji: '🔮✨🪐', flavorText: '"Küre tüm evrenin sırrını döndürür."'
+  },
+  JOKER_SHADOW_REALM: {
+    id: 'JOKER_SHADOW_REALM', icon: '🕳️', name: 'Gölge Diyarı',
+    rarity: 'efsanevi', cost: 135, maxPerRun: 1,
+    effect: { type: 'chain_master_xmult', mult: 2.4, gold: 6 },
+    desc: 'Gölge Diyarı: Kelime zinciri yapıldığında x2.4 Mult & +$6 Altın katar!',
+    bgGradient: 'from-slate-950 via-purple-950 to-black', glowColor: 'rgba(168,85,247,0.7)',
+    artEmoji: '🕳️🎭✨', flavorText: '"Gölge diyarında kelimeler sonsuzlaşır."'
+  },
+  JOKER_FORTUNE_WHEEL: {
+    id: 'JOKER_FORTUNE_WHEEL', icon: '🎡', name: 'Kader Çarkı',
+    rarity: 'nadir', cost: 75, maxPerRun: 1,
+    effect: { type: 'lucky_gold_chance', chance: 45, value: 18 },
+    desc: 'Çark her kelimede döner; %45 şansla +18 Altın kazandırır.',
+    bgGradient: 'from-pink-700 via-purple-900 to-black', glowColor: 'rgba(236,72,153,0.5)',
+    artEmoji: '🎡🎰💰', flavorText: '"Çark kime gülerse şans onunladır."'
+  },
+  JOKER_IRON_WALL: {
+    id: 'JOKER_IRON_WALL', icon: '🧱', name: 'Demir Duvar',
+    rarity: 'yaygin', cost: 40, maxPerRun: 1,
+    effect: { type: 'same_first_last_letter_chips', chips: 35, mult: 8 },
+    desc: 'Aynı harfle başlayıp biten duvar kelimelerde +35 Puan & +8 Çarpan örer.',
+    bgGradient: 'from-stone-800 via-zinc-900 to-black', glowColor: 'rgba(120,113,108,0.4)',
+    artEmoji: '🧱🛡️🏰', flavorText: '"Demir duvar geçit vermez."'
+  },
+  JOKER_VALKYRIE: {
+    id: 'JOKER_VALKYRIE', icon: '⚔️✨', name: 'Valkyrie Jokeri',
+    rarity: 'efsanevi', cost: 125, maxPerRun: 1,
+    effect: { type: 'rare_letter_xmult', value: 1.75 },
+    desc: 'Kuzey Efsanesi: Kelimedeki her nadir harf için x1.75 Çarpan kanatlandırır!',
+    bgGradient: 'from-sky-700 via-indigo-900 to-black', glowColor: 'rgba(56,189,248,0.7)',
+    artEmoji: '⚔️✨🛡️', flavorText: '"Valkyrie savaşçı kelimeleri cennete taşır."'
+  },
+  JOKER_NEBULA_STREAM: {
+    id: 'JOKER_NEBULA_STREAM', icon: '🌌', name: 'Nebula Akıntısı',
+    rarity: 'efsane_otesi', cost: 250, maxPerRun: 1,
+    effect: { type: 'long_word_dragon_mult', minLen: 5, mult: 2.1 },
+    desc: 'Efsanevi Akıntı: 5+ Harfli kelimeler oynandığında skoru x2.1 katlar!',
+    bgGradient: 'from-purple-900 via-pink-950 to-black', glowColor: 'rgba(217,70,239,0.9)',
+    artEmoji: '🌌💫✨', flavorText: '"Nebula akıntısı tahtayı yıldızlarla yıkar."'
+  },
+  JOKER_MYSTIC_RUNES: {
+    id: 'JOKER_MYSTIC_RUNES', icon: '🔮', name: 'Mistik Rünler',
+    rarity: 'nadir', cost: 70, maxPerRun: 1,
+    effect: { type: 'per_vowel_chips', value: 7 },
+    desc: 'Kelimedeki her sesli harfe +7 Mistik Rün Puanı işler.',
+    bgGradient: 'from-indigo-800 via-purple-950 to-black', glowColor: 'rgba(99,102,241,0.5)',
+    artEmoji: '🔮📜✨', flavorText: '"Rünler kazındıkça büyü güçlenir."'
+  },
+  JOKER_ALCHEMIST_GOLD: {
+    id: 'JOKER_ALCHEMIST_GOLD', icon: '🧪🪙', name: 'Simyacı Altını',
+    rarity: 'nadir', cost: 80, maxPerRun: 1,
+    effect: { type: 'rare_letter_gold_chips', chips: 35, gold: 18 },
+    desc: 'Nadir harf reaksiyonunda +35 Taban Puan & +18 Saf Altın üretir.',
+    bgGradient: 'from-amber-600 via-yellow-700 to-black', glowColor: 'rgba(245,158,11,0.6)',
+    artEmoji: '🧪🪙✨', flavorText: '"Formül tamamlandı, kurşun altın oldu."'
+  },
+  JOKER_TITAN_FORCE: {
+    id: 'JOKER_TITAN_FORCE', icon: '🗿⚡', name: 'Titan Gücü',
+    rarity: 'efsanevi', cost: 140, maxPerRun: 1,
+    effect: { type: 'long_word_dragon_mult', minLen: 6, mult: 1.9 },
+    desc: 'Titan Yumruğu: 6+ Harfli kelimelerde skoru 1.9x katlar!',
+    bgGradient: 'from-stone-800 via-orange-950 to-black', glowColor: 'rgba(249,115,22,0.7)',
+    artEmoji: '🗿⚡💥', flavorText: '"Titan adımı yeri göğü sarsar."'
+  },
+  JOKER_SHADOW_SPELL: {
+    id: 'JOKER_SHADOW_SPELL', icon: '🎭🔮', name: 'Gölge Büyüsü',
+    rarity: 'nadir', cost: 75, maxPerRun: 1,
+    effect: { type: 'short_word_combo_boost', maxLen: 4, combo: 2, chips: 30 },
+    desc: '3-4 Harfli gölge kelimelerinde kombonu +2 & puanını +30 artırır.',
+    bgGradient: 'from-purple-900 via-slate-950 to-black', glowColor: 'rgba(168,85,247,0.5)',
+    artEmoji: '🎭🔮✨', flavorText: '"Gölgeler fısıldar, kombolar tırmanır."'
+  },
+  JOKER_KING_MIDAS: {
+    id: 'JOKER_KING_MIDAS', icon: '👑💰', name: 'Kral Midas Jokeri',
+    rarity: 'efsane_otesi', cost: 220, maxPerRun: 1,
+    effect: { type: 'shop_gold_bonus', value: 35 },
+    desc: 'Efsanevi Midas: Her Çarşı ziyaretinde tahtından tam +35 Altın saçar!',
+    bgGradient: 'from-yellow-400 via-amber-500 to-black', glowColor: 'rgba(250,204,21,0.9)',
+    artEmoji: '👑💰🏆', flavorText: '"Dokunduğu her kelime altına dönüşür."'
+  },
+  JOKER_PHOENIX_FIRE: {
+    id: 'JOKER_PHOENIX_FIRE', icon: '🔥🦅', name: 'Anka Ateşi',
+    rarity: 'efsanevi', cost: 130, maxPerRun: 1,
+    effect: { type: 'chain_master_xmult', mult: 2.3, gold: 5 },
+    desc: 'Anka Alevleri: Kelime zinciri yapıldığında x2.3 Mult & +$5 Altın tutuşturur!',
+    bgGradient: 'from-red-700 via-orange-800 to-black', glowColor: 'rgba(239,68,68,0.7)',
+    artEmoji: '🔥🦅⚡', flavorText: '"Küllerinden doğan alev hiç sönmez."'
+  },
+  JOKER_DRAGON_HEART: {
+    id: 'JOKER_DRAGON_HEART', icon: '🐉❤️', name: 'Ejderha Kalbi',
+    rarity: 'efsane_otesi', cost: 235, maxPerRun: 1,
+    effect: { type: 'rare_letter_xmult', value: 2.1 },
+    desc: 'Efsanevi Kalp: Kelimedeki her nadir harf için x2.1 Çarpan pompalayarak yakar!',
+    bgGradient: 'from-rose-800 via-red-950 to-black', glowColor: 'rgba(225,29,72,0.9)',
+    artEmoji: '🐉❤️🔥', flavorText: '"Ejderhanın kalbi kelimelerle çarpar."'
+  },
+  JOKER_FROST_GUARD: {
+    id: 'JOKER_FROST_GUARD', icon: '🛡️❄️', name: 'Buz Muhafızı',
+    rarity: 'yaygin', cost: 45, maxPerRun: 1,
+    effect: { type: 'bank_card_chips', per_card: 5 },
+    desc: 'Harf bankasında dondurulmuş her harf için +5 Taban Puan kalkanı sunar.',
+    bgGradient: 'from-cyan-800 via-blue-950 to-black', glowColor: 'rgba(6,182,212,0.4)',
+    artEmoji: '🛡️❄️🧊', flavorText: '"Buz kalkanı geçit vermez."'
+  },
+  JOKER_SUN_RAY: {
+    id: 'JOKER_SUN_RAY', icon: '☀️✨', name: 'Güneş Işını',
+    rarity: 'nadir', cost: 70, maxPerRun: 1,
+    effect: { type: 'per_vowel_chips', value: 6 },
+    desc: 'Kelimedeki her sesli harfe +6 Güneş Işını Puanı parlatır.',
+    bgGradient: 'from-amber-600 via-yellow-700 to-black', glowColor: 'rgba(245,158,11,0.5)',
+    artEmoji: '☀️✨🎶', flavorText: '"Güneş ışını harfleri aydınlatır."'
+  },
+  JOKER_TEMPLE_GUARD: {
+    id: 'JOKER_TEMPLE_GUARD', icon: '🏛️🛡️', name: 'Tapınak Muhafızı',
+    rarity: 'nadir', cost: 75, maxPerRun: 1,
+    effect: { type: 'same_first_last_letter_chips', chips: 45, mult: 10 },
+    desc: 'Tapınak kapısı simetrili kelimelerde (A...A) +45 Puan & +10 Çarpan bekler.',
+    bgGradient: 'from-amber-800 via-stone-900 to-black', glowColor: 'rgba(217,119,6,0.5)',
+    artEmoji: '🏛️🛡️🗝️', flavorText: '"Tapınağın sırları kapı arasında saklıdır."'
+  },
+  JOKER_CELESTIAL_KING: {
+    id: 'JOKER_CELESTIAL_KING', icon: '👑🪐', name: 'Kozmik Kral',
+    rarity: 'efsane_otesi', cost: 250, maxPerRun: 1,
+    effect: { type: 'vowel_trio_bonus', chips: 80, mult: 25 },
+    desc: 'Efsanevi Tac: 3 Sesli harfli kozmik kelimelerde +80 Puan & +25 Çarpan taçlandırır!',
+    bgGradient: 'from-indigo-600 via-purple-800 to-black', glowColor: 'rgba(168,85,247,0.9)',
+    artEmoji: '👑🪐✨', flavorText: '"Kozmik kral yıldızlara hükmeder."'
+  },
+  JOKER_PIRATE_TREASURE: {
+    id: 'JOKER_PIRATE_TREASURE', icon: '🏴‍☠️🪙', name: 'Korsan Definesi',
+    rarity: 'nadir', cost: 80, maxPerRun: 1,
+    effect: { type: 'lucky_gold_chance', chance: 40, value: 22 },
+    desc: 'Oynanan her korsan kelimesinde %40 şansla +22 Altın definesi açar.',
+    bgGradient: 'from-amber-800 via-stone-900 to-black', glowColor: 'rgba(245,158,11,0.5)',
+    artEmoji: '🏴‍☠️🪙🗝️', flavorText: '"Define sandığı kelimelerle kilitlidir."'
+  },
+  JOKER_SHADOW_SPEAR: {
+    id: 'JOKER_SHADOW_SPEAR', icon: '🗡️🎭', name: 'Gölge Mızrağı',
+    rarity: 'yaygin', cost: 45, maxPerRun: 1,
+    effect: { type: 'per_consonant_mult', value: 3 },
+    desc: 'Kelimedeki her ünsüz harf için +3 Mızrak Çarpanı deler.',
+    bgGradient: 'from-slate-800 via-purple-950 to-black', glowColor: 'rgba(147,51,234,0.4)',
+    artEmoji: '🗡️🎭🌑', flavorText: '"Gölge mızrağı sessizce saplanır."'
+  },
+  JOKER_ALCHEMIST_TIER: {
+    id: 'JOKER_ALCHEMIST_TIER', icon: '🧪✨', name: 'Usta Simyacı',
+    rarity: 'efsanevi', cost: 130, maxPerRun: 1,
+    effect: { type: 'rare_letter_gold_chips', chips: 40, gold: 22 },
+    desc: 'Usta Simya: Nadir harfler kullanıldığında +40 Puan & +22 Saf Altın üretir!',
+    bgGradient: 'from-emerald-600 via-teal-700 to-black', glowColor: 'rgba(16,185,129,0.7)',
+    artEmoji: '🧪✨🪙', flavorText: '"Simya sanatı en yüksek seviyeye ulaştı."'
+  },
+  JOKER_STORM_LORD: {
+    id: 'JOKER_STORM_LORD', icon: '⚡👑', name: 'Fırtına Efendisi',
+    rarity: 'efsanevi', cost: 135, maxPerRun: 1,
+    effect: { type: 'short_word_combo_boost', maxLen: 4, combo: 3, chips: 45 },
+    desc: 'Fırtına Gücü: 3-4 Harfli kelimelerde kombonu +3 ve puanını +45 şimşeklendirir!',
+    bgGradient: 'from-amber-500 via-orange-600 to-black', glowColor: 'rgba(245,158,11,0.7)',
+    artEmoji: '⚡👑🌩️', flavorText: '"Fırtına efendisi tahtayı şimşekle yönetir."'
+  },
+  JOKER_DRAGON_SOUL: {
+    id: 'JOKER_DRAGON_SOUL', icon: '🐉✨', name: 'Ejderha Ruhu',
+    rarity: 'efsane_otesi', cost: 260, maxPerRun: 1,
+    effect: { type: 'long_word_dragon_mult', minLen: 6, mult: 2.8 },
+    desc: 'Efsanevi Ruh: 6+ Harfli dev kelimeler oynandığında skoru tam x2.8 katlar!',
+    bgGradient: 'from-red-700 via-rose-900 to-black', glowColor: 'rgba(239,68,68,1.0)',
+    artEmoji: '🐉✨👑', flavorText: '"Ejderhanın ruhu sonsuza dek kelimelerde yaşar."'
+  },
+  JOKER_COSMIC_GUARDIAN: {
+    id: 'JOKER_COSMIC_GUARDIAN', icon: '🌟🛡️', name: 'Kozmik Muhafız',
+    rarity: 'efsanevi', cost: 130, maxPerRun: 1,
+    effect: { type: 'rare_letter_xmult', value: 1.85 },
+    desc: 'Kozmik Kalkan: Kelimedeki her nadir harf için x1.85 Çarpan üretir.',
+    bgGradient: 'from-yellow-400 via-amber-500 to-purple-950', glowColor: 'rgba(234,179,8,0.8)',
+    artEmoji: '🌟🛡️✨', flavorText: '"Kozmik muhafız yıldızları korur."'
+  },
+  JOKER_INFINITY_STONE: {
+    id: 'JOKER_INFINITY_STONE', icon: '🌌💎', name: 'Sonsuzluk Taşı',
+    rarity: 'efsane_otesi', cost: 270, maxPerRun: 1,
+    effect: { type: 'long_word_dragon_mult', minLen: 6, mult: 3.0 },
+    desc: 'Efsanevi Sonsuzluk: 6+ Harfli kelimeler yazıldığında skoru tam x3.0 ile çarpar!',
+    bgGradient: 'from-purple-900 via-pink-950 to-black', glowColor: 'rgba(217,70,239,1.0)',
+    artEmoji: '🌌💎👑', flavorText: '"Sonsuzluk taşı evrenin kaderini belirler."'
+  },
+  JOKER_GOLDEN_PHOENIX: {
+    id: 'JOKER_GOLDEN_PHOENIX', icon: '🦅🪙', name: 'Altın Anka',
+    rarity: 'efsanevi', cost: 135, maxPerRun: 1,
+    effect: { type: 'shop_gold_bonus', value: 25 },
+    desc: 'Her Çarşı ziyaretinde altın kanatlarından +25 Altın saçar.',
+    bgGradient: 'from-amber-500 via-yellow-600 to-black', glowColor: 'rgba(245,158,11,0.8)',
+    artEmoji: '🦅🪙✨', flavorText: '"Altın ankanın tüyleri bile servet değerindedir."'
+  },
+  JOKER_SHADOW_MONARCH: {
+    id: 'JOKER_SHADOW_MONARCH', icon: '👑🎭', name: 'Gölge Hükümdarı',
+    rarity: 'efsane_otesi', cost: 265, maxPerRun: 1,
+    effect: { type: 'rare_letter_xmult', value: 2.3 },
+    desc: 'Efsanevi Hükümdar: Nadir harfler kullanıldığında skoru x2.3 katlar!',
+    bgGradient: 'from-purple-950 via-slate-950 to-black', glowColor: 'rgba(168,85,247,0.95)',
+    artEmoji: '👑🎭🌌', flavorText: '"Gölgelerin hükümdarı karanlıkta doğar."'
+  },
+  JOKER_MYSTIC_SPELLWEAVER: {
+    id: 'JOKER_MYSTIC_SPELLWEAVER', icon: '🔮✨', name: 'Mistik Büyü Dokuyucu',
+    rarity: 'nadir', cost: 75, maxPerRun: 1,
+    effect: { type: 'vowel_trio_bonus', chips: 50, mult: 18 },
+    desc: '3 Sesli harfli kelimelerde +50 Puan & +18 Çarpan dokur.',
+    bgGradient: 'from-indigo-800 via-purple-950 to-black', glowColor: 'rgba(129,140,248,0.5)',
+    artEmoji: '🔮✨📜', flavorText: '"Büyü ilmek ilmek kelimelere işlenir."'
+  },
+  JOKER_FIRE_DRAGON_KING: {
+    id: 'JOKER_FIRE_DRAGON_KING', icon: '🐉🔥', name: 'Ateş Ejderhası Kralı',
+    rarity: 'efsane_otesi', cost: 280, maxPerRun: 1,
+    effect: { type: 'long_word_dragon_mult', minLen: 5, mult: 2.5 },
+    desc: 'Efsanevi Lav: 5+ Harfli kelimeler oynandığında skoru x2.5 katlar!',
+    bgGradient: 'from-red-700 via-orange-800 to-black', glowColor: 'rgba(239,68,68,1.0)',
+    artEmoji: '🐉🔥👑', flavorText: '"Ejderha kralının soluğu tüm tahtayı yakar."'
+  },
+  JOKER_TIME_CHRONICLE: {
+    id: 'JOKER_TIME_CHRONICLE', icon: '📜⏳', name: 'Zaman Kroniği',
+    rarity: 'nadir', cost: 85, maxPerRun: 1,
+    effect: { type: 'chain_master_xmult', mult: 2.2, gold: 5 },
+    desc: 'Kelime zincirlerinde zaman kroniğini çalıştırıp x2.2 Mult & +$5 Altın katar.',
+    bgGradient: 'from-amber-700 via-orange-900 to-black', glowColor: 'rgba(245,158,11,0.6)',
+    artEmoji: '📜⏳⚡', flavorText: '"Zaman kroniğinde her kelime bir iz bırakır."'
+  },
+  JOKER_VALKYRIE_QUEEN: {
+    id: 'JOKER_VALKYRIE_QUEEN', icon: '👸⚔️', name: 'Valkyrie Kraliçesi',
+    rarity: 'efsane_otesi', cost: 275, maxPerRun: 1,
+    effect: { type: 'rare_letter_xmult', value: 2.4 },
+    desc: 'Efsanevi Zafer: Nadir harfler kullanıldığında skoru x2.4 ile çarpar!',
+    bgGradient: 'from-sky-600 via-indigo-900 to-black', glowColor: 'rgba(56,189,248,0.95)',
+    artEmoji: '👸⚔️👑', flavorText: '"Kraliçenin zafer çığlığı tüm zindanda yankılanır."'
   }
 };
 
