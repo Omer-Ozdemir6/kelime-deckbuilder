@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Layers, Flame, RotateCcw, Star, Coins, Home, Target, Sparkles } from 'lucide-react';
-import { getBossStageRule } from '../hooks/useGameState';
+import { getBossStageRule, getMaxComboTime } from '../hooks/useGameState';
 import { RELICS } from '../game/relicData';
 import { PASSIVE_JOKERS } from '../game/cardData';
 import { JokerCardIllustration } from './JokerCardIllustration';
 
 function ComboTimerBadge({ combo, comboTimeLeft }) {
-  const maxTime = 10;
+  const maxTime = getMaxComboTime(combo);
   const timePercent = Math.max(0, Math.min(100, (comboTimeLeft / maxTime) * 100));
   const strokeDashoffset = 100 - timePercent;
 

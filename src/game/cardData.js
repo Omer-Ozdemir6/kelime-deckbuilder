@@ -650,6 +650,42 @@ export const PASSIVE_JOKERS = {
     artEmoji: '🩸🔥🎴',
     flavorText: '"Yok oluş güç doğurur."'
   },
+  JOKER_GRAND_POET: {
+    id: 'JOKER_GRAND_POET', icon: '📜', name: 'Dev Ozan Jokeri',
+    rarity: 'efsanevi', cost: 110, maxPerRun: 1,
+    effect: { type: 'long_word_dragon_mult', minLen: 6, mult: 2.0, chips: 50 },
+    desc: '🟡 Uzun Kelime Build: 6+ Harfli kelimelerde x2.0 Mult katar ve +50 Taban Puan ekler!',
+    bgGradient: 'from-amber-600 via-yellow-700 to-amber-950', glowColor: 'rgba(245,158,11,0.8)',
+    artEmoji: '📜👑✒️',
+    flavorText: '"Uzun kelimeler şairlerin tacıdır."'
+  },
+  JOKER_EMERALD_CROWN: {
+    id: 'JOKER_EMERALD_CROWN', icon: '👑', name: 'Zümrüt Tacı Jokeri',
+    rarity: 'efsanevi', cost: 115, maxPerRun: 1,
+    effect: { type: 'rare_letter_xmult', value: 1.5 },
+    desc: '🔵 Nadir Harf Build: Kelimedeki her nadir harf (J, Z, Ğ, Ç, Ö, Ü, Ş) için x1.5 Mult çarpar!',
+    bgGradient: 'from-emerald-600 via-teal-700 to-emerald-950', glowColor: 'rgba(16,185,129,0.8)',
+    artEmoji: '👑💎✨',
+    flavorText: '"Nadir harfler zümrüt gibi parlar."'
+  },
+  JOKER_CHAIN_MASTER: {
+    id: 'JOKER_CHAIN_MASTER', icon: '🔗', name: 'Zincir Üstadı Jokeri',
+    rarity: 'nadir', cost: 95, maxPerRun: 1,
+    effect: { type: 'chain_master_xmult', mult: 2.5, gold: 5 },
+    desc: '🟣 Zincir Build: Kelime uzatıldığında veya dönüştürüldüğünde x2.5 Mult ve +$5 Altın katar!',
+    bgGradient: 'from-purple-600 via-indigo-700 to-purple-950', glowColor: 'rgba(168,85,247,0.8)',
+    artEmoji: '🔗⚡💰',
+    flavorText: '"Halkalar birbirine bağlandıkça zafer yakınlaşır."'
+  },
+  JOKER_SWIFT_SCRIBE: {
+    id: 'JOKER_SWIFT_SCRIBE', icon: '⚡', name: 'Hızlı Katip Jokeri',
+    rarity: 'nadir', cost: 80, maxPerRun: 1,
+    effect: { type: 'short_word_combo_boost', maxLen: 4, combo: 2, chips: 30 },
+    desc: '🟢 Hızlı Kombo Build: 3-4 Harfli kelimeler oynandığında kombo seviyesini +2 artırır ve +30 Puan katar!',
+    bgGradient: 'from-cyan-600 via-sky-700 to-slate-950', glowColor: 'rgba(56,189,248,0.8)',
+    artEmoji: '⚡📝🏃',
+    flavorText: '"Hızlı yazan, rakiplerini geride bırakır."'
+  },
   LEGENDARY_TRIBOULET: {
     id: 'LEGENDARY_TRIBOULET', icon: '👑', name: 'Triboulet (Nadir Harf Kralı)',
     rarity: 'efsane_otesi', cost: 150, maxPerRun: 1, isLegendary: true,
@@ -1296,6 +1332,50 @@ export const PASSIVE_JOKERS = {
   }
 };
 
+export const EDITION_DEFINITIONS = {
+  FOIL: {
+    id: 'FOIL',
+    name: '🪙 Varaklı (Foil)',
+    icon: '🪙',
+    bonusChips: 30,
+    bonusMult: 0,
+    bonusXMult: 1.0,
+    desc: 'Oynandığında +30 Taban Puan (Chips) kazandırır.',
+    badgeClass: 'border-amber-400 bg-amber-950/90 text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.6)]'
+  },
+  HOLOGRAPHIC: {
+    id: 'HOLOGRAPHIC',
+    name: '🔮 Holografik (Holo)',
+    icon: '🔮',
+    bonusChips: 0,
+    bonusMult: 10,
+    bonusXMult: 1.0,
+    desc: 'Oynandığında +10 Kırmızı Çarpan (Mult) kazandırır.',
+    badgeClass: 'border-purple-400 bg-purple-950/90 text-purple-300 shadow-[0_0_15px_rgba(168,85,247,0.6)]'
+  },
+  POLYCHROME: {
+    id: 'POLYCHROME',
+    name: '🌈 Polikrom (Poly)',
+    icon: '🌈',
+    bonusChips: 0,
+    bonusMult: 0,
+    bonusXMult: 1.5,
+    desc: 'Kelimenin toplam puanını x1.5 KATLAR (xMult)!',
+    badgeClass: 'border-pink-400 bg-pink-950/90 text-pink-300 shadow-[0_0_20px_rgba(244,114,182,0.8)] animate-pulse'
+  },
+  NEGATIVE: {
+    id: 'NEGATIVE',
+    name: '🖤 Negatif (Negative)',
+    icon: '🖤',
+    bonusChips: 0,
+    bonusMult: 0,
+    bonusXMult: 1.0,
+    bonusJokerSlots: 1,
+    desc: '+1 Ekstra Pasif Joker Yuvası kazandırır!',
+    badgeClass: 'border-cyan-400 bg-slate-950 text-cyan-300 shadow-[0_0_20px_rgba(34,211,238,0.8)]'
+  }
+};
+
 export const ALL_PASSIVE_JOKER_KEYS = Object.keys(PASSIVE_JOKERS);
 export const PASSIVE_JOKERS_BY_RARITY = {
   yaygin: ALL_PASSIVE_JOKER_KEYS.filter(k => PASSIVE_JOKERS[k].rarity === 'yaygin'),
@@ -1312,6 +1392,7 @@ export const STARTER_DECKS = [
     icon: '🃏',
     unlocked: true,
     bonusGold: 15,
+    unlockRequirement: 'Başlangıçta Açık',
     letters: ['A', 'A', 'A', 'E', 'E', 'E', 'İ', 'O', 'U', 'K', 'K', 'L', 'L', 'M', 'N', 'R', 'S', 'T', 'B', 'Y']
   },
   {
@@ -1321,6 +1402,7 @@ export const STARTER_DECKS = [
     icon: '🌊',
     unlocked: true,
     bonusGold: 10,
+    unlockRequirement: 'Başlangıçta Açık',
     letters: ['A', 'A', 'A', 'A', 'E', 'E', 'E', 'İ', 'İ', 'I', 'O', 'Ö', 'U', 'Ü', 'K', 'L', 'M', 'N', 'R', 'S', 'T', 'Y']
   },
   {
@@ -1328,9 +1410,11 @@ export const STARTER_DECKS = [
     name: 'Tüccar Destesi (Altın)',
     desc: 'Oyuna ekstra +$35 Altın ve 2 adet Altın Harf avantajıyla başlar.',
     icon: '💰',
-    unlocked: true,
+    unlocked: false,
     unlockCost: 0,
     bonusGold: 35,
+    unlockRequirement: 'Altın Avcısı Başarımı (Toplam 250 Altın Kazan)',
+    achievementId: 'ACH_GOLD_100',
     letters: ['A', 'A', 'E', 'E', 'İ', 'O', 'K', 'K', 'L', 'M', 'N', 'R', 'S', 'T', 'B', 'D', 'Y', 'Z', 'GOLDEN', 'GOLDEN']
   },
   {
@@ -1338,8 +1422,10 @@ export const STARTER_DECKS = [
     name: 'Nadir Harfler Destesi (Zümrüt)',
     desc: 'J, Z, Ş, Ğ, Ç, V, P gibi devasa puanlı ama zor Türkçe harfler içerir.',
     icon: '💎',
-    unlocked: true,
+    unlocked: false,
     unlockCost: 0,
+    unlockRequirement: 'Usta Yazar Başarımı (8+ Harfli Kelime Yaz)',
+    achievementId: 'ACH_FIRST_7_LETTER',
     letters: ['A', 'A', 'E', 'E', 'İ', 'K', 'L', 'R', 'Ş', 'Ç', 'Ğ', 'Z', 'J', 'F', 'P', 'V', 'C', 'H']
   },
   {
@@ -1349,6 +1435,8 @@ export const STARTER_DECKS = [
     icon: '🎲',
     unlocked: false,
     unlockCost: 30,
+    unlockRequirement: 'Ateş Fırtınası Başarımı (Kombo ×6 Yap)',
+    achievementId: 'ACH_COMBO_5',
     isErratic: true,
     letters: []
   },
@@ -1359,6 +1447,8 @@ export const STARTER_DECKS = [
     icon: '🗡️',
     unlocked: false,
     unlockCost: 40,
+    unlockRequirement: 'Akademi Mezunu Başarımı (Kademe 6 Zaferi)',
+    achievementId: 'ACH_STAGE_5',
     letters: ['A', 'A', 'E', 'İ', 'K', 'K', 'L', 'M', 'N', 'R', 'S', 'T']
   },
   {
@@ -1368,6 +1458,8 @@ export const STARTER_DECKS = [
     icon: '🔥',
     unlocked: false,
     unlockCost: 50,
+    unlockRequirement: 'Ejderha Katili Başarımı (Kademe 10 Boss Zaferi)',
+    achievementId: 'ACH_BOSS_SLAYER',
     letters: ['A', 'A', 'E', 'E', 'İ', 'O', 'K', 'L', 'M', 'N', 'R', 'S', 'T', 'Y', 'MIRROR', 'DOUBLE', 'JOKER', 'ASH']
   }
 ];

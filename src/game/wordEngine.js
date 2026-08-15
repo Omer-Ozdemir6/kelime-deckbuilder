@@ -222,12 +222,13 @@ export function calculateWordScore(
   isFirstWordInStage = false,
   boardSlotModifiers = {},
   wordCategoryLevels = {},
-  unselectedCardsInHand = []
+  unselectedCardsInHand = [],
+  activeBossRule = null
 ) {
   const safeSelectedCards = Array.isArray(selectedCards) ? selectedCards : [];
   const safePlayedWords = Array.isArray(playedWordsThisStage) ? playedWordsThisStage : [];
   const safeRelicKeys = Array.isArray(activeRelicKeys) ? activeRelicKeys : [];
-  const safeHandCards = Array.isArray(unselectedCardsInHand) ? unselectedCardsInHand : [];
+  const _safeHandCards = Array.isArray(unselectedCardsInHand) ? unselectedCardsInHand : [];
 
   if (!safeSelectedCards || safeSelectedCards.length === 0) {
     return {
@@ -335,14 +336,17 @@ export function calculateWordScore(
         cardSum += cardPts * slotLetterMult;
       }
 
-      // Seal Bonuses (Foil, Holographic, Polychrome, Emerald, Lightning, Crown, Glass, Steel, Stone)
-      if (card.seal === 'FOIL') {
+      // Seal & Edition Bonuses (Foil, Holographic, Polychrome, Emerald, Lightning, Crown, Glass, Steel, Stone)
+      if (card.seal === 'FOIL' || card.edition === 'FOIL') {
         sealBonusChips += 30;
-      } else if (card.seal === 'HOLOGRAPHIC') {
-        sealBonusMult += 15;
-      } else if (card.seal === 'POLYCHROME') {
+      }
+      if (card.seal === 'HOLOGRAPHIC' || card.edition === 'HOLOGRAPHIC') {
+        sealBonusMult += 10;
+      }
+      if (card.seal === 'POLYCHROME' || card.edition === 'POLYCHROME') {
         polychromeMultiplier *= 1.5;
-      } else if (card.seal === 'GLASS') {
+      }
+      if (card.seal === 'GLASS') {
         polychromeMultiplier *= 2.0;
       } else if (card.seal === 'STONE') {
         sealBonusChips += 50;
@@ -403,6 +407,45 @@ export function calculateWordScore(
       newCombo: 1,
       message: 'En az 2 harfli kelime oluşturun!'
     };
+  }
+
+  // Active Boss Blind Rule Validation Checks
+  const isChicotActive = safeRelicKeys.includes('LEGENDARY_CHICOT');
+  if (activeBossRule && !isChicotActive) {
+    if (activeBossRule.minWordLength && upperWord.length < activeBossRule.minWordLength) {
+      return {
+        isValid: false,
+        word: wordStr,
+        score: 0,
+        potentialScore: potentialScore,
+        goldEarned: 0,
+        basePoints: cardSum,
+        lengthBonus: 0,
+        extensionBonus: 0,
+        chainType: 'NONE',
+        comboMultiplier: currentCombo || 1,
+        isExtension: false,
+        newCombo: currentCombo || 1,
+        message: `⚠️ Boss Engeli: En az ${activeBossRule.minWordLength} harfli kelime kabul edilir!`
+      };
+    }
+    if (activeBossRule.noSameLengthRepeat && lastPlayedWord && lastPlayedWord.length === upperWord.length) {
+      return {
+        isValid: false,
+        word: wordStr,
+        score: 0,
+        potentialScore: potentialScore,
+        goldEarned: 0,
+        basePoints: cardSum,
+        lengthBonus: 0,
+        extensionBonus: 0,
+        chainType: 'NONE',
+        comboMultiplier: currentCombo || 1,
+        isExtension: false,
+        newCombo: currentCombo || 1,
+        message: `⚠️ Boss Engeli: Üst üste aynı uzunlukta (${upperWord.length} harf) kelime yazılamaz!`
+      };
+    }
   }
 
   // Prevent duplicate words in the same stage
@@ -599,13 +642,21 @@ export function calculateWordScore(
       passiveChips += upperWord.length * (eff.per_letter_chips || 20);
     } else if (eff.type === 'risk_reward_tyrant') {
       passiveMult += (eff.small_deck_mult || 60);
+    } else if (eff.type === 'chain_master_xmult' && chainType !== 'NONE') {
+      relicScoreMultiplier *= (eff.mult || 2.5);
+      passiveGold += (eff.gold || 5);
+    } else if (eff.type === 'short_word_combo_boost' && upperWord.length <= (eff.maxLen || 4)) {
+      slotComboBoost += (eff.combo || 2);
+      passiveChips += (eff.chips || 30);
     }
   });
 
   // Total Score Calculation (Balatro Chips x Mult Engine)
   const totalChips = cardSum + lengthBonus + chainBonus + sealBonusChips + wordTypeChips + passiveChips;
-  const effectiveComboMult = (currentCombo + sealBonusMult + wordTypeMult + passiveMult) * doubleMultiplier * relicScoreMultiplier * polychromeMultiplier;
-  const totalScore = Math.floor(totalChips * effectiveComboMult * archetype.bonusMultiplier);
+  const flatMult = currentCombo + sealBonusMult + wordTypeMult + passiveMult;
+  const xMult = doubleMultiplier * relicScoreMultiplier * polychromeMultiplier * archetype.bonusMultiplier;
+  const totalMult = flatMult * xMult;
+  const totalScore = Math.floor(totalChips * totalMult);
 
   // Rebalanced Gold Earned
   let totalGoldEarned = archetype.gold + (chainType === 'EXTEND' ? 3 : chainType === 'TRANSFORM' ? 1 : 0) + infusedBonusGold + slotBonusGold + passiveGold;
@@ -613,7 +664,17 @@ export function calculateWordScore(
     totalGoldEarned += 2;
   }
 
-  // Visual Feedback Message
+  const scoreSteps = [
+    { label: 'HARF PUANLARI', type: 'CHIPS', val: cardSum, icon: '🔤', desc: `${upperWord.length} harf taban puanı` },
+    ...(lengthBonus > 0 ? [{ label: 'KELİME UZUNLUĞU', type: 'CHIPS', val: lengthBonus, icon: '📏', desc: `${upperWord.length} harfli kelime bonusu` }] : []),
+    ...(sealBonusChips > 0 ? [{ label: 'EFSUN & MÜHÜR PUANI', type: 'CHIPS', val: sealBonusChips, icon: '🔮', desc: 'Mühür ve efsunlu taşlar' }] : []),
+    ...(passiveChips > 0 ? [{ label: 'JOKER CHIPS', type: 'CHIPS', val: passiveChips, icon: '🃏', desc: 'Pasif joker bonusları' }] : []),
+    ...(sealBonusMult > 0 ? [{ label: 'MÜHÜR ÇARPAN', type: 'MULT', val: sealBonusMult, icon: '🔴', desc: '+Mult mühürler' }] : []),
+    ...(passiveMult > 0 ? [{ label: 'JOKER MULT', type: 'MULT', val: passiveMult, icon: '🔥', desc: 'Pasif joker çarpanları' }] : []),
+    ...(xMult > 1.0 ? [{ label: 'X-MULT KATLAMA', type: 'XMULT', val: `x${xMult.toFixed(1)}`, icon: '⚡', desc: 'Katlamalı sinerji çarpanı' }] : []),
+    { label: 'FİNAL SKOR', type: 'TOTAL', val: totalScore, icon: '💥', desc: `Kombo x${currentCombo}` }
+  ];
+
   let msg = '✓ GEÇERLİ KELİME!';
   if (chainType === 'EXTEND') {
     msg = '⚡ KELİME ZİNCİRİ (UZATMAN)! (+%20 Çarpan)';
@@ -626,6 +687,11 @@ export function calculateWordScore(
     word: upperWord,
     score: totalScore,
     potentialScore: totalScore,
+    chips: totalChips,
+    mult: flatMult,
+    xMult: xMult,
+    totalMult: totalMult,
+    scoreSteps: scoreSteps,
     goldEarned: totalGoldEarned,
     basePoints: cardSum,
     lengthBonus: lengthBonus,

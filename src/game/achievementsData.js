@@ -8,91 +8,91 @@ export const ACHIEVEMENTS = [
     id: 'ACH_FIRST_7_LETTER',
     title: 'Usta Yazar',
     secretDesc: '??? (Gizli Başarım)',
-    unlockedDesc: 'Tam 7 harfli uzun bir kelime oluştur.',
+    unlockedDesc: 'Tam 8+ harfli devasa bir kelime oluştur.',
     rewardType: 'JOKER',
     rewardName: 'Ayna Kartı 🪞',
     rewardDesc: 'Dükkân havuzuna Ayna Kartı eklendi!',
-    check: (stats) => stats.maxWordLength >= 7
+    check: (stats) => (stats.maxWordLength || 0) >= 8
   },
   {
     id: 'ACH_COMBO_5',
     title: 'Ateş Fırtınası',
     secretDesc: '??? (Gizli Başarım)',
-    unlockedDesc: 'Kombo Çarpanında ×5 Seviyesine ulaş.',
+    unlockedDesc: 'Kombo Çarpanında ×6 Seviyesine ulaş.',
     rewardType: 'SEAL',
     rewardName: 'Alevli Mühür 🔥',
     rewardDesc: 'Dükkân havuzuna Alevli Mühür eklendi!',
-    check: (stats) => stats.maxCombo >= 5
+    check: (stats) => (stats.maxCombo || 0) >= 6
   },
   {
     id: 'ACH_COMBO_8',
     title: 'Kozmik Supernova',
     secretDesc: '??? (Gizli Başarım)',
-    unlockedDesc: 'Kombo Çarpanında ×8 Seviyesine ulaş.',
+    unlockedDesc: 'Kombo Çarpanında ×10 Seviyesine ulaş.',
     rewardType: 'SEAL',
     rewardName: 'Süpernova Mührü 🌌',
     rewardDesc: 'Dükkân havuzuna Süpernova Mührü eklendi!',
-    check: (stats) => stats.maxCombo >= 8
+    check: (stats) => (stats.maxCombo || 0) >= 10
   },
   {
     id: 'ACH_GOLD_100',
     title: 'Altın Avcısı',
     secretDesc: '??? (Gizli Başarım)',
-    unlockedDesc: 'Toplam 100 Altın biriktir.',
+    unlockedDesc: 'Toplam 250+ Altın biriktir.',
     rewardType: 'JOKER',
     rewardName: 'Altın Harf Taş 💰',
     rewardDesc: 'Dükkân havuzuna Altın Harf Taş eklendi!',
-    check: (stats) => stats.totalGoldEarned >= 100
+    check: (stats) => (stats.totalGoldEarned || 0) >= 250
   },
   {
     id: 'ACH_STAGE_5',
     title: 'Akademi Mezunu',
     secretDesc: '??? (Gizli Başarım)',
-    unlockedDesc: 'Kademe 5 zaferine ulaş.',
+    unlockedDesc: 'Kademe 6 zaferine ulaş.',
     rewardType: 'VOUCHER',
     rewardName: 'Çarşı İndirimi 📜',
     rewardDesc: 'Dükkân havuzuna Çarşı İndirimi Efsunu eklendi!',
-    check: (stats) => stats.maxStage >= 5
+    check: (stats) => (stats.maxStage || 1) >= 6
   },
   {
     id: 'ACH_SINGLE_WORD_50P',
     title: 'Büyük Şair',
     secretDesc: '??? (Gizli Başarım)',
-    unlockedDesc: 'Tek bir kelimeden 50+ puan kazan.',
+    unlockedDesc: 'Tek bir kelimeden 120+ puan kazan.',
     rewardType: 'JOKER',
     rewardName: 'Kül Kartı 🔥',
     rewardDesc: 'Dükkân havuzuna Kül Kartı eklendi!',
-    check: (stats) => stats.maxSingleWordScore >= 50
+    check: (stats) => (stats.maxSingleWordScore || 0) >= 120
   },
   {
     id: 'ACH_CHALLENGE_WIN',
     title: 'Zamana Karşı Şampiyon',
     secretDesc: '??? (Gizli Başarım)',
-    unlockedDesc: 'Süreli Harf Challenge modunda 10+ puan yap.',
+    unlockedDesc: 'Süreli Harf Challenge modunda 25+ puan yap.',
     rewardType: 'VOUCHER',
     rewardName: 'Derin Deste Efsunu 📜',
     rewardDesc: 'Dükkân havuzuna Derin Deste Efsunu eklendi!',
-    check: (stats) => stats.challengeScore >= 10
+    check: (stats) => (stats.challengeScore || 0) >= 25
   },
   {
     id: 'ACH_TOTAL_WORDS_20',
     title: 'Kelime Dağarcığı',
     secretDesc: '??? (Gizli Başarım)',
-    unlockedDesc: 'Bir run boyunca 20+ geçerli kelime yaz.',
+    unlockedDesc: 'Bir run boyunca 50+ geçerli kelime yaz.',
     rewardType: 'SEAL',
     rewardName: 'Zümrüt Mühür 💎',
     rewardDesc: 'Dükkân havuzuna Zümrüt Mühür eklendi!',
-    check: (stats) => stats.totalWordsPlayed >= 20
+    check: (stats) => (stats.totalWordsPlayed || 0) >= 50
   },
   {
     id: 'ACH_TRIVIA_MASTER',
     title: 'Bilmece Dâhisi',
     secretDesc: '??? (Gizli Başarım)',
-    unlockedDesc: 'Bilmece Sınavında 3 soruyu da doğru bil.',
+    unlockedDesc: 'Bilmece Sınavında 5 soruyu da doğru bil.',
     rewardType: 'JOKER',
     rewardName: 'Efsanevi Mucize Jokeri ✨',
     rewardDesc: 'Dükkân havuzuna Mucize Jokeri eklendi!',
-    check: (stats) => (stats.triviaWins || 0) >= 3
+    check: (stats) => (stats.triviaWins || 0) >= 5
   },
   {
     id: 'ACH_JOKER_COLLECTOR',
@@ -108,11 +108,11 @@ export const ACHIEVEMENTS = [
     id: 'ACH_SINGLE_WORD_150P',
     title: 'Efsanevi Ozan',
     secretDesc: '??? (Gizli Başarım)',
-    unlockedDesc: 'Tek bir kelimeden 150+ puan kazan.',
+    unlockedDesc: 'Tek bir kelimeden 350+ puan kazan.',
     rewardType: 'JOKER',
     rewardName: 'Süpernova Taş 💥',
     rewardDesc: 'Dükkân havuzuna Süpernova Taş eklendi!',
-    check: (stats) => (stats.maxSingleWordScore || 0) >= 150
+    check: (stats) => (stats.maxSingleWordScore || 0) >= 350
   },
   {
     id: 'ACH_BOSS_SLAYER',
@@ -126,33 +126,33 @@ export const ACHIEVEMENTS = [
   },
   {
     id: 'ACH_1M_WORD',
-    title: '1,000,000 Skor Barajı 🌌',
+    title: '100.000 Skor Barajı 🌌',
     secretDesc: '??? (Gizli Balatro Başarımı)',
-    unlockedDesc: 'Tek kelimede 1.000.000+ skor yap.',
+    unlockedDesc: 'Tek kelimede 100.000+ skor yap.',
     rewardType: 'JOKER',
     rewardName: 'Kozmik Joker 🌠',
     rewardDesc: 'Kozmik Joker dükkân havuzuna eklendi!',
-    check: (stats) => (stats.maxSingleWordScore || 0) >= 1000000
+    check: (stats) => (stats.maxSingleWordScore || 0) >= 100000
   },
   {
     id: 'ACH_GLASS_BREAKER',
     title: 'Cam Ustası 🥃',
     secretDesc: '??? (Gizli Başarım)',
-    unlockedDesc: 'Cam Harf Taş ile x2.0 Çarpanı başarıyla aktif et.',
+    unlockedDesc: 'Tek bir kelimede 600+ skor yap.',
     rewardType: 'SEAL',
     rewardName: 'Cam Mühür 🥃',
     rewardDesc: 'Dükkân havuzuna Cam Mühür eklendi!',
-    check: (stats) => (stats.maxSingleWordScore || 0) >= 300
+    check: (stats) => (stats.maxSingleWordScore || 0) >= 600
   },
   {
     id: 'ACH_ENDLESS_12',
     title: 'Sonsuz Mod Fatihi ♾️',
     secretDesc: '??? (Gizli Balatro Başarımı)',
-    unlockedDesc: 'Sonsuz Modda Kademe 12 barajına ulaş.',
+    unlockedDesc: 'Sonsuz Modda Kademe 15 barajına ulaş.',
     rewardType: 'VOUCHER',
     rewardName: 'Sonsuz Efsun 📜',
     rewardDesc: 'Dükkân havuzuna Sonsuz Efsun eklendi!',
-    check: (stats) => (stats.maxStage || 1) >= 12
+    check: (stats) => (stats.maxStage || 1) >= 15
   }
 ];
 

@@ -37,6 +37,7 @@ export function ShopScreen({
   const isDeckFull = fullDeck.length >= MAX_DECK_SIZE;
   const [rerollCost, setRerollCost] = useState(10);
   const [activePackOpening, setActivePackOpening] = useState(null);
+  const [isDeckTrimmingModalOpen, setIsDeckTrimmingModalOpen] = useState(false);
   const [soldSlots, setSoldSlots] = useState({
     card1: false,
     card2: false,
@@ -72,7 +73,7 @@ export function ShopScreen({
   };
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-3 sm:p-6 bg-slate-950 text-slate-100 select-none relative overflow-hidden">
+    <div className="flex-1 flex flex-col items-center justify-center p-2 sm:p-6 bg-slate-950 text-slate-100 select-none relative overflow-y-auto scrollbar-none">
       {/* Animated background grid */}
       <div className="absolute inset-0 opacity-10 pointer-events-none z-0"
         style={{
@@ -111,7 +112,7 @@ export function ShopScreen({
       <motion.div
         initial={{ scale: 0.92, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="w-full max-w-2xl bg-slate-950/95 border-2 border-amber-500/70 rounded-3xl p-4 sm:p-5 shadow-[0_0_50px_rgba(245,158,11,0.35)] backdrop-blur-2xl flex flex-col gap-4 relative z-10"
+        className="w-full max-w-2xl bg-slate-950/95 border-2 border-amber-500/70 rounded-3xl p-3 sm:p-5 shadow-[0_0_50px_rgba(245,158,11,0.35)] backdrop-blur-2xl flex flex-col gap-3 sm:gap-4 relative z-10 my-auto max-h-full overflow-y-auto scrollbar-none"
       >
         {/* TOP STATUS BAR */}
         <div className="flex items-center justify-between border-b-2 border-slate-800/90 pb-3">
@@ -129,6 +130,16 @@ export function ShopScreen({
                   <Layers size={13} className={isDeckFull ? 'text-rose-400' : 'text-slate-400'} />
                   <span>Deste: {fullDeck.length} / {MAX_DECK_SIZE} {isDeckFull ? '(DOLU)' : ''}</span>
                 </div>
+                <button
+                  onClick={() => {
+                    try { soundEngine.playTap?.(); } catch(e) {}
+                    setIsDeckTrimmingModalOpen(true);
+                  }}
+                  className="px-2.5 py-0.5 rounded-full text-xs font-black bg-rose-950/90 border border-rose-500/80 text-rose-300 hover:bg-rose-900 transition cursor-pointer flex items-center gap-1 shadow-md"
+                  title="Desteden kart sil ($5)"
+                >
+                  <span>✂️ HARF SİL ($5)</span>
+                </button>
               </div>
             </div>
           </div>
@@ -320,6 +331,63 @@ export function ShopScreen({
 
         </div>
       </motion.div>
+
+      {/* DECK TRIMMING / HARF SİLME MODAL */}
+      {isDeckTrimmingModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-2xl p-4 flex items-center justify-center animate-fade-in select-none">
+          <div className="w-full max-w-xl max-h-[85vh] rounded-3xl border-2 border-rose-500/80 bg-slate-900 shadow-2xl p-4 sm:p-5 flex flex-col justify-between gap-4">
+            <div className="flex items-center justify-between border-b border-rose-500/30 pb-3">
+              <div className="flex items-center gap-2 text-rose-300 font-black font-cinzel text-base sm:text-lg">
+                <span>✂️ DESTE BUDAMA (HARF İMHA SERVİSİ)</span>
+              </div>
+              <button
+                onClick={() => {
+                  try { soundEngine.playTap?.(); } catch(e) {}
+                  setIsDeckTrimmingModalOpen(false);
+                }}
+                className="w-8 h-8 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center font-bold cursor-pointer hover:bg-slate-700"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-300 font-medium leading-relaxed">
+              Destenizdeki zayıf veya istemediğiniz harfleri yok edin. Her silme işlemi <strong className="text-amber-300 font-mono">$5 Altın</strong> gerektirir. (Min. deste boyutu: 6 harf)
+            </p>
+
+            <div className="flex-1 overflow-y-auto grid grid-cols-4 sm:grid-cols-6 gap-2 p-1 max-h-[50vh] scrollbar-none">
+              {fullDeck.map((card, idx) => (
+                <button
+                  key={card.id || idx}
+                  onClick={() => {
+                    if (gold >= 5 && fullDeck.length > 6) {
+                      if (onRemoveCard) onRemoveCard(card.id, 5);
+                    }
+                  }}
+                  disabled={gold < 5 || fullDeck.length <= 6}
+                  className="p-2.5 rounded-2xl bg-slate-950 border border-slate-700 hover:border-rose-500 flex flex-col items-center justify-center transition cursor-pointer group hover:scale-105 shadow-md relative overflow-hidden"
+                >
+                  <span className="text-xl font-black text-amber-300 font-mono">{card.letter}</span>
+                  <span className="text-[9px] font-bold text-slate-400 mt-0.5">{card.points || 1} Puan</span>
+                  <span className="absolute inset-0 bg-rose-950/90 opacity-0 group-hover:opacity-100 flex items-center justify-center text-[10px] font-black text-rose-300 transition">
+                    SİL ($5)
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => {
+                try { soundEngine.playTap?.(); } catch(e) {}
+                setIsDeckTrimmingModalOpen(false);
+              }}
+              className="w-full py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-black text-xs border border-slate-700 cursor-pointer"
+            >
+              TAMAM
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, RefreshCw, Sparkles, CheckCircle2, AlertCircle, BookOpen, X, History, SkipForward, Shuffle, RotateCcw } from 'lucide-react';
+import { Play, RefreshCw, Sparkles, CheckCircle2, AlertCircle, BookOpen, X, History, SkipForward, Shuffle, RotateCcw, Zap, Trophy } from 'lucide-react';
 import { calculateWordScore } from '../game/wordEngine';
 import confetti from 'canvas-confetti';
 import { getRarityDetails } from '../game/cardData';
@@ -18,6 +18,18 @@ const SLOT_MOD_CONFIG = {
   'GOLD':    { label: '💰', color: 'text-yellow-300', bg: 'bg-yellow-950/90', border: 'border-yellow-500/80', title: '+5 Altın Bonusu' },
 };
 
+function EmptySlotSvgFrame({ active = false }) {
+  return (
+    <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-50" viewBox="0 0 100 100" preserveAspectRatio="none">
+      <rect x="2" y="2" width="96" height="96" rx="12" fill="none" stroke={active ? '#f59e0b' : '#475569'} strokeWidth="1.5" strokeDasharray="5 3" />
+      <circle cx="4" cy="4" r="1.5" fill={active ? '#fbbf24' : '#64748b'} />
+      <circle cx="96" cy="4" r="1.5" fill={active ? '#fbbf24' : '#64748b'} />
+      <circle cx="4" cy="96" r="1.5" fill={active ? '#fbbf24' : '#64748b'} />
+      <circle cx="96" cy="96" r="1.5" fill={active ? '#fbbf24' : '#64748b'} />
+    </svg>
+  );
+}
+
 export function WordPlayArea({
   stage = 1,
   selectedCards = [],
@@ -26,6 +38,7 @@ export function WordPlayArea({
   combo,
   activeRelicKeys = [],
   boardSlotModifiers = {},
+  activeBossRule = null,
   onUnselectCard,
   onClearCards,
   onShuffleHand,
@@ -45,6 +58,8 @@ export function WordPlayArea({
   const [showBurst, setShowBurst] = useState(false);
   const [hoveredSlotCard, setHoveredSlotCard] = useState(null);
   const [hoveredSlotTargetRect, setHoveredSlotTargetRect] = useState(null);
+
+  const canPlayWord = selectedCards.length >= 2;
 
   const handlePlayWordWithVFX = () => {
     if (selectedCards.length < 2) return;
@@ -80,7 +95,7 @@ export function WordPlayArea({
     if (onPlayWord) onPlayWord();
   };
 
-  const scoreBreakdown = calculateWordScore(selectedCards, lastPlayedWord, combo, playedWordsThisStage, activeRelicKeys, false, boardSlotModifiers);
+  const scoreBreakdown = calculateWordScore(selectedCards, lastPlayedWord, combo, playedWordsThisStage, activeRelicKeys, false, boardSlotModifiers, {}, [], activeBossRule);
 
   const [visibleFeedback, setVisibleFeedback] = useState(feedbackMessage);
 
@@ -98,79 +113,69 @@ export function WordPlayArea({
       {/* Played Words History Bar & Modal Toggle */}
       <div className="w-full flex items-center justify-between gap-2 px-1 mb-1">
         {playedWordsThisStage.length > 0 ? (
-          <div className="flex-1 flex items-center gap-1.5 overflow-x-auto py-1 scrollbar-none">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider shrink-0 flex items-center gap-1">
-              <History size={11} className="text-amber-400" />
-              Kelimeler ({playedWordsThisStage.length}):
+          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none py-1">
+            <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest shrink-0 flex items-center gap-1">
+              <History size={12} className="text-amber-400" />
+              <span>OYNANANLAR ({playedWordsThisStage.length}):</span>
             </span>
             {playedWordsThisStage.map((w, idx) => (
               <button
-                key={`${w}_${idx}`}
+                key={idx}
                 onClick={() => onOpenMeaningModal && onOpenMeaningModal(w)}
-                className="px-2.5 py-0.5 rounded-full bg-slate-900 hover:bg-slate-800 border border-slate-700/80 hover:border-amber-500/60 text-amber-300 font-extrabold text-[11px] tracking-wide shrink-0 shadow-md transition flex items-center gap-1 cursor-pointer active:scale-95"
-                title={`${w} kelimesinin TDK anlamını gör`}
+                className="px-2.5 py-0.5 rounded-full bg-slate-900/90 border border-amber-500/40 text-amber-300 text-[11px] font-mono font-bold hover:bg-slate-800 transition shrink-0 cursor-pointer shadow"
               >
-                <span>{w}</span>
-                <span className="text-[9px] text-amber-400">📖</span>
+                {w}
               </button>
             ))}
           </div>
         ) : (
-          <div className="text-[11px] text-slate-500 italic">Henüz kelime yazılmadı</div>
+          <span className="text-[11px] text-slate-300 font-semibold italic">Henüz kelime yazılmadı</span>
         )}
 
         {playedWordsThisStage.length > 0 && (
           <button
             onClick={() => setShowHistoryModal(true)}
-            className="px-2 py-1 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-700 text-slate-300 text-[10px] font-extrabold flex items-center gap-1 shrink-0 transition active:scale-95 shadow-sm"
-            title="Tüm Yazılan Kelimeleri Göster"
+            className="p-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 text-xs font-bold shrink-0 transition"
+            title="Kelime Geçmişini Gör"
           >
-            <BookOpen size={12} className="text-amber-400" />
-            <span>Tümü</span>
+            <BookOpen size={14} />
           </button>
         )}
       </div>
 
-      {/* History Modal Overlay */}
+      {/* HISTORY MODAL */}
       <AnimatePresence>
         {showHistoryModal && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-slate-950/95 backdrop-blur-md z-30 p-4 flex flex-col justify-between"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="absolute inset-x-3 top-10 bottom-10 z-50 bg-slate-950/95 border-2 border-amber-500 rounded-3xl p-4 flex flex-col justify-between shadow-2xl backdrop-blur-xl"
           >
             <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-              <div className="flex items-center gap-2 text-amber-400 font-black text-sm">
-                <BookOpen size={18} />
-                <span>BU BÖLÜMDE YAZILAN KELİMELER ({playedWordsThisStage.length})</span>
-              </div>
-              <button
-                onClick={() => setShowHistoryModal(false)}
-                className="p-1 rounded-full bg-slate-800 text-slate-300 hover:bg-slate-700"
-              >
-                <X size={16} />
+              <h3 className="text-sm font-black text-amber-300 flex items-center gap-1.5">
+                <History size={16} />
+                <span>Oynanan Kelimeler Geçmişi ({playedWordsThisStage.length})</span>
+              </h3>
+              <button onClick={() => setShowHistoryModal(false)} className="text-slate-400 hover:text-slate-200">
+                <X size={18} />
               </button>
             </div>
 
-            <div className="flex-1 my-3 overflow-y-auto grid grid-cols-2 gap-2 pr-1">
-              {playedWordsThisStage.map((word, index) => (
+            <div className="flex-1 overflow-y-auto my-3 space-y-2 pr-1">
+              {playedWordsThisStage.map((w, idx) => (
                 <div
-                  key={`${word}_modal_${index}`}
+                  key={idx}
                   onClick={() => {
                     setShowHistoryModal(false);
-                    onOpenMeaningModal && onOpenMeaningModal(word);
+                    if (onOpenMeaningModal) onOpenMeaningModal(w);
                   }}
-                  className="p-2.5 rounded-2xl bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-amber-500/50 flex items-center justify-between gap-2 shadow-md cursor-pointer transition active:scale-95"
-                  title={`${word} TDK Anlamını Gör`}
+                  className="p-2.5 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-center justify-between text-xs cursor-pointer hover:border-amber-500/50 transition"
                 >
-                  <span className="text-xs font-bold text-slate-500">#{index + 1}</span>
-                  <span className="text-sm font-extrabold text-amber-300 tracking-wider flex items-center gap-1">
-                    <span>{word}</span>
-                    <span className="text-[10px]">📖</span>
-                  </span>
-                  <span className="text-[10px] text-slate-400 bg-slate-950 px-1.5 py-0.5 rounded-lg border border-slate-800 font-semibold">
-                    {word.length} Harf
+                  <span className="font-mono font-black text-amber-300">{idx + 1}. {w}</span>
+                  <span className="text-[10px] text-slate-400 flex items-center gap-1">
+                    <span>TDK Anlamı</span>
+                    <BookOpen size={12} />
                   </span>
                 </div>
               ))}
@@ -284,20 +289,22 @@ export function WordPlayArea({
               );
             }
 
-            // Empty Slot Tile Box
+            // Empty Slot Tile Box with SVG Frame Overlay
             return (
               <div
                 key={`empty_slot_${slotIdx}`}
-                className={`w-9 sm:w-14 md:w-16 h-14 sm:h-20 md:h-24 shrink-0 rounded-2xl border-2 border-dashed flex flex-col items-center justify-between p-1 transition-all ${
+                className={`w-9 sm:w-14 md:w-16 h-14 sm:h-20 md:h-24 shrink-0 rounded-2xl flex flex-col items-center justify-between p-1 transition-all relative overflow-hidden ${
                   modCfg
                     ? `${modCfg.bg} ${modCfg.border} text-amber-300`
-                    : 'border-slate-800 bg-slate-950/60 text-slate-600'
+                    : 'border border-slate-800 bg-slate-950/70 text-slate-600'
                 }`}
               >
+                <EmptySlotSvgFrame active={Boolean(modCfg)} />
+
                 {modCfg ? (
-                  <div className="text-[8px] sm:text-[9px] font-black uppercase text-center mt-1 font-mono">{modCfg.label}</div>
+                  <div className="text-[8px] sm:text-[9px] font-black uppercase text-center mt-1 font-mono relative z-10">{modCfg.label}</div>
                 ) : (
-                  <div className="my-auto flex flex-col items-center justify-center gap-0.5">
+                  <div className="my-auto flex flex-col items-center justify-center gap-0.5 relative z-10">
                     {slotIdx >= 4 ? (
                       <>
                         <span className="text-[11px] sm:text-xs font-black text-amber-300 animate-pulse drop-shadow-[0_0_8px_rgba(245,158,11,0.8)]">
@@ -308,7 +315,7 @@ export function WordPlayArea({
                         </span>
                       </>
                     ) : (
-                      <span className="text-[10px] font-bold text-slate-700">
+                      <span className="text-[10px] font-bold text-slate-600 font-mono">
                         #{slotIdx + 1}
                       </span>
                     )}
@@ -319,21 +326,35 @@ export function WordPlayArea({
           })}
         </div>
 
-        {/* Potential Score Calculation Badge */}
+        {/* VERBO Unique Turkish Scoring Engine HUD */}
         {scoreBreakdown && selectedCards.length >= 2 && (
           <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-2.5 px-4 py-2 rounded-2xl bg-gradient-to-r from-slate-950 via-amber-950/90 to-slate-950 border-2 border-amber-400/80 text-amber-300 text-xs sm:text-sm font-black shadow-2xl flex flex-col items-center justify-center gap-0.5 z-20 backdrop-blur-md"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="mt-2.5 px-4 py-2 rounded-2xl bg-slate-950/95 border-2 border-amber-400/80 text-amber-300 shadow-[0_0_30px_rgba(245,158,11,0.35)] flex flex-col items-center justify-center gap-1 z-20 backdrop-blur-md"
           >
-            <div className="flex items-center gap-1.5">
-              <Sparkles size={16} className="text-amber-400 animate-pulse" />
-              <span>Potansiyel: +{scoreBreakdown.score} Puan</span>
-              <span className="text-[11px] text-slate-300 font-medium">
-                (Taban: {scoreBreakdown.basePoints} + Bonus: +{scoreBreakdown.lengthBonus}
-                {scoreBreakdown.extensionBonus > 0 && ` + Zincir: +${scoreBreakdown.extensionBonus}`}
-                {combo > 1 && ` × ${combo}`})
-              </span>
+            <div className="flex items-center gap-2 font-sans font-black text-xs sm:text-sm">
+              {/* HARF GÜCÜ */}
+              <div className="px-3 py-1 rounded-xl bg-amber-950/80 border border-amber-400/80 text-amber-300 flex items-center gap-1.5 shadow-[0_0_10px_rgba(245,158,11,0.3)]">
+                <Sparkles size={14} className="text-amber-400" />
+                <span>Harf Gücü: {scoreBreakdown.chips || scoreBreakdown.basePoints}</span>
+              </div>
+
+              <span className="text-amber-400/80 font-black text-sm font-cinzel">×</span>
+
+              {/* KELİME ÇARPANI */}
+              <div className="px-3 py-1 rounded-xl bg-purple-950/80 border border-purple-400/80 text-purple-300 flex items-center gap-1.5 shadow-[0_0_10px_rgba(168,85,247,0.3)]">
+                <Zap size={14} className="text-purple-400" />
+                <span>Kelime Çarpanı: x{(scoreBreakdown.mult * (scoreBreakdown.xMult || 1)).toFixed(1).replace('.0', '')}</span>
+              </div>
+
+              <span className="text-amber-300/80 font-black text-sm font-cinzel">=</span>
+
+              {/* TAHMİNİ PUAN */}
+              <div className="px-3.5 py-1 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 font-black flex items-center gap-1.5 shadow-[0_0_15px_rgba(245,158,11,0.5)] font-cinzel tracking-wider">
+                <Trophy size={14} className="text-slate-950" />
+                <span>+{scoreBreakdown.score} Puan</span>
+              </div>
             </div>
 
             {/* Chain & Bank Badges */}
@@ -372,7 +393,7 @@ export function WordPlayArea({
         )}
       </AnimatePresence>
 
-      {/* Action Buttons: KARIŞTIR, YENİLE, PAS & KELİMEYİ OYNA */}
+      {/* Action Buttons: KARIŞTIR, YENİLE, PAS & OYNA */}
       <div className="w-full grid grid-cols-12 gap-1.5 sm:gap-3">
         {/* KARIŞTIR Button */}
         <button
@@ -411,10 +432,10 @@ export function WordPlayArea({
           <span className="truncate">Pas</span>
         </button>
 
-        {/* KELİMEYİ OYNA Button */}
+        {/* OYNA Button */}
         <motion.button
           whileTap={{ scale: 0.95 }}
-          onClick={onPlayWord}
+          onClick={handlePlayWordWithVFX}
           disabled={!canPlayWord}
           className={`col-span-4 sm:col-span-5 font-black py-2.5 sm:py-3.5 px-2 rounded-2xl transition flex items-center justify-center gap-1.5 text-xs sm:text-base tracking-wider border-2 shadow-2xl truncate ${
             canPlayWord
@@ -423,7 +444,7 @@ export function WordPlayArea({
           }`}
         >
           <Play size={16} className={canPlayWord ? 'fill-slate-950 shrink-0' : 'shrink-0'} />
-          <span className="truncate">KELİMEYİ OYNA</span>
+          <span className="truncate font-black tracking-widest text-sm sm:text-base">OYNA</span>
         </motion.button>
       </div>
     </div>

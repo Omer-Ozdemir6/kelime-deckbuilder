@@ -25,8 +25,8 @@ import { CharacterSelectModal, HERO_CHARACTERS } from './components/CharacterSel
 import { StakesSelectModal, STAKES_DEFINITIONS } from './components/StakesSelectModal';
 import { JokerSelectorModal } from './components/JokerSelectorModal';
 import { ChallengeSelectModal } from './components/ChallengeSelectModal';
-import { AchievementToast } from './components/AchievementToast';
 import { SvgFilterDefs } from './components/SvgFilterDefs';
+import { LuminousScoreBreakdown } from './components/LuminousScoreBreakdown';
 import { useGameState } from './hooks/useGameState';
 import { checkMetaUnlocks } from './game/metaUnlocks';
 
@@ -238,6 +238,7 @@ export default function App() {
             comboTimeLeft={gameStateObj.comboTimeLeft}
             activeRelicKeys={activeRelicKeys}
             boardSlotModifiers={gameStateObj.boardSlotModifiers}
+            activeBossRule={gameStateObj.activeBossRule}
             onUnselectCard={unselectCard}
             onClearCards={clearSelectedCards}
             onShuffleHand={gameStateObj.shuffleHand}

@@ -59,45 +59,61 @@ function VerboLogoEmblem() {
   );
 }
 
+const HINTS = [
+  "💡 İPUCU: 5 ve üzeri harfli kelimeler ekstra kombo ve yüksek altın bonusu kazandırır.",
+  "💡 İPUCU: Pasif Jokerler üst barda yerleşerek oynadığınız her kelimede puanınızı katlar.",
+  "💡 İPUCU: TDK sözlüğünde geçerli tüm kelimelerin anlamlarını kart geçmişinden öğrenebilirsiniz.",
+  "💡 İPUCU: Gezegen Efsunları ile kelime türlerinizin (İsim, Sıfat, Fiil) taban puanını yükseltebilirsiniz.",
+  "💡 İPUCU: Mühürlü Harfler (Altın, Cam, Çelik, Holo) kelimelerinize muazzam çarpanlar ekler.",
+  "💡 İPUCU: Zorlandığınız aşamaya girmeyip Pas Geçerek (Skip Blind) bedava Etiket Ödülü alabilirsiniz.",
+  "💡 İPUCU: Harf Bankasını kullanarak elinizdeki değerli harfleri sonraki turlar için saklayabilirsiniz.",
+  "💡 İPUCU: Aynı kökten gelen kelimeleri üst üste türeterek Kelime Zinciri kombo bonusu elde edebilirsiniz.",
+  "💡 İPUCU: Dükkândan Deste Yenileme ve Kart Silme hakları satın alarak destenizi optimize edin.",
+  "💡 İPUCU: Kombo seviyeniz arttıkça süreniz hızlanır; seri ve hızlı kelimeler üreterek skoru tavan yapın!",
+  "💡 İPUCU: Boss aşamalarında özel kurallara dikkat edin; bazı Boss'lar belirli harfleri veya hamleleri kısıtlayabilir.",
+  "💡 İPUCU: Kademe aşamalarını geçtikçe yeni Kahramanlar ve Efsanevi Mühürlerin kilidini açabilirsiniz."
+];
+
+function getLoadingStatusText(p) {
+  if (p < 25) return "📖 TDK TÜRKÇE SÖZLÜK YÜKLENİYOR...";
+  if (p < 50) return "🔮 HARF MÜHÜRLERİ VE EFSUNLAR HAZIRLANIYOR...";
+  if (p < 75) return "🃏 PASİF JOKERLER VE DESTE SENKRONİZE EDİLİYOR...";
+  if (p < 95) return "🌌 GEZEGEN TAŞLARI VE KADEMELER OLUŞTURULUYOR...";
+  return "✨ KELİME DÜNYASI HAZIRLANDI!";
+}
+
 export function SplashScreen({ onStart }) {
   const [progress, setProgress] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
-
-  const HINTS = [
-    "💡 İPUCU: 5 ve üzeri harfli kelimeler ekstra kombo ve altın kazandırır.",
-    "💡 İPUCU: Pasif Jokerler üst barda yerleşerek her kelimede skoru katlar.",
-    "💡 İPUCU: TDK sözlüğünde geçerli tüm kelimelerin tanımlarını inceleyebilirsiniz.",
-    "💡 İPUCU: Gezegen Taşları ile kelime kategorilerinizin seviyesini yükseltebilirsiniz.",
-    "💡 İPUCU: Mühürlü Harfler (Altın, Cam, Çelik) kelimelerinize devasa bonuslar katar.",
-    "💡 İPUCU: Zorlandığınız köre girmeyip Pas Geçerek (Skip Blind) Etiket Ödülü alabilirsiniz."
-  ];
-
   const [hintIndex, setHintIndex] = useState(0);
 
   useEffect(() => {
-    // Dynamic progress bar loader (0% -> 100%)
+    // Dynamic progress bar loader (0% -> 100%) with realistic stage delays
     const timer = setInterval(() => {
       setProgress((prev) => {
         if (prev < 100) {
-          const step = Math.floor(Math.random() * 7) + 3;
+          const step = Math.floor(Math.random() * 4) + 2;
           const next = prev + step;
           return next >= 100 ? 100 : next;
         } else {
           clearInterval(timer);
-          setIsLoaded(true);
-          try {
-            soundEngine.playVictory?.();
-            confetti({ particleCount: 60, spread: 80, origin: { y: 0.6 } });
-          } catch (e) {}
+          // Brief pause at 100% before hiding loading bar
+          setTimeout(() => {
+            setIsLoaded(true);
+            try {
+              soundEngine.playVictory?.();
+              confetti({ particleCount: 60, spread: 80, origin: { y: 0.6 } });
+            } catch (e) {}
+          }, 450);
           return 100;
         }
       });
-    }, 90);
+    }, 130);
 
-    // Hints rotation timer
+    // Hints rotation timer (6.5 seconds per hint for easy reading)
     const hintTimer = setInterval(() => {
       setHintIndex((prev) => (prev + 1) % HINTS.length);
-    }, 3200);
+    }, 6500);
 
     return () => {
       clearInterval(timer);
@@ -138,17 +154,6 @@ export function SplashScreen({ onStart }) {
         </svg>
       </div>
 
-      {/* TOP TAGLINE BADGE - STATIC SOLID POSITIONING */}
-      <motion.div
-        initial={{ opacity: 0, y: -15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="mt-3 sm:mt-6 z-30 flex items-center gap-2 px-5 py-2 rounded-full bg-slate-950/90 border-2 border-amber-400/80 text-amber-300 text-xs sm:text-sm font-black tracking-widest uppercase shadow-[0_0_30px_rgba(245,158,11,0.35)] backdrop-blur-md"
-      >
-        <Sparkles size={16} className="text-amber-400" />
-        <span>TÜRKÇE ROGUELITE DECKBUILDER BAŞYAPITI</span>
-      </motion.div>
-
       {/* CENTER LOGO PREVIEW - HIGH QUALITY VERBO OFFICIAL BRANDING */}
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
@@ -161,36 +166,35 @@ export function SplashScreen({ onStart }) {
           alt="VERBO"
           className="w-full max-w-sm sm:max-w-md max-h-[300px] object-contain filter drop-shadow-[0_15px_40px_rgba(245,158,11,0.5)] hover:scale-105 transition-transform"
         />
-        <p className="text-xs sm:text-sm font-black text-cyan-300 uppercase tracking-widest mt-2 bg-slate-950/90 px-5 py-1.5 rounded-full border-2 border-cyan-500/50 shadow-[0_0_20px_rgba(34,211,238,0.3)]">
-          ✨ TÜRKÇE HARF ROGUELITE DECKBUILDER
-        </p>
       </motion.div>
 
       {/* BOTTOM AREA: LOADING BAR & WIDE HINTS PANEL */}
       <div className="w-full max-w-2xl flex flex-col items-center gap-3.5 z-30 mt-auto mb-4 sm:mb-8">
-        {/* ANIMATED 3D ARCADE LOADING GAUGE */}
-        <div className="w-full bg-slate-950/95 border-2 border-amber-500/60 rounded-3xl p-3 shadow-[0_0_35px_rgba(245,158,11,0.3)] backdrop-blur-xl flex flex-col gap-2">
-          <div className="flex items-center justify-between text-xs font-black text-amber-300 px-1">
-            <span className="flex items-center gap-2">
-              <Compass size={16} className="animate-spin text-amber-400" />
-              <span className="tracking-wider">VERİLER VE SÖZLÜK YÜKLENİYOR...</span>
-            </span>
-            <span className="font-mono text-white text-sm font-black bg-amber-950/80 border border-amber-500/40 px-2.5 py-0.5 rounded-xl shadow">
-              %{progress}
-            </span>
-          </div>
+        {/* ANIMATED 3D ARCADE LOADING GAUGE - HIDES WHEN LOADED (100%) */}
+        {!isLoaded && (
+          <div className="w-full bg-slate-950/95 border-2 border-amber-500/60 rounded-3xl p-3 shadow-[0_0_35px_rgba(245,158,11,0.3)] backdrop-blur-xl flex flex-col gap-2">
+            <div className="flex items-center justify-between text-xs font-black text-amber-300 px-1">
+              <span className="flex items-center gap-2">
+                <Compass size={16} className="animate-spin text-amber-400" />
+                <span className="tracking-wider">{getLoadingStatusText(progress)}</span>
+              </span>
+              <span className="font-mono text-white text-sm font-black bg-amber-950/80 border border-amber-500/40 px-2.5 py-0.5 rounded-xl shadow">
+                %{progress}
+              </span>
+            </div>
 
-          {/* 3D Progress Fill Bar */}
-          <div className="w-full h-4 sm:h-5 bg-slate-900 rounded-full overflow-hidden border-2 border-slate-800 p-0.5 relative shadow-inner">
-            <motion.div
-              className="h-full bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 rounded-full shadow-[0_0_20px_rgba(245,158,11,0.9)] relative overflow-hidden flex items-center justify-end pr-2"
-              style={{ width: `${progress}%` }}
-              transition={{ ease: 'easeOut', duration: 0.15 }}
-            >
-              <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.45)_50%,transparent_100%)] animate-shimmer" />
-            </motion.div>
+            {/* 3D Progress Fill Bar */}
+            <div className="w-full h-4 sm:h-5 bg-slate-900 rounded-full overflow-hidden border-2 border-slate-800 p-0.5 relative shadow-inner">
+              <motion.div
+                className="h-full bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 rounded-full shadow-[0_0_20px_rgba(245,158,11,0.9)] relative overflow-hidden flex items-center justify-end pr-2"
+                style={{ width: `${progress}%` }}
+                transition={{ ease: 'easeOut', duration: 0.15 }}
+              >
+                <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.45)_50%,transparent_100%)] animate-shimmer" />
+              </motion.div>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* WIDE HINTS PANEL (GENİŞ İPUÇLARI KUTUSU - FLICKER FREE) */}
         <div className="w-full bg-slate-950/95 border-2 border-amber-500/40 rounded-2xl p-3.5 shadow-2xl backdrop-blur-xl text-center min-h-[60px] flex items-center justify-center">
@@ -199,18 +203,19 @@ export function SplashScreen({ onStart }) {
           </p>
         </div>
 
-        {/* TAP TO START BUTTON WHEN LOADED - SOLID 100% OPACITY */}
+        {/* TAP TO START TEXT WHEN LOADED - BREATHING FADE IN/OUT ANIMATION */}
         {isLoaded ? (
           <motion.div
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.4 }}
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-            className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-sm sm:text-base tracking-wider shadow-[0_0_40px_rgba(245,158,11,0.8)] border-2 border-yellow-100 flex items-center justify-center gap-2.5 cursor-pointer"
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: [0.25, 1, 0.25], scale: [0.98, 1.02, 0.98] }}
+            transition={{ repeat: Infinity, duration: 2.4, ease: 'easeInOut' }}
+            className="w-full py-3.5 text-center cursor-pointer select-none"
           >
-            <Play size={22} className="fill-slate-950 stroke-none" />
-            <span>OYUNA BAŞLAMAK İÇİN TIKLAYIN VEYA DOKUNUN</span>
+            <span className="text-sm sm:text-base font-black text-amber-300 tracking-widest font-cinzel uppercase drop-shadow-[0_0_20px_rgba(245,158,11,0.9)] flex items-center justify-center gap-2">
+              <Sparkles size={16} className="text-amber-400 animate-pulse" />
+              <span>BAŞLAMAK İÇİN DOKUNUN</span>
+              <Sparkles size={16} className="text-amber-400 animate-pulse" />
+            </span>
           </motion.div>
         ) : (
           <div className="flex items-center gap-2 text-[11px] text-slate-400 font-bold">

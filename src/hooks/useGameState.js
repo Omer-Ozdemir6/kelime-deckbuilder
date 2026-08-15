@@ -7,7 +7,7 @@ import { generateRunMap, generateKademe } from '../game/mapGenerator';
 import { RELICS } from '../game/relicData';
 import { getWordMeaning } from '../services/dictionaryService';
 import { discoverCodexItem } from '../game/codexManager';
-import { checkNewAchievements } from '../game/achievementsData';
+import { checkNewAchievements, getUnlockedAchievementIds } from '../game/achievementsData';
 import { INITIAL_WORD_LEVELS } from '../game/planetData';
 
 export function getStageTargetScore(stage) {
@@ -25,6 +25,12 @@ export function getBossStageRule(stage) {
   return null;
 }
 
+export function getMaxComboTime(comboLevel) {
+  if (comboLevel <= 1) return 15;
+  // Generous combo timer scaling: Combo 2 = 15s, Combo 3 = 14s, Combo 4 = 13s, Combo 5 = 12s, Combo 6 = 11s, Combo 7 = 10s, Combo 8+ = 8s min
+  return Math.max(8, 16 - comboLevel);
+}
+
 export function useGameState() {
   // Meta progression
 
@@ -33,8 +39,41 @@ export function useGameState() {
   });
 
   const [unlockedDecks, setUnlockedDecks] = useState(() => {
-    return JSON.parse(localStorage.getItem('kd_unlocked_decks') || '["starter_basit"]');
+    return JSON.parse(localStorage.getItem('kd_unlocked_decks') || '["starter_basit", "starter_sesli"]');
   });
+
+  // Auto-unlock decks matching unlocked achievements
+  useEffect(() => {
+    const unlockedAchIds = getUnlockedAchievementIds();
+    let updated = [...unlockedDecks];
+    let changed = false;
+
+    if (unlockedAchIds.includes('ACH_GOLD_100') && !updated.includes('starter_tyccar')) {
+      updated.push('starter_tyccar');
+      changed = true;
+    }
+    if (unlockedAchIds.includes('ACH_FIRST_7_LETTER') && !updated.includes('starter_nadir')) {
+      updated.push('starter_nadir');
+      changed = true;
+    }
+    if (unlockedAchIds.includes('ACH_COMBO_5') && !updated.includes('starter_erratic')) {
+      updated.push('starter_erratic');
+      changed = true;
+    }
+    if (unlockedAchIds.includes('ACH_STAGE_5') && !updated.includes('starter_thin')) {
+      updated.push('starter_thin');
+      changed = true;
+    }
+    if (unlockedAchIds.includes('ACH_BOSS_SLAYER') && !updated.includes('starter_elemental')) {
+      updated.push('starter_elemental');
+      changed = true;
+    }
+
+    if (changed) {
+      setUnlockedDecks(updated);
+      localStorage.setItem('kd_unlocked_decks', JSON.stringify(updated));
+    }
+  }, [unlockedDecks]);
 
   const [selectedDeckId, setSelectedDeckId] = useState('starter_basit');
   const [maxWordsInBattle, setMaxWordsInBattle] = useState(0);
@@ -193,8 +232,7 @@ export function useGameState() {
     });
   }, [gameState]);
 
-
-  // Combo Decay Timer Effect (Decreases combo if player doesn't make a move within 10s)
+  // Combo Decay Timer Effect (Decreases combo timer faster at higher combo levels)
   useEffect(() => {
     let interval;
     if (gameState === 'PLAYING' && combo > 1) {
@@ -202,9 +240,10 @@ export function useGameState() {
         setComboTimeLeft(prev => {
           if (prev <= 1) {
             soundEngine.playDeselect();
-            setCombo(c => Math.max(1, c - 1));
+            const nextCombo = Math.max(1, combo - 1);
+            setCombo(nextCombo);
             setFeedbackMessage('⚠️ Zaman doldu! Kombo düştü.');
-            return 10;
+            return getMaxComboTime(nextCombo);
           }
           return prev - 1;
         });
@@ -861,7 +900,7 @@ export function useGameState() {
     setGold(newGold);
     setHandsLeft(nextHands);
     setCombo(nextCombo);
-    setComboTimeLeft(10);
+    setComboTimeLeft(getMaxComboTime(nextCombo));
     setLastPlayedWord(breakdown.word);
 
     // Fetch TDK Word Meaning asynchronously
@@ -1059,7 +1098,7 @@ export function useGameState() {
     advanceAfterDraft(updated);
   };
 
-  const handleRemoveCardFromDeck = (cardId) => {
+  const handleDraftRemoveCard = (cardId) => {
     soundEngine.playDeleteSound();
     const updated = fullDeck.filter(c => c.id !== cardId);
     advanceAfterDraft(updated);
@@ -1091,11 +1130,7 @@ export function useGameState() {
 
   const handleShopRemoveCard = (cardId, cost) => {
     const effectiveCost = shopDiscountPercent > 0 ? Math.round(cost * (1 - shopDiscountPercent / 100)) : cost;
-    if (gold >= effectiveCost && fullDeck.length > 6) {
-      soundEngine.playDeleteSound();
-      setGold(prev => prev - effectiveCost);
-      setFullDeck(prev => prev.filter(c => c.id !== cardId));
-    }
+    return handleRemoveCardFromDeck(cardId, effectiveCost);
   };
 
   const handleShopBuyRelic = (relicId, cost) => {
@@ -1260,6 +1295,19 @@ export function useGameState() {
       setCurrentFloorIndex(prev => prev + 1);
       setGameState('MAP');
     }
+  };
+
+  const handleRemoveCardFromDeck = (cardId, cost = 0) => {
+    if (cost > 0 && gold < cost) return false;
+    if (fullDeck.length <= 6) {
+      setFeedbackMessage('⚠️ Deste boyutu en az 6 harf kartı olmalıdır!');
+      return false;
+    }
+    if (cost > 0) setGold(prev => prev - cost);
+    setFullDeck(prev => prev.filter(c => c.id !== cardId));
+    setFeedbackMessage('✂️ Harf kartı desteden kalıcı olarak silindi!');
+    try { soundEngine.playDeleteSound?.(); } catch(e) {}
+    return true;
   };
 
   const unlockDeck = (deckId) => {

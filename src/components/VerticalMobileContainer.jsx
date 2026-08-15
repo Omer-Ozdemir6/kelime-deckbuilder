@@ -36,9 +36,9 @@ export function VerticalMobileContainer({ children, activeBiome }) {
         style={{ background: activeBiome?.glowColor ? activeBiome.glowColor.replace('0.2', '0.06') : 'rgba(100,50,200,0.04)' }}
       />
 
-      {/* Fullscreen game container with dynamic glow shadow */}
+      {/* Fullscreen responsive game container with dynamic glow shadow */}
       <div
-        className="w-full h-[100svh] bg-slate-900 border-0 flex flex-col overflow-hidden relative z-10 transition-all duration-1000"
+        className="w-full max-w-full sm:max-w-xl md:max-w-2xl lg:max-w-3xl h-[100svh] sm:h-[96vh] bg-slate-900 border-0 sm:border-2 sm:border-slate-800/80 sm:rounded-3xl flex flex-col overflow-hidden relative z-10 transition-all duration-1000"
         style={{ boxShadow: frameBorderGlow }}
       >
         {/* Game view area */}

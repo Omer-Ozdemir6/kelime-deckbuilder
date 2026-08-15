@@ -36,12 +36,12 @@ export function RunicCardFrame({ rarity = 'common', active = false, className = 
     >
       {/* Outer border track */}
       <rect
-        x="2"
-        y="2"
-        width="96"
-        height="96"
-        rx="12"
-        ry="12"
+        x="2.5"
+        y="2.5"
+        width="95"
+        height="95"
+        rx="7"
+        ry="7"
         fill="none"
         stroke={strokeColor}
         strokeWidth="2"
@@ -49,22 +49,22 @@ export function RunicCardFrame({ rarity = 'common', active = false, className = 
         strokeDasharray={active ? '6,3' : 'none'}
       />
 
-      {/* Runic Corner Knot Accents using 0..100 percentage viewBox coordinates */}
+      {/* Runic Corner Knot Accents inset cleanly inside card border */}
       {/* Top Left */}
-      <path d="M 3 14 L 3 3 L 14 3" fill="none" stroke={cornerColor} strokeWidth="2.5" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-      <circle cx="3" cy="3" r="2" fill={cornerColor} vectorEffect="non-scaling-stroke" />
+      <path d="M 5 18 L 5 5 L 18 5" fill="none" stroke={cornerColor} strokeWidth="2.5" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+      <circle cx="5" cy="5" r="2.5" fill={cornerColor} vectorEffect="non-scaling-stroke" />
 
       {/* Top Right */}
-      <path d="M 86 3 L 97 3 L 97 14" fill="none" stroke={cornerColor} strokeWidth="2.5" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-      <circle cx="97" cy="3" r="2" fill={cornerColor} vectorEffect="non-scaling-stroke" />
+      <path d="M 82 5 L 95 5 L 95 18" fill="none" stroke={cornerColor} strokeWidth="2.5" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+      <circle cx="95" cy="5" r="2.5" fill={cornerColor} vectorEffect="non-scaling-stroke" />
 
       {/* Bottom Left */}
-      <path d="M 3 86 L 3 97 L 14 97" fill="none" stroke={cornerColor} strokeWidth="2.5" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-      <circle cx="3" cy="97" r="2" fill={cornerColor} vectorEffect="non-scaling-stroke" />
+      <path d="M 5 82 L 5 95 L 18 95" fill="none" stroke={cornerColor} strokeWidth="2.5" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+      <circle cx="5" cy="95" r="2.5" fill={cornerColor} vectorEffect="non-scaling-stroke" />
 
       {/* Bottom Right */}
-      <path d="M 86 97 L 97 97 L 97 86" fill="none" stroke={cornerColor} strokeWidth="2.5" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-      <circle cx="97" cy="97" r="2" fill={cornerColor} vectorEffect="non-scaling-stroke" />
+      <path d="M 82 95 L 95 95 L 95 82" fill="none" stroke={cornerColor} strokeWidth="2.5" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+      <circle cx="95" cy="95" r="2.5" fill={cornerColor} vectorEffect="non-scaling-stroke" />
     </svg>
   );
 }
