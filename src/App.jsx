@@ -27,6 +27,7 @@ import { JokerSelectorModal } from './components/JokerSelectorModal';
 import { ChallengeSelectModal } from './components/ChallengeSelectModal';
 import { SvgFilterDefs } from './components/SvgFilterDefs';
 import { LuminousScoreBreakdown } from './components/LuminousScoreBreakdown';
+import { SparkParticles } from './components/SparkParticles';
 import { useGameState } from './hooks/useGameState';
 import { checkMetaUnlocks } from './game/metaUnlocks';
 
@@ -124,10 +125,18 @@ export default function App() {
     }
   }, [gameState]);
 
+  const activeBackgroundBiome = (isSplashActive || gameState === 'START_MENU')
+    ? { id: 'BIOME_NORTHERN_LIGHTS' }
+    : activeBiome;
+
   return (
-    <VerticalMobileContainer activeBiome={activeBiome}>
-      <SvgFilterDefs />
-      <BalatroBackground stage={stage || gameStateObj.currentKademe || 1} />
+    <div className="relative min-h-screen w-full overflow-hidden bg-slate-950">
+      {/* GLOBAL BACKGROUND SHADER & VFX (Edge-to-edge full viewport on desktop) */}
+      <BalatroBackground activeBiome={activeBackgroundBiome} stage={stage || gameStateObj.currentKademe || 1} />
+      <SparkParticles />
+
+      <VerticalMobileContainer activeBiome={activeBiome}>
+        <SvgFilterDefs />
 
       {/* REAL-TIME UNLOCKED ACHIEVEMENT POPUP TOAST */}
       {gameStateObj.activeAchievementToast && (
@@ -404,5 +413,6 @@ export default function App() {
         />
       )}
     </VerticalMobileContainer>
+  </div>
   );
 }

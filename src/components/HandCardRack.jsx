@@ -7,6 +7,7 @@ import { soundEngine } from '../game/audioEngine';
 import { RunicCardFrame } from './RunicCardFrame';
 import { JokerCardIllustration } from './JokerCardIllustration';
 import { CardTooltipOverlay } from './CardTooltipOverlay';
+import { fireSparkBurst } from './SparkParticles';
 
 export function HandCardRack({
   handCards = [],
@@ -28,8 +29,12 @@ export function HandCardRack({
     return !!(card.isSpecial || card.type === 'joker' || card.seal || card.infusedType);
   };
 
-  const handleTileClick = (card) => {
+  const handleTileClick = (card, e) => {
     soundEngine.playTap();
+    if (e && e.clientX) {
+      const color = card.seal === 'POLYCHROME' ? '#f472b6' : (card.seal === 'FOIL' ? '#fbbf24' : '#f59e0b');
+      fireSparkBurst(e.clientX, e.clientY, color, 18);
+    }
     if (isSpecialOrSealedTile(card)) {
       setDetailModalCard(card);
     } else {
@@ -140,7 +145,7 @@ export function HandCardRack({
                   whileTap={{ scale: 0.92 }}
                   transition={{ duration: 0.18 }}
                   className={`w-11 sm:w-16 h-18 sm:h-26 shrink-0 rounded-2xl p-1 sm:p-1.5 flex flex-col items-center justify-between border cursor-pointer select-none relative shadow-2xl backdrop-blur-md overflow-visible ${cardBg}`}
-                  onClick={() => handleTileClick(card)}
+                  onClick={(e) => handleTileClick(card, e)}
                   onMouseEnter={(e) => {
                     setHoveredCard(card);
                     setHoveredTargetRect(e.currentTarget.getBoundingClientRect());

@@ -136,7 +136,7 @@ export function StartMenuModal({
   };
 
   return (
-    <div className="absolute inset-0 z-50 w-full h-full flex flex-col justify-between p-4 sm:p-6 select-none overflow-y-auto bg-slate-950">
+    <div className="absolute inset-0 z-50 w-full h-full flex flex-col justify-between p-4 sm:p-6 select-none overflow-y-auto bg-transparent backdrop-blur-[2px]">
       {/* Animated background grid */}
       <div className="absolute inset-0 opacity-10 pointer-events-none z-0"
         style={{

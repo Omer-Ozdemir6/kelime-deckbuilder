@@ -1144,7 +1144,7 @@ export function useGameState() {
 
   const handleLeaveShop = () => {
     const nextKademeNum = currentKademe + 1;
-    const nextKademe = generateKademe(nextKademeNum);
+    const nextKademe = generateKademe(nextKademeNum, kademeData?.biome?.id);
 
     setCurrentKademe(nextKademeNum);
     setKademeData(nextKademe);
@@ -1393,7 +1393,7 @@ export function useGameState() {
       return true;
     },
     goalNotice,
-    activeBiome,
+    activeBiome: activeBiome || kademeData?.biome,
     activeFloorModifier,
     boardSlotModifiers,
     wordTypeLevels,

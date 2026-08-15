@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
 import { soundEngine } from '../game/audioEngine';
+import { fireSparkBurst } from './SparkParticles';
 
 export function LuminousScoreBreakdown({ scoreBreakdown, onClose }) {
   const [visibleStepIndex, setVisibleStepIndex] = useState(-1);
@@ -21,8 +22,15 @@ export function LuminousScoreBreakdown({ scoreBreakdown, onClose }) {
       const timer = setTimeout(() => {
         setVisibleStepIndex(idx);
         try {
+          // Trigger spark bursts on each step pop
+          const color = step.type === 'TOTAL' ? '#fbbf24' : (step.type === 'XMULT' ? '#ec4899' : '#38bdf8');
+          fireSparkBurst(window.innerWidth / 2, window.innerHeight / 2, color, step.type === 'TOTAL' ? 32 : 16);
+
           if (step.type === 'TOTAL') {
             soundEngine.playVictory?.();
+            // Screen shake on total score
+            document.body.classList.add('animate-screen-shake');
+            setTimeout(() => document.body.classList.remove('animate-screen-shake'), 450);
           } else {
             soundEngine.playTileClick?.();
           }

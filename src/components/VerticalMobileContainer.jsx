@@ -21,7 +21,7 @@ export function VerticalMobileContainer({ children, activeBiome }) {
                           '0 0 60px rgba(0,0,0,0.9),0 0 20px rgba(6,182,212,0.15)';
 
   return (
-    <div className="min-h-screen bg-[#05070e] text-slate-100 flex items-center justify-center p-0 relative overflow-hidden transition-all duration-1000">
+    <div className="min-h-screen bg-transparent text-slate-100 flex items-center justify-center p-0 relative overflow-hidden transition-all duration-1000">
       {/* Background Ambient Glow Orbs - dynamic per biome */}
       <div
         className="fixed -top-32 -left-32 w-96 h-96 rounded-full blur-[120px] pointer-events-none transition-all duration-1000"
@@ -36,13 +36,10 @@ export function VerticalMobileContainer({ children, activeBiome }) {
         style={{ background: activeBiome?.glowColor ? activeBiome.glowColor.replace('0.2', '0.06') : 'rgba(100,50,200,0.04)' }}
       />
 
-      {/* Fullscreen responsive game container with dynamic glow shadow */}
-      <div
-        className="w-full max-w-full sm:max-w-xl md:max-w-2xl lg:max-w-3xl h-[100svh] sm:h-[96vh] bg-slate-900 border-0 sm:border-2 sm:border-slate-800/80 sm:rounded-3xl flex flex-col overflow-hidden relative z-10 transition-all duration-1000"
-        style={{ boxShadow: frameBorderGlow }}
-      >
+      {/* Fullscreen responsive game container without frame border */}
+      <div className="w-full max-w-full h-screen min-h-screen flex flex-col overflow-hidden relative z-10 bg-transparent border-0 shadow-none">
         {/* Game view area */}
-        <div className="flex-1 flex flex-col h-full relative overflow-hidden bg-gradient-to-b from-slate-950 via-[#0a0f1d] to-slate-950">
+        <div className="flex-1 flex flex-col h-full relative overflow-hidden bg-transparent">
           {children}
         </div>
       </div>

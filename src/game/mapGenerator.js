@@ -65,6 +65,18 @@ export const REGIONAL_BIOMES = [
   }
 ];
 
+export const FINAL_BOSS_BIOME = {
+  colIndex: 99,
+  id: 'BIOME_FINAL',
+  name: '👑 Kadim Mahzen (Final Boss Realm)',
+  icon: '👑',
+  themeClass: 'from-[#3b0712] via-slate-950 to-slate-950',
+  accentColor: 'text-rose-400',
+  borderColor: 'border-rose-500/80',
+  glowColor: 'rgba(244, 63, 94, 0.3)',
+  modifier: { id: 'FINAL_ZONE', name: '👑 Kadim Baskı', icon: '👑', desc: 'Final Boss Realm! Hedef skor %25 ekstra yüksektir.' }
+};
+
 export const TAG_DEFINITIONS = [
   {
     id: 'TAG_REDRAW',
@@ -124,25 +136,43 @@ export const TAG_DEFINITIONS = [
   }
 ];
 
-export const KADEME_BOSS_RULES = [
+// Easy Warmup Bosses for Kademes 1 & 2
+export const EASY_BOSS_RULES = [
   { id: 'BOSS_MIN_LEN_4', title: '📜 Söz Ustası (Min 4 Harf)', desc: '4 harften kısa kelimeler kabul edilmez!', minWordLength: 4 },
-  { id: 'BOSS_MIN_LEN_5', title: '🗿 Kadim Mühür (Min 5 Harf)', desc: 'En az 5 harfli kelimeler oynanmalı!', minWordLength: 5 },
   { id: 'BOSS_WATER', title: '🌊 Su Mühürü (Pahalı Iskarta)', desc: 'Iskarta (Yenileme) yapmak $2 Altın harcar!', minWordLength: 3, discardCost: 2 },
+  { id: 'BOSS_TOOTH', title: '🦷 Diş Mühürü (Kelime Başı $1)', desc: 'Oynanan her kelime $1 Altın harcar!', minWordLength: 3, costPerWord: 1 },
+  { id: 'BOSS_SERPENT', title: '🐍 Yılan Mühürü (Çekim Kısıtı)', desc: 'Tur başında elinize sadece 3 yeni harf çekilir!', minWordLength: 3, drawLimit: 3 },
+  { id: 'BOSS_AMULET', title: '🔮 Tılsım Mühürü (Kombo Sıfırlama)', desc: 'Her tur başında Kombo Çarpanınız x1\'e sıfırlanır!', minWordLength: 3 }
+];
+
+// Medium Tier Bosses for Kademes 3, 4 & 5
+export const MEDIUM_BOSS_RULES = [
   { id: 'BOSS_FLINT', title: '🔥 Çakmak Mühürü (Yarı Puan)', desc: 'Tüm kelimelerin taban puanı yarı yarıya düşer!', minWordLength: 3, halfChips: true },
   { id: 'BOSS_EYE', title: '👁️ Göz Mühürü (Uzunluk Tekrarı Yok)', desc: 'Aynı harf uzunluğunda kelime 2 kez üst üste oynanamaz!', minWordLength: 3, noSameLengthRepeat: true },
   { id: 'BOSS_ARM', title: '🦾 Karakalem (Rozetler İptal)', desc: 'Harflerin yükseltme seviyeleri (+1, +2, +3) devre dışı kalır!', minWordLength: 3, disableCardUpgrades: true },
-  { id: 'BOSS_OX', title: '🐂 Öküz Mühürü (Riskli Harf)', desc: 'İçinde "E" veya "A" geçen kelime oynanırsa Altınınız 0 olur!', minWordLength: 3, zeroGoldLetter: 'E' },
-  { id: 'BOSS_NEEDLE', title: '🗡️ İğne Mühürü (Tek Hamle)', desc: 'Sadece 1 kelime oynama hakkınız vardır!', minWordLength: 3, maxHands: 1 },
-  { id: 'BOSS_TOOTH', title: '🦷 Diş Mühürü (Kelime Başı $1)', desc: 'Oynanan her kelime $1 Altın harcar!', minWordLength: 3, costPerWord: 1 },
-  { id: 'BOSS_PLANT', title: '🌿 Sarmaşık (Sesliler Sessiz)', desc: 'Sesli harfler puan ve çarpan vermez!', minWordLength: 3, silentVowels: true },
-  { id: 'BOSS_SERPENT', title: '🐍 Yılan Mühürü (Çekim Kısıtı)', desc: 'Tur başında elinize sadece 3 yeni harf çekilir!', minWordLength: 3, drawLimit: 3 },
-  { id: 'BOSS_MARK', title: '🎭 Maske Mühürü (Gizli Harfler)', desc: 'Elinizdeki bazı harfler kapalı/gizli çekilir!', minWordLength: 3, faceDownCards: true },
-  { id: 'BOSS_PILLAR', title: '🏛️ Sütun Mühürü (Geçmiş Kartlar)', desc: 'Daha önce bu kademede oynanmış kartlar puan kazandırmaz!', minWordLength: 3 },
-  { id: 'BOSS_AMULET', title: '🔮 Tılsım Mühürü (Kombo Sıfırlama)', desc: 'Her tur başında Kombo Çarpanınız x1\'e sıfırlanır!', minWordLength: 3 },
-  { id: 'BOSS_FINAL', title: '👑 Kadim Kelime Mimarı (Final Boss)', desc: 'Final Boss! En az 5 harfli kelimeler kabul edilir!', minWordLength: 5 }
+  { id: 'BOSS_PLANT', title: '🌿 Sarmaşık (Sesliler Sessiz)', desc: 'Sesli harfler puan ve çarpan vermez!', minWordLength: 3, silentVowels: true }
 ];
 
-export function generateKademe(kademeNumber = 1) {
+// Hard Tier Bosses for Kademes 6 & 7
+export const HARD_BOSS_RULES = [
+  { id: 'BOSS_MIN_LEN_5', title: '🗿 Kadim Mühür (Min 5 Harf)', desc: 'En az 5 harfli kelimeler oynanmalı!', minWordLength: 5 },
+  { id: 'BOSS_OX', title: '🐂 Öküz Mühürü (Riskli Harf)', desc: 'İçinde "E" veya "A" geçen kelime oynanırsa Altınınız 0 olur!', minWordLength: 3, zeroGoldLetter: 'E' },
+  { id: 'BOSS_NEEDLE', title: '🗡️ İğne Mühürü (Tek Hamle)', desc: 'Sadece 1 kelime oynama hakkınız vardır!', minWordLength: 3, maxHands: 1 },
+  { id: 'BOSS_MARK', title: '🎭 Maske Mühürü (Gizli Harfler)', desc: 'Elinizdeki bazı harfler kapalı/gizli çekilir!', minWordLength: 3, faceDownCards: true },
+  { id: 'BOSS_PILLAR', title: '🏛️ Sütun Mühürü (Geçmiş Kartlar)', desc: 'Daha önce bu kademede oynanmış kartlar puan kazandırmaz!', minWordLength: 3 }
+];
+
+// Final Boss Rule for Kademe 8+
+export const FINAL_BOSS_RULE = { id: 'BOSS_FINAL', title: '👑 Kadim Kelime Mimarı (Final Boss)', desc: 'Final Boss! En az 5 harfli kelimeler kabul edilir!', minWordLength: 5 };
+
+export const KADEME_BOSS_RULES = [
+  ...EASY_BOSS_RULES,
+  ...MEDIUM_BOSS_RULES,
+  ...HARD_BOSS_RULES,
+  FINAL_BOSS_RULE
+];
+
+export function generateKademe(kademeNumber = 1, prevBiomeId = null) {
   const baseScale = Math.pow(1.85, kademeNumber - 1);
   const smallTarget = Math.round(75 * baseScale);
   const bigTarget = Math.round(140 * baseScale);
@@ -153,9 +183,19 @@ export function generateKademe(kademeNumber = 1) {
   const smallTag = shuffledTags[0];
   const bigTag = shuffledTags[1];
 
-  // Pick a fresh random Boss Blind rule for this Kademe
-  const randomBossRule = KADEME_BOSS_RULES[Math.floor(Math.random() * (KADEME_BOSS_RULES.length - 1))];
-  const bossRuleDef = kademeNumber >= 10 ? KADEME_BOSS_RULES[KADEME_BOSS_RULES.length - 1] : randomBossRule;
+  // Pick Boss Blind rule matched to Kademe difficulty tier
+  let bossPool = EASY_BOSS_RULES;
+  if (kademeNumber >= 8) {
+    bossPool = [FINAL_BOSS_RULE];
+  } else if (kademeNumber >= 6) {
+    bossPool = HARD_BOSS_RULES;
+  } else if (kademeNumber >= 3) {
+    bossPool = MEDIUM_BOSS_RULES;
+  } else {
+    bossPool = EASY_BOSS_RULES;
+  }
+
+  const bossRuleDef = bossPool[Math.floor(Math.random() * bossPool.length)];
 
   // Procedurally roll surprise stop:
   // 35% Event, 25% Trivia, 20% Challenge, 10% Treasure, 10% None
@@ -262,9 +302,17 @@ export function generateKademe(kademeNumber = 1) {
     status: 'LOCKED'
   });
 
-  // Assign Biome based on Kademe number
-  const biomeIndex = Math.min(kademeNumber - 1, REGIONAL_BIOMES.length - 1);
-  const biome = REGIONAL_BIOMES[biomeIndex] || REGIONAL_BIOMES[0];
+  // Assign Biome: Kademe 8+ is the fixed FINAL BOSS BIOME (Kadim Mahzen)!
+  // Kademes 1-7 pick procedurally random biomes each run.
+  let biome;
+  if (kademeNumber >= 8) {
+    biome = FINAL_BOSS_BIOME;
+  } else {
+    const targetPrevId = (typeof prevBiomeId !== 'undefined' && prevBiomeId) ? prevBiomeId : null;
+    const available = REGIONAL_BIOMES.filter(b => b && b.id !== targetPrevId);
+    const pool = available.length > 0 ? available : REGIONAL_BIOMES;
+    biome = pool[Math.floor(Math.random() * pool.length)];
+  }
 
   return {
     kademeNumber,

@@ -129,7 +129,7 @@ export function SplashScreen({ onStart }) {
   return (
     <div
       onClick={handleStartClick}
-      className="absolute inset-0 z-[500] w-full h-full bg-slate-950 flex flex-col items-center justify-between p-4 sm:p-8 select-none cursor-pointer overflow-hidden backdrop-blur-sm"
+      className="absolute inset-0 z-[500] w-full h-full bg-transparent flex flex-col items-center justify-between p-4 sm:p-8 select-none cursor-pointer overflow-hidden backdrop-blur-[2px]"
     >
       {/* Animated background grid */}
       <div className="absolute inset-0 opacity-10 pointer-events-none z-0"
