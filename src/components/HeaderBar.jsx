@@ -9,114 +9,65 @@ import { JokerCardIllustration } from './JokerCardIllustration';
 function ComboTimerBadge({ combo, comboTimeLeft }) {
   const maxTime = getMaxComboTime(combo);
   const timePercent = Math.max(0, Math.min(100, (comboTimeLeft / maxTime) * 100));
-  const strokeDashoffset = 100 - timePercent;
 
-  let strokeColor = '#f59e0b';
-  let glowColor = 'rgba(245, 158, 11, 0.7)';
-  let badgeStyle = 'bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-slate-950 font-black';
+  let badgeStyle = 'bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-slate-950';
+  let glowStyle = 'shadow-[0_0_20px_rgba(245,158,11,0.6)] border-amber-300';
   let label = `KOMBO ×${combo}`;
   let icon = <Flame size={15} className="fill-slate-950 text-slate-950" />;
 
   if (combo > 7) {
-    strokeColor = '#22d3ee';
-    glowColor = 'rgba(34, 211, 238, 0.85)';
-    badgeStyle = 'bg-gradient-to-r from-cyan-400 via-indigo-600 to-purple-700 text-white font-black';
+    badgeStyle = 'bg-gradient-to-r from-cyan-400 via-indigo-600 to-purple-700 text-white';
+    glowStyle = 'shadow-[0_0_25px_rgba(34,211,238,0.8)] border-cyan-300';
     label = `🌌 SUPERNOVA ×${combo}`;
     icon = <Sparkles size={16} className="fill-cyan-200 text-cyan-200 animate-spin" />;
   } else if (combo > 5) {
-    strokeColor = '#f43f5e';
-    glowColor = 'rgba(244, 63, 94, 0.85)';
-    badgeStyle = 'bg-gradient-to-r from-rose-600 via-red-600 to-orange-500 text-white font-black';
+    badgeStyle = 'bg-gradient-to-r from-rose-600 via-red-600 to-orange-500 text-white';
+    glowStyle = 'shadow-[0_0_25px_rgba(244,63,94,0.8)] border-rose-300';
     label = `🌋 VOLKANİK ÖFKE ×${combo}`;
     icon = <Flame size={16} className="fill-amber-300 text-amber-300 animate-pulse" />;
   } else if (combo > 3) {
-    strokeColor = '#f97316';
-    glowColor = 'rgba(249, 115, 22, 0.85)';
-    badgeStyle = 'bg-gradient-to-r from-red-600 via-orange-500 to-amber-400 text-slate-950 font-black';
+    badgeStyle = 'bg-gradient-to-r from-red-600 via-orange-500 to-amber-400 text-slate-950';
+    glowStyle = 'shadow-[0_0_20px_rgba(249,115,22,0.7)] border-amber-300';
     label = `🔥 ATEŞ FIRTINASI ×${combo}`;
     icon = <Flame size={16} className="fill-slate-950 text-amber-200 animate-pulse" />;
   }
 
   const isLowTime = comboTimeLeft <= 3;
-  if (isLowTime) {
-    strokeColor = '#ef4444';
-    glowColor = 'rgba(239, 68, 68, 0.95)';
-  }
 
   return (
-    <div className="relative inline-flex items-center p-[4px] shrink-0 select-none group">
-      {/* SURROUNDING PERIMETER TIMER SVG OVERLAY */}
-      <svg
-        className="absolute inset-0 w-full h-full pointer-events-none overflow-visible"
-        style={{ filter: `drop-shadow(0 0 8px ${glowColor})` }}
-        viewBox="0 0 100 100"
-        preserveAspectRatio="none"
-      >
-        {/* Background track border */}
-        <rect
-          x="2"
-          y="2"
-          width="96"
-          height="96"
-          rx="12"
-          ry="12"
-          fill="none"
-          stroke="rgba(15, 23, 42, 0.6)"
-          strokeWidth="3.5"
-          vectorEffect="non-scaling-stroke"
-        />
-        {/* Depleting perimeter progress line */}
-        <rect
-          x="2"
-          y="2"
-          width="96"
-          height="96"
-          rx="12"
-          ry="12"
-          fill="none"
-          stroke={strokeColor}
-          strokeWidth="3.5"
-          strokeLinecap="round"
-          vectorEffect="non-scaling-stroke"
-          pathLength="100"
-          strokeDasharray="100"
-          strokeDashoffset={strokeDashoffset}
-          style={{
-            transition: 'stroke-dashoffset 1s linear, stroke 0.3s ease'
-          }}
-        />
-      </svg>
+    <div className={`relative px-3 py-1 rounded-xl ${badgeStyle} ${glowStyle} border-2 text-xs font-black flex items-center gap-1.5 select-none shadow-lg overflow-hidden shrink-0 ${isLowTime ? 'animate-pulse' : ''}`}>
+      {/* Depleting progress background bar overlay */}
+      <div
+        className="absolute bottom-0 left-0 h-1 bg-white/70 transition-all duration-1000 ease-linear rounded-full"
+        style={{ width: `${timePercent}%` }}
+      />
 
-
-      {/* Inner Badge Pill (No text numbers!) */}
-      <div className={`px-3 py-1.5 rounded-xl ${badgeStyle} text-xs sm:text-sm flex items-center gap-1.5 shadow-md relative z-10 ${isLowTime ? 'animate-pulse' : ''}`}>
+      <span className="relative z-10 flex items-center gap-1.5">
         {icon}
-        <span className="tracking-wide uppercase font-black">{label}</span>
-      </div>
+        <span className="tracking-wide uppercase font-black font-cinzel">{label}</span>
+      </span>
     </div>
   );
 }
 
-
 function TargetScoreGauge({ progressPercent }) {
-
   const strokeDashoffset = 100 - progressPercent;
 
   return (
-    <div className="relative w-9 h-9 shrink-0 flex items-center justify-center select-none">
-      <svg className="w-full h-full transform -rotate-90 overflow-visible" style={{ filter: 'url(#runicGlowFilter)' }}>
+    <div className="relative w-8 h-8 shrink-0 flex items-center justify-center select-none">
+      <svg className="w-full h-full transform -rotate-90 overflow-visible">
         <circle
-          cx="18"
-          cy="18"
-          r="14"
+          cx="16"
+          cy="16"
+          r="12"
           fill="none"
           stroke="rgba(15, 23, 42, 0.9)"
           strokeWidth="3"
         />
         <circle
-          cx="18"
-          cy="18"
-          r="14"
+          cx="16"
+          cy="16"
+          r="12"
           fill="none"
           stroke="#10b981"
           strokeWidth="3.5"
@@ -134,18 +85,37 @@ function TargetScoreGauge({ progressPercent }) {
   );
 }
 
+function useAnimatedScore(targetScoreValue) {
+  const [displayScore, setDisplayScore] = useState(targetScoreValue);
+
+  useEffect(() => {
+    if (displayScore === targetScoreValue) return;
+    const diff = targetScoreValue - displayScore;
+    const step = Math.max(1, Math.ceil(Math.abs(diff) / 10));
+    const timer = setTimeout(() => {
+      setDisplayScore(prev => {
+        if (prev < targetScoreValue) return Math.min(targetScoreValue, prev + step);
+        return Math.max(targetScoreValue, prev - step);
+      });
+    }, 20);
+    return () => clearTimeout(timer);
+  }, [targetScoreValue, displayScore]);
+
+  return displayScore;
+}
+
 export function HeaderBar({
-  stage,
-  currentScore,
-  targetScore,
-  handsLeft,
-  discardsLeft,
+  stage = 1,
+  currentScore = 0,
+  targetScore = 100,
+  handsLeft = 4,
+  discardsLeft = 3,
   combo = 1,
-  comboTimeLeft = 10,
-  gold = 20,
+  comboTimeLeft = 100,
+  gold = 0,
   lives = 3,
   activeRelicKeys = [],
-  fullDeckCount,
+  fullDeckCount = 20,
   onOpenDeckInspector,
   onDiscardHand,
   onOpenMainMenu,
@@ -155,6 +125,7 @@ export function HeaderBar({
 }) {
   const [showMinusOne, setShowMinusOne] = useState(false);
   const prevHandsRef = useRef(handsLeft);
+  const animatedScore = useAnimatedScore(currentScore);
 
   useEffect(() => {
     if (handsLeft < prevHandsRef.current) {
@@ -169,59 +140,31 @@ export function HeaderBar({
   }, [handsLeft]);
 
   const safeTargetScore = (targetScore && !isNaN(targetScore) && Number(targetScore) > 0) ? Number(targetScore) : 100;
-  const rawPercent = Math.floor((currentScore / safeTargetScore) * 100);
+  const rawPercent = Math.floor((animatedScore / safeTargetScore) * 100);
   const progressPercent = Math.min(100, Math.max(0, isNaN(rawPercent) || !isFinite(rawPercent) ? 0 : rawPercent));
   const bossRule = getBossStageRule(stage);
 
   // Biome-driven accent glow
   const biomeGlowColor = activeBiome?.glowColor || 'rgba(245, 158, 11, 0.5)';
-  const biomeAccent = activeBiome?.accentColor || 'text-amber-400';
 
   return (
-    <header className="w-full bg-slate-950/85 border-b border-slate-800/80 p-2.5 sm:p-3 flex flex-col gap-2 z-10 shadow-2xl backdrop-blur-xl relative">
+    <header className="w-full bg-slate-950/90 border-b border-slate-800/80 p-2 sm:p-2.5 flex flex-col gap-2 z-10 shadow-2xl backdrop-blur-xl relative">
       {/* Top Ambient Glow Line */}
       <div
         className="absolute top-0 left-0 right-0 h-[2px] transition-all duration-1000"
         style={{ background: `linear-gradient(90deg, transparent, ${biomeGlowColor}, transparent)` }}
       />
 
-      {/* Top Main Bar: Dedicated Passive Joker Cards Area + Gold & Settings */}
-      <div className="flex items-center justify-between gap-2 z-20 relative flex-wrap sm:flex-nowrap">
-        {/* LEFT: PASİF JOKERLER AREA */}
-        <div className="flex items-center gap-1.5 overflow-x-auto py-1 px-2 scrollbar-none bg-purple-950/40 border border-purple-800/60 rounded-2xl shadow-inner flex-1 min-w-0">
-          <span className="text-[10px] uppercase font-black text-purple-300 tracking-wider shrink-0 flex items-center gap-1">
-            <Sparkles size={13} className="text-purple-400 animate-pulse" />
-            <span>PASİF JOKERLER ({activeRelicKeys.length}/5):</span>
-          </span>
-
-          {activeRelicKeys && activeRelicKeys.length > 0 ? (
-            activeRelicKeys.map(key => {
-              const item = PASSIVE_JOKERS[key] || RELICS[key];
-              if (!item) return null;
-              return (
-                <button
-                  key={key}
-                  onClick={() => onOpenRelicTooltip && onOpenRelicTooltip(key)}
-                  className="px-2.5 py-1 rounded-xl bg-gradient-to-b from-purple-900 via-indigo-950 to-slate-950 hover:from-purple-800 border-2 border-purple-400/70 hover:border-purple-300 text-purple-100 text-[11px] font-black shrink-0 flex items-center gap-1.5 shadow-lg transition cursor-pointer active:scale-95 group"
-                  title={`${item.name}: ${item.desc || item.description}`}
-                >
-                  <JokerCardIllustration cardId={key} className="w-5 h-5 group-hover:scale-125 transition-transform shrink-0" />
-                  <span className="truncate max-w-[110px]">{item.name}</span>
-                </button>
-              );
-            })
-          ) : (
-            <span className="text-[10px] text-slate-500 font-bold italic truncate">Pasif Joker Slotu Boş (Dükkândan yeni jokerler alabilirsiniz)</span>
-          )}
+      {/* TOP ROW: GOLD BADGE (LEFT), COMBO TIMER & SETTINGS GEAR (RIGHT) */}
+      <div className="w-full flex items-center justify-between gap-3 z-20 relative">
+        {/* GOLD COUNT BADGE IN TOP-LEFT */}
+        <div className="flex items-center gap-1.5 text-xs sm:text-sm font-extrabold text-amber-300 bg-slate-900/90 border border-amber-500/40 px-3 py-1 rounded-xl shadow-inner font-mono">
+          <Coins size={15} className="text-amber-400 fill-amber-400" />
+          <span>${gold}</span>
         </div>
 
-        {/* RIGHT: GOLD & SETTINGS GEAR */}
-        <div className="flex items-center gap-1.5 shrink-0">
-          <div className="flex items-center gap-1.5 text-xs font-extrabold text-amber-300 bg-slate-900/90 border border-amber-500/40 px-3 py-1 rounded-xl shadow-inner font-mono">
-            <Coins size={14} className="text-amber-400 fill-amber-400" />
-            <span>${gold}</span>
-          </div>
-
+        {/* RIGHT: COMBO BADGE & SETTINGS GEAR */}
+        <div className="flex items-center gap-2 shrink-0">
           {combo > 1 && (
             <ComboTimerBadge combo={combo} comboTimeLeft={comboTimeLeft} />
           )}
@@ -238,47 +181,66 @@ export function HeaderBar({
         </div>
       </div>
 
-      {/* Enhanced Target Score Progress Bar Section */}
-      <div className="w-full bg-slate-950/90 border-2 border-emerald-500/50 rounded-3xl p-3 space-y-2 shadow-[0_0_35px_rgba(16,185,129,0.25)] relative overflow-hidden">
-        <div className="flex items-center justify-between text-xs font-black">
-          <div className="flex items-center gap-2">
-            <TargetScoreGauge progressPercent={progressPercent} />
-            <span className="text-emerald-300 font-extrabold uppercase tracking-widest text-xs">
-              HEDEF PUAN:
-            </span>
-          </div>
-
-          <div className="flex items-baseline gap-1.5 bg-slate-900/90 border border-emerald-500/40 px-3 py-1 rounded-2xl shadow">
-            <span className="text-lg font-black text-emerald-300 font-mono tracking-wider">{currentScore}</span>
-            <span className="text-slate-400 text-xs font-extrabold">/ {safeTargetScore}</span>
-          </div>
+      {/* MIDDLE ROW: SLEEK 1-LINE TARGET SCORE & PROGRESS STRIP WITH SEQUENTIAL ANIMATED COUNT-UP */}
+      <div className="w-full bg-slate-950/90 border border-emerald-500/50 rounded-2xl px-3 py-1.5 flex items-center justify-between gap-3 shadow-lg z-20 relative">
+        {/* Left: Gauge + Target Text + Sequential Count-Up */}
+        <div className="flex items-center gap-2 shrink-0">
+          <TargetScoreGauge progressPercent={progressPercent} />
+          <span className="text-[11px] font-black text-emerald-300 font-cinzel">HEDEF:</span>
+          <span className="text-sm sm:text-base font-black text-emerald-300 font-mono tracking-wider">
+            {animatedScore} <span className="text-slate-500 text-xs font-bold">/ {safeTargetScore}</span>
+          </span>
         </div>
 
-        {/* Dynamic Glowing Progress Fill Bar */}
-        <div className="w-full h-4 sm:h-5 bg-slate-900 rounded-full overflow-hidden p-0.5 border-2 border-slate-800 relative shadow-inner">
+        {/* Center: Thin Progress Bar */}
+        <div className="flex-1 h-2 sm:h-2.5 bg-slate-900 rounded-full overflow-hidden p-0.5 border border-slate-800 relative shadow-inner">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 transition-all duration-700 shadow-[0_0_25px_rgba(16,185,129,0.9)] relative overflow-hidden"
+            className="h-full rounded-full bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 transition-all duration-300 shadow-[0_0_15px_rgba(16,185,129,0.8)]"
             style={{ width: `${progressPercent}%` }}
-          >
-            <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.45)_50%,transparent_100%)] animate-shimmer" />
-          </div>
+          />
         </div>
 
-        {/* Remaining Hands (Plays) Row */}
-        <div className="flex items-center justify-between text-xs font-bold text-slate-300 pt-0.5">
-          <div className="flex items-center gap-2">
-            <span className="text-slate-300 font-extrabold uppercase text-[11px] tracking-wider">HAMLE HAKKI:</span>
-            <span className="px-3 py-0.5 bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 rounded-xl font-black text-xs shadow-md border border-yellow-200 min-w-[32px] flex items-center justify-center">
-              {showMinusOne ? (
-                <span className="text-rose-950 animate-pulse font-mono font-black">-1</span>
-              ) : (
-                handsLeft
-              )}
-            </span>
-          </div>
+        {/* Right: Hamle Hakkı */}
+        <div className="flex items-center gap-1.5 shrink-0 text-xs font-bold">
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-300">HAMLE HAKKI:</span>
+          <span className="px-2.5 py-0.5 bg-amber-400 text-slate-950 rounded-lg font-black text-xs font-mono shadow border border-yellow-200 min-w-[28px] text-center">
+            {showMinusOne ? <span className="text-rose-950 font-black animate-pulse">-1</span> : handsLeft}
+          </span>
         </div>
       </div>
-    </header>
 
+      {/* BOTTOM ROW: ALL 5 PASSIVE JOKER SLOTS FIT ON SCREEN WITHOUT SCROLLING (NO LABEL TEXT) */}
+      <div className="w-full grid grid-cols-5 gap-1.5 sm:gap-2.5 p-1.5 bg-purple-950/40 border-2 border-purple-800/60 rounded-2xl shadow-inner z-20 relative">
+        {Array.from({ length: 5 }).map((_, slotIdx) => {
+          const relicKey = activeRelicKeys[slotIdx];
+          const item = relicKey ? (PASSIVE_JOKERS[relicKey] || RELICS[relicKey]) : null;
+
+          if (item) {
+            return (
+              <motion.button
+                key={`passive_slot_${relicKey}_${slotIdx}`}
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => onOpenRelicTooltip && onOpenRelicTooltip(relicKey)}
+                className="w-full py-1.5 px-1 rounded-xl bg-gradient-to-b from-purple-900 via-indigo-950 to-slate-950 border-2 border-purple-400/80 hover:border-purple-300 text-purple-100 text-[10px] sm:text-xs font-black flex flex-col sm:flex-row items-center justify-center gap-1 shadow-lg transition cursor-pointer group truncate"
+                title={`${item.name}: ${item.desc || item.description}`}
+              >
+                <JokerCardIllustration cardId={relicKey} className="w-5 h-5 sm:w-6 sm:h-6 group-hover:scale-110 transition-transform shrink-0 drop-shadow" />
+                <span className="truncate w-full text-center sm:text-left font-cinzel leading-tight">{item.name}</span>
+              </motion.button>
+            );
+          }
+
+          return (
+            <div
+              key={`passive_empty_slot_${slotIdx}`}
+              className="w-full h-10 sm:h-12 rounded-xl border-2 border-dashed border-purple-900/60 bg-slate-950/60 flex items-center justify-center text-[9px] sm:text-[10px] font-black text-purple-400/40 uppercase tracking-widest font-mono"
+            >
+              #{slotIdx + 1}
+            </div>
+          );
+        })}
+      </div>
+    </header>
   );
 }

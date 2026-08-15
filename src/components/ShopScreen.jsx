@@ -36,7 +36,7 @@ export function ShopScreen({
 }) {
   const MAX_DECK_SIZE = 30;
   const isDeckFull = fullDeck.length >= MAX_DECK_SIZE;
-  const [rerollCost, setRerollCost] = useState(10);
+  const [rerollCost, setRerollCost] = useState(5);
   const [activePackOpening, setActivePackOpening] = useState(null);
   const [isDeckTrimmingModalOpen, setIsDeckTrimmingModalOpen] = useState(false);
   const [soldSlots, setSoldSlots] = useState({

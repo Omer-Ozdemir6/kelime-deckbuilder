@@ -35,42 +35,28 @@ export function HandCardRack({
       const color = card.seal === 'POLYCHROME' ? '#f472b6' : (card.seal === 'FOIL' ? '#fbbf24' : '#f59e0b');
       fireSparkBurst(e.clientX, e.clientY, color, 18);
     }
-    if (isSpecialOrSealedTile(card)) {
+
+    // Only Special / Joker Tiles open the description & letter selector modal!
+    if (card.isSpecial || card.type === 'joker' || (card.letter && card.letter.length > 2)) {
       setDetailModalCard(card);
     } else {
+      // Normal letters are played directly & instantly with 0 popups!
       onSelectCard(card);
     }
   };
 
-  const handleConfirmPlaceOnBoard = (card) => {
+  const handleConfirmSpecialTile = (card) => {
     soundEngine.playTileClick();
     setDetailModalCard(null);
-    onSelectCard(card);
+    onSelectCard(card); // Triggers JokerSelectorModal for letter selection
   };
 
   return (
     <div className="w-full bg-slate-950/90 border-t-2 border-slate-800/90 p-2 sm:p-3 flex flex-col gap-1.5 shadow-2xl backdrop-blur-xl relative z-20 shrink-0 overflow-hidden">
-      {/* RACK HEADER & HARF BANKASI */}
-      <div className="flex items-center justify-between text-[11px] font-bold text-slate-300 px-1">
-        <span className="flex items-center gap-1.5 font-black text-amber-300">
-          <span className="text-base">🎴</span> Eldeki Harfler ({handCards.length}/9)
-        </span>
-
-        {/* Bank Indicator Badge */}
-        <div className="flex items-center gap-1.5 text-emerald-300 font-black text-[10px] bg-emerald-950/90 px-3 py-1 rounded-full border border-emerald-500/50 shadow-md">
-          <Landmark size={12} className="text-emerald-400 animate-pulse" />
-          <span>Harf Bankası ({bankCards.length}/{maxBankSlots})</span>
-        </div>
-      </div>
-
-      {/* HARF BANKASI ROW */}
-      <div className="w-full flex items-center justify-between gap-2 px-2 py-1 bg-emerald-950/30 border border-emerald-500/40 rounded-2xl shadow-inner">
-        <div className="flex items-center gap-1.5 text-[10px] text-emerald-300 font-extrabold shrink-0">
-          <Landmark size={14} className="text-emerald-400" />
-          <span className="hidden sm:inline">Bankadaki Harfler:</span>
-        </div>
-
-        <div className="flex items-center gap-2">
+      {/* CENTERED HARF BANKASI SLOTS (NO TITLE TEXTS) */}
+      <div className="w-full flex items-center justify-center gap-2.5 py-1 px-3 bg-emerald-950/30 border border-emerald-500/40 rounded-2xl shadow-inner">
+        <Landmark size={14} className="text-emerald-400 shrink-0" />
+        <div className="flex items-center gap-2 justify-center">
           {bankSlots.map((index) => {
             const card = bankCards[index];
             if (card) {
@@ -79,7 +65,7 @@ export function HandCardRack({
                   key={`bank_slot_${card.id}`}
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  className="flex items-center gap-1.5 bg-gradient-to-b from-amber-400 to-yellow-500 text-slate-950 rounded-xl px-2.5 py-1 shadow-lg border border-yellow-200"
+                  className="flex items-center gap-1.5 bg-gradient-to-b from-amber-400 to-yellow-500 text-slate-950 rounded-xl px-3 py-1 shadow-lg border border-yellow-200"
                 >
                   <button
                     onClick={() => onSelectBankCard && onSelectBankCard(card)}
@@ -103,7 +89,7 @@ export function HandCardRack({
             return (
               <div
                 key={`empty_bank_${index}`}
-                className="px-3 py-0.5 rounded-xl border border-dashed border-emerald-700/60 bg-slate-950/60 text-[10px] font-bold text-emerald-500/80 italic flex items-center gap-1"
+                className="px-3.5 py-1 rounded-xl border border-dashed border-emerald-700/60 bg-slate-950/60 text-[10px] font-mono font-bold text-emerald-400/80 italic flex items-center gap-1"
               >
                 <span>Slot #{index + 1} Boş</span>
               </div>
@@ -119,8 +105,6 @@ export function HandCardRack({
             <div className="text-xs text-slate-500 font-semibold py-3 italic">El boş! Harf çekin veya bankadan kullanın.</div>
           ) : (
             handCards.map((card, idx) => {
-              const isSpecialOrSealed = isSpecialOrSealedTile(card);
-
               // Distinct Balatro Card Styling per Rarity & Seal
               let cardBg = 'bg-gradient-to-b from-slate-800 via-slate-900 to-slate-950 border-slate-700 text-slate-100 shadow-slate-900/50';
               if (card.isSpecial || card.type === 'joker') {
@@ -136,7 +120,6 @@ export function HandCardRack({
               else if (card.seal === 'RED_SEAL') cardBg = 'bg-gradient-to-b from-rose-600 via-red-700 to-slate-950 border-2 border-rose-400 text-rose-100 shadow-[0_0_25px_rgba(244,63,94,0.8)]';
 
               const canBank = bankCards.length < maxBankSlots && !card.isSpecial;
-              const isHovered = hoveredCard?.id === card.id;
 
               return (
                 <motion.div
@@ -146,18 +129,7 @@ export function HandCardRack({
                   transition={{ duration: 0.18 }}
                   className={`w-11 sm:w-16 h-18 sm:h-26 shrink-0 rounded-2xl p-1 sm:p-1.5 flex flex-col items-center justify-between border cursor-pointer select-none relative shadow-2xl backdrop-blur-md overflow-visible ${cardBg}`}
                   onClick={(e) => handleTileClick(card, e)}
-                  onMouseEnter={(e) => {
-                    setHoveredCard(card);
-                    setHoveredTargetRect(e.currentTarget.getBoundingClientRect());
-                  }}
-                  onMouseLeave={() => {
-                    setHoveredCard(null);
-                    setHoveredTargetRect(null);
-                  }}
                 >
-                  {isHovered && <CardTooltipOverlay card={card} targetRect={hoveredTargetRect} />}
-
-
                   <RunicCardFrame
                     rarity={card.isSpecial ? 'joker' : (card.rarity === 'efsanevi' ? 'legendary' : (card.rarity === 'nadir' ? 'rare' : 'common'))}
                   />
@@ -211,7 +183,7 @@ export function HandCardRack({
         </AnimatePresence>
       </div>
 
-      {/* DETAIL MODAL */}
+      {/* SPECIAL JOKER DESCRIPTION & LETTER SELECTION LAUNCH MODAL */}
       {typeof document !== 'undefined' && createPortal(
         <AnimatePresence>
           {detailModalCard && (() => {
@@ -222,8 +194,8 @@ export function HandCardRack({
             ) || 'JOKER';
             const spec = SPECIAL_CARDS[specKey] || SPECIAL_CARDS.JOKER;
 
-            const cardTitle = detailModalCard.name || spec.name || 'Joker Harf';
-            const cardDesc = detailModalCard.desc || spec.desc || 'Kelimeyi tamamlayan en uygun harfe dönüşür.';
+            const cardTitle = detailModalCard.name || spec.name || 'Joker Harf Taşı';
+            const cardDesc = detailModalCard.desc || spec.desc || 'Kelimeyi tamamlayan en uygun Türkçe harfe dönüşür.';
 
             return (
               <div className="fixed inset-0 z-[9999] bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 select-none">
@@ -235,9 +207,9 @@ export function HandCardRack({
                 >
                   <div className="flex items-center justify-between border-b border-slate-800 pb-2">
                     <span className="px-2.5 py-0.5 rounded-full bg-purple-950 text-purple-300 text-[10px] font-black uppercase tracking-wider border border-purple-500/50">
-                      {detailModalCard.isSpecial ? 'ÖZEL JOKER TAŞI' : 'MÜHÜRLÜ HARF TAŞI'}
+                      🃏 ÖZEL JOKER TAŞI
                     </span>
-                    <button onClick={() => setDetailModalCard(null)} className="p-1 rounded-full bg-slate-800 text-slate-300 hover:bg-slate-700">
+                    <button onClick={() => setDetailModalCard(null)} className="p-1 rounded-full bg-slate-800 text-slate-300 hover:bg-slate-700 cursor-pointer">
                       <X size={16} />
                     </button>
                   </div>
@@ -262,9 +234,9 @@ export function HandCardRack({
                     <button onClick={() => setDetailModalCard(null)} className="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs cursor-pointer">
                       KAPAT
                     </button>
-                    <button onClick={() => handleConfirmPlaceOnBoard(detailModalCard)} className="flex-2 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-black text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-amber-950/50 cursor-pointer">
-                      <Check size={16} />
-                      <span>TAHTAYA YERLEŞTİR</span>
+                    <button onClick={() => handleConfirmSpecialTile(detailModalCard)} className="flex-2 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-black text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-amber-950/50 cursor-pointer">
+                      <Sparkles size={16} />
+                      <span>HARF SEÇ & OYNA</span>
                     </button>
                   </div>
                 </motion.div>

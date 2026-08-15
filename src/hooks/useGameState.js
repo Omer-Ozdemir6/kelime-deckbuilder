@@ -39,7 +39,7 @@ export function useGameState() {
   });
 
   const [unlockedDecks, setUnlockedDecks] = useState(() => {
-    return JSON.parse(localStorage.getItem('kd_unlocked_decks') || '["starter_basit", "starter_sesli"]');
+    return JSON.parse(localStorage.getItem('kd_unlocked_decks') || '["starter_basit"]');
   });
 
   // Auto-unlock decks matching unlocked achievements
@@ -91,14 +91,14 @@ export function useGameState() {
   const [mapFloors, setMapFloors] = useState([]);
   const [currentFloorIndex, setCurrentFloorIndex] = useState(0);
   const [activeNodeId, setActiveNodeId] = useState(null);
-  const [gold, setGold] = useState(20);
+  const [gold, setGold] = useState(25);
   const [lives, setLives] = useState(3); // ♥ ♥ ♥ Lives
   const [activeRelicKeys, setActiveRelicKeys] = useState([]);
 
   const [stage, setStage] = useState(1);
   const [currentScore, setCurrentScore] = useState(0);
   const [targetScore, setTargetScore] = useState(50);
-  const [handsLeft, setHandsLeft] = useState(6);
+  const [handsLeft, setHandsLeft] = useState(4);
   const [discardsLeft, setDiscardsLeft] = useState(3);
   const [combo, setCombo] = useState(1);
   const [comboTimeLeft, setComboTimeLeft] = useState(10);
@@ -119,7 +119,7 @@ export function useGameState() {
     maxWordLength: 0,
     maxCombo: 1,
     maxSingleWordScore: 0,
-    totalGoldEarned: 20,
+    totalGoldEarned: 25,
     maxStage: 1,
     totalWordsPlayed: 0,
     challengeScore: 0,
@@ -138,12 +138,14 @@ export function useGameState() {
         totalGoldEarned: Math.max(prev.totalGoldEarned, statsUpdate.totalGoldEarned || prev.totalGoldEarned),
         maxStage: Math.max(prev.maxStage, statsUpdate.maxStage || prev.maxStage),
         totalWordsPlayed: prev.totalWordsPlayed + (statsUpdate.playedWordIncrement || 0),
+        challengeScore: (prev.challengeScore || 0) + (statsUpdate.challengeScoreIncrement || 0),
         triviaWins: prev.triviaWins + (statsUpdate.triviaWinsIncrement || 0),
         activeJokersCount: statsUpdate.activeJokersCount !== undefined ? statsUpdate.activeJokersCount : prev.activeJokersCount
       };
 
       const newlyUnlocked = checkNewAchievements(updated);
-      if (newlyUnlocked.length > 0) {
+      if (newlyUnlocked && newlyUnlocked.length > 0) {
+        setRunUnlockedAchievements(prevUnlocks => [...prevUnlocks, ...newlyUnlocked]);
         soundEngine.playVictory();
         try { confetti({ particleCount: 85, spread: 90, origin: { y: 0.5 } }); } catch(e) {}
         newlyUnlocked.forEach(ach => {
@@ -406,15 +408,12 @@ export function useGameState() {
     const secretTriggers = ['GİZEM', 'SİHRİ', 'ALTIN', 'KADER', 'EFSANE', 'BİLGİ', 'EVRİM', 'YILDIZ'];
     const pickedSecret = secretTriggers[Math.floor(Math.random() * secretTriggers.length)];
 
+    const startingGold = starter.bonusGold || 4;
+
     setCurrentKademe(1);
     setKademeData(initialKademe);
     setCurrentBlindIndex(0);
-
-    if (starter.bonusGold) {
-      setGold(20 + starter.bonusGold);
-    } else {
-      setGold(20);
-    }
+    setGold(startingGold);
 
     // Auto-discover starting deck letters and biome in Codex
     initialCards.forEach(c => {
@@ -424,12 +423,11 @@ export function useGameState() {
     if (initialKademe?.biome?.id) discoverCodexItem(initialKademe.biome.id);
     setActiveTags([]);
     setGuaranteedRareCard(false);
-    setShopDiscountPercent(0);
+    setShopDiscountPercent(starter.id === 'starter_tyccar' ? 25 : 0);
     setExtraDiscardsNextStage(0);
 
     setMapFloors([initialKademe]);
     setCurrentFloorIndex(0);
-    setGold(15);
     setLives(3);
     setActiveRelicKeys([]);
     setFullDeck(initialCards);

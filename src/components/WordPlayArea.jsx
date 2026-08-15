@@ -113,23 +113,26 @@ export function WordPlayArea({
       {/* Played Words History Bar & Modal Toggle */}
       <div className="w-full flex items-center justify-between gap-2 px-1 mb-1">
         {playedWordsThisStage.length > 0 ? (
-          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none py-1">
-            <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest shrink-0 flex items-center gap-1">
-              <History size={12} className="text-amber-400" />
+          <div className="flex items-center gap-2 overflow-x-auto scrollbar-none py-1">
+            <span className="text-xs font-black text-yellow-300 uppercase tracking-widest shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-950/90 border border-amber-400/80 shadow-[0_0_15px_rgba(245,158,11,0.4)] font-mono">
+              <History size={14} className="text-yellow-400 animate-pulse" />
               <span>OYNANANLAR ({playedWordsThisStage.length}):</span>
             </span>
             {playedWordsThisStage.map((w, idx) => (
               <button
                 key={idx}
                 onClick={() => onOpenMeaningModal && onOpenMeaningModal(w)}
-                className="px-2.5 py-0.5 rounded-full bg-slate-900/90 border border-amber-500/40 text-amber-300 text-[11px] font-mono font-bold hover:bg-slate-800 transition shrink-0 cursor-pointer shadow"
+                className="px-3 py-1 rounded-xl bg-gradient-to-r from-amber-500/20 to-yellow-600/20 border border-amber-400/70 text-amber-200 text-xs font-mono font-black hover:bg-amber-500/40 transition shrink-0 cursor-pointer shadow-md"
               >
                 {w}
               </button>
             ))}
           </div>
         ) : (
-          <span className="text-[11px] text-slate-300 font-semibold italic">Henüz kelime yazılmadı</span>
+          <span className="text-xs text-amber-200/90 font-extrabold px-3.5 py-1 rounded-xl bg-slate-900/90 border border-amber-500/40 shadow-inner flex items-center gap-1.5">
+            <Sparkles size={13} className="text-amber-400 animate-pulse" />
+            <span>Henüz kelime yazılmadı</span>
+          </span>
         )}
 
         {playedWordsThisStage.length > 0 && (
@@ -237,20 +240,10 @@ export function WordPlayArea({
                   exit={{ scale: 0.7, opacity: 0, y: -12 }}
                   whileTap={{ scale: 0.93 }}
                   onClick={() => onUnselectCard(slotIdx)}
-                  onMouseEnter={(e) => {
-                    setHoveredSlotCard(card);
-                    setHoveredSlotTargetRect(e.currentTarget.getBoundingClientRect());
-                  }}
-                  onMouseLeave={() => {
-                    setHoveredSlotCard(null);
-                    setHoveredSlotTargetRect(null);
-                  }}
                   className={`w-10 sm:w-14 md:w-16 h-15 sm:h-20 md:h-24 rounded-2xl flex flex-col items-center justify-between p-1 transition-all relative cursor-pointer select-none shrink-0 overflow-visible shadow-2xl ${tileClass} ${
                     modCfg ? `ring-2 sm:ring-4 ${modCfg.border}` : ''
                   }`}
                 >
-                  {isHovered && <CardTooltipOverlay card={card} targetRect={hoveredSlotTargetRect} />}
-
                   <RunicCardFrame
                     rarity={card.isSpecial ? 'joker' : (card.rarity === 'efsanevi' ? 'legendary' : (card.rarity === 'nadir' ? 'rare' : 'common'))}
                     active={true}
